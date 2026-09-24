@@ -438,6 +438,27 @@
   /* 真题复用角标 */
   .dupbadge{display:inline-flex;align-items:center;gap:4px;margin:8px 0 0;padding:3px 10px;border-radius:999px;
     font-size:11px;font-weight:800;color:#ffd166;background:rgba(255,209,102,.12);border:1px solid rgba(255,209,102,.45)}
+/* ============ Phase1 视觉大改版（二次元气泡对话 + 背景 + 主题精修）============ */
+#bgLayer{position:fixed;top:0;right:0;bottom:0;left:0;z-index:-2;overflow:hidden;background:#0c0814}
+#bgLayer .bgimg{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;object-fit:cover;object-position:50% 12%;opacity:.24;filter:blur(2px) saturate(1.18) brightness(.72);transform:scale(1.06)}
+#bgLayer .bgtint{position:absolute;top:0;right:0;bottom:0;left:0;background:radial-gradient(900px 620px at 72% 4%, #5ee0f040, transparent 62%);mix-blend-mode:screen;transition:background .5s}
+#bgLayer .bgaurora{position:absolute;top:-20%;right:-20%;bottom:-20%;left:-20%;background:conic-gradient(from 0deg at 50% 40%, #ff8ad133, #5ee0f033, #b794ff33, #ffd16622, #ff8ad133);filter:blur(70px);opacity:.5;animation:aurora 22s linear infinite}
+#bgLayer .bggrain{position:absolute;top:0;right:0;bottom:0;left:0;background:linear-gradient(180deg, rgba(12,8,20,.35) 0%, rgba(12,8,20,.82) 55%, rgba(12,8,20,.94) 100%)}
+@keyframes aurora{to{transform:rotate(360deg)}}
+.chat{display:flex;flex-direction:column;gap:11px;margin-bottom:4px}
+.chat-q{display:flex;gap:9px;align-items:flex-end;animation:pop .32s ease}
+.chat-q .chat-av{width:42px;height:42px;border-radius:13px;object-fit:cover;object-position:50% 14%;flex:0 0 auto;border:1px solid rgba(255,255,255,.16);box-shadow:0 4px 14px rgba(0,0,0,.45)}
+.chat-q .qbubble{max-width:85%;animation:pop .32s ease .04s both}
+.chat-replies{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.chat-replies .opt{width:auto;max-width:88%;align-self:flex-end;text-align:left;margin-bottom:0;border-radius:16px 16px 4px 16px;
+  background:linear-gradient(135deg, color-mix(in srgb, var(--acc) 24%, var(--panel)), var(--panel));
+  border-color:color-mix(in srgb, var(--acc) 42%, var(--line));box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.chat-replies .opt .k{background:color-mix(in srgb, var(--acc) 34%, var(--panel2))}
+.chat-replies .selfbtn{align-self:flex-end}
+@keyframes pop{from{opacity:0;transform:translateY(9px) scale(.98)}to{opacity:1;transform:none}}
+.coachline{border-radius:16px 16px 16px 4px}
+.card{background:linear-gradient(180deg,rgba(28,20,48,.72),rgba(20,13,34,.72));backdrop-filter:blur(9px)}
+.btn{box-shadow:0 7px 20px rgba(255,138,209,.22)}
 </style>
 </head>
 <body>
@@ -448,6 +469,7 @@
   </div>
 </div>
 <noscript><style>#bootMask{display:none !important}</style></noscript>
+<div id="bgLayer"><img id="bgImg" class="bgimg" src="assets/xue.jpg" onerror="this.style.display='none'"><div id="bgTint" class="bgtint"></div><div class="bgaurora"></div><div class="bggrain"></div></div>
 <div class="app">
 
   <div class="topbar">
@@ -1714,6 +1736,14 @@ function subjProgress(sid){
   return t ? Math.round(c / t * 100) : 0;
 }
 function setAccent(){ document.documentElement.style.setProperty('--acc', SUBJ_ACC[FILTER.subj] || '#ff8ad1'); }
+/* Phase1：二次元背景层 —— 用当前角色立绘做氛围背景（复用现有 assets/*.jpg） */
+const SUBJ_MATE = {math:'luo', pol:'xue', eng:'ziyuan'};
+function setBg(mateId){
+  const m = getMate(mateId) || getMate('xue');
+  const bg = document.getElementById('bgImg'), tint = document.getElementById('bgTint');
+  if(bg) bg.src = m.img;
+  if(tint) tint.style.background = 'radial-gradient(900px 620px at 72% 4%, ' + (m.c || '#5ee0f0') + '40, transparent 62%)';
+}
 function renderInvite(){
   const box = document.getElementById('inviteWrap'); if(!box) return;
   const hot = roiAll();
@@ -1793,6 +1823,7 @@ function go(t){
   const sec = document.getElementById(t); if(sec) sec.classList.add('active');
   document.querySelectorAll('.nav button').forEach(b => b.classList.toggle('on', b.dataset.t === t));
   window.scrollTo(0, 0);
+  setBg(SUBJ_MATE[FILTER.subj] || 'xue');
   if(t === 's-home') renderHome();
   else if(t === 's-mates') renderMates();
   else if(t === 's-msg') renderMsg();
@@ -2210,42 +2241,52 @@ function renderDrill(){
   const q = d.list[d.i], mo = modById(q.m), mate = getMate(MOD2MATE[q.m]);
   d.help = 0;
   body.innerHTML = '';
+  setBg(MOD2MATE[q.m]);
   const head = document.createElement('div'); head.className = 'qbar';
   head.innerHTML = `<span>${d.weakPaper ? '🎯特训卷' : (d.isWrong ? '🔁错题' : (d.label || (mo ? mo.name : '')))}</span><div class="prog"><i style="width:${Math.round(d.i / d.list.length * 100)}%"></i></div><span>${d.i+1}/${d.list.length}</span>`;
   body.appendChild(head);
+  const chat = document.createElement('div'); chat.className = 'chat';
   if(DUP_REAL[q.id]){
     const db = document.createElement('div');
     db.innerHTML = `<span class="dupbadge">🔁 原题 · ${DUP_REAL[q.id]} 真题</span>`;
-    body.appendChild(db);
+    chat.appendChild(db);
   }
   if(st.combo >= 3){
     const cb = document.createElement('div');
     cb.innerHTML = `<span class="combobadge">${st.combo >= 8 ? '🔥🔥 火力全开 x' : '🔥 连击 x'}${st.combo}${st.combo >= 5 ? ' · 好感加成' : ''}</span>`;
-    body.appendChild(cb);
+    chat.appendChild(cb);
   }
-  const pb = passageBox(q); if(pb) body.appendChild(pb);
-  const qt = document.createElement('div'); qt.className = 'qtext'; qt.textContent = q.q;
-  body.appendChild(qt);
+  const pb = passageBox(q); if(pb) chat.appendChild(pb);
+  const qb = document.createElement('div'); qb.className = 'chat-q';
+  const av = document.createElement('img'); av.className = 'chat-av'; av.src = mate.img; av.onerror = () => av.style.display = 'none';
+  const bub = document.createElement('div'); bub.className = 'bubble qbubble';
+  const qt = document.createElement('div'); qt.className = 'qtext'; qt.textContent = q.q; bub.appendChild(qt);
+  qb.appendChild(av); qb.appendChild(bub); chat.appendChild(qb);
   if(q.t === 'choice'){
+    const replies = document.createElement('div'); replies.className = 'chat-replies';
     q.o.forEach((o, k) => {
-      const op = document.createElement('div'); op.className = 'opt';
+      const op = document.createElement('div'); op.className = 'opt chat-opt';
       op.innerHTML = `<div class="k">${String.fromCharCode(65 + k)}</div><div>${o}</div>`;
-      op.onclick = () => submitDrill(k, op); body.appendChild(op);
+      op.onclick = () => submitDrill(k, op); replies.appendChild(op);
     });
     if(affLv(st.aff[MOD2MATE[q.m]] || 0) >= 3 && !d.used5050){
-      const b50 = document.createElement('button'); b50.className = 'btn ghost sm mt10';
+      const b50 = document.createElement('button'); b50.className = 'btn ghost sm selfbtn';
       b50.textContent = '🔍 ' + mate.name + '的「排除法」（本轮 1 次）';
       b50.onclick = () => use5050(q);
-      body.appendChild(b50);
+      replies.appendChild(b50);
     }
+    chat.appendChild(replies);
   } else {
+    const replies = document.createElement('div'); replies.className = 'chat-replies';
     const fw = document.createElement('div'); fw.className = 'fillwrap';
     fw.innerHTML = '<input id="fillInput" placeholder="输入答案，如 3 / e²" autocomplete="off">';
-    body.appendChild(fw);
-    const btn = document.createElement('button'); btn.className = 'btn magenta mt10'; btn.textContent = '提交';
+    replies.appendChild(fw);
+    const btn = document.createElement('button'); btn.className = 'btn magenta mt10 selfbtn'; btn.textContent = '提交';
     btn.onclick = () => { const v = document.getElementById('fillInput').value.trim(); if(v === ''){ toast('先写个答案嘛'); return; } submitFill(v); };
-    body.appendChild(btn);
+    replies.appendChild(btn);
+    chat.appendChild(replies);
   }
+  body.appendChild(chat);
   const hb = document.createElement('button'); hb.className = 'btn ghost sm mt10 helpbtn'; hb.id = 'helpBtn';
   hb.textContent = '💞 看不懂？求助 ' + mate.name + '（逐层提示）';
   hb.onclick = () => askHelp(q);
