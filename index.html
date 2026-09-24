@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>心动成考 · 乙女陪练</title>
 <script type="module" src="vendor/model-viewer.min.js"></script>
+<script type="module">
+  // Draco 解码器本地化（离线干净）：指向 vendor/draco/，不走 gstatic CDN
+  import { ModelViewerElement } from './vendor/model-viewer.min.js';
+  ModelViewerElement.dracoDecoderLocation = './vendor/draco/';
+</script>
 <style>
   :root{
     --bg:#0c0814; --bg2:#140d22; --panel:#1c1430; --panel2:#251a3f; --line:#3a2a5e;
