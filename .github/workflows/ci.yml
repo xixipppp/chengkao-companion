@@ -1,0 +1,47 @@
+name: Regression Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Playwright (chromium)
+        run: |
+          npm install playwright
+          npx playwright install --with-deps chromium
+
+      - name: Start static servers + run regression tests
+        run: |
+          python3 -m http.server 8900 >/dev/null 2>&1 &
+          python3 -m http.server 8899 >/dev/null 2>&1 &
+          sleep 3
+          curl -s -o /dev/null -w "server 8900: %{http_code}\n" http://127.0.0.1:8900/index.html
+          curl -s -o /dev/null -w "server 8899: %{http_code}\n" http://127.0.0.1:8899/index.html
+
+          fail=0
+          for t in offline_test audit_fix_test conv_test games_test gap2_test legacy_fix_test perf_test; do
+            echo "=== $t ==="
+            node "tests/$t.js" && echo "$t PASS ✅" || { echo "$t FAIL ❌"; fail=1; }
+          done
+
+          kill %1 %2 2>/dev/null
+          exit $fail
