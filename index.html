@@ -459,6 +459,44 @@
 .coachline{border-radius:16px 16px 16px 4px}
 .card{background:linear-gradient(180deg,rgba(28,20,48,.72),rgba(20,13,34,.72));backdrop-filter:blur(9px)}
 .btn{box-shadow:0 7px 20px rgba(255,138,209,.22)}
+/* ============ Phase2 · 知识世界树 ============ */
+.tree-svg{width:100%;height:auto;display:block;margin:4px 0 2px;overflow:visible}
+.tree-node{cursor:pointer;transition:transform .18s ease}
+.tree-node:active{transform:scale(.95)}
+.tree-node .ring{fill:none;stroke-width:3;stroke-linecap:round}
+.tree-node text.nico{font-size:15px;font-weight:800;text-anchor:middle;dominant-baseline:central;font-family:inherit}
+.tree-node text.nname{font-size:8.6px;text-anchor:middle;fill:#e9dfff}
+.tree-node text.npct{font-size:8.4px;text-anchor:middle;font-weight:800}
+.tree-sel{transition:opacity .2s}
+.branchline{fill:none;stroke-width:6;stroke-linecap:round;opacity:.42}
+.branchline.thin{stroke-width:3;opacity:.3}
+.tree-legend{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px}
+.tree-legend .lg{font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--sub)}
+.tree-legend .lg i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.treedet .dh{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.treedet .dic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:19px;font-weight:800;flex:0 0 auto}
+.treedet .dname{font-weight:900;font-size:15px}
+.treedet .dsub{font-size:11px;color:var(--sub);margin-top:2px}
+.treedet .dstat{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+.treedet .dstat span{font-size:11px;font-weight:800;padding:4px 10px;border-radius:999px;background:var(--panel2);border:1px solid var(--line)}
+/* ============ Phase2 · 自动笔记 ============ */
+.mbar{height:8px;border-radius:999px;background:rgba(255,255,255,.09);overflow:hidden;margin:7px 0 2px}
+.mbar i{display:block;height:100%;border-radius:999px;transition:width .5s ease}
+.mn-top{display:flex;gap:9px;align-items:center}
+.mn-top .ic{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:20px;font-weight:800;flex:0 0 auto}
+.mn-sec{margin-top:11px;border-top:1px dashed var(--line);padding-top:10px}
+.mn-sec>.h{font-size:11.5px;font-weight:900;letter-spacing:.6px;color:var(--gold);margin-bottom:7px}
+.mn-item{margin-bottom:8px;padding:9px 11px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid var(--line)}
+.mn-item .wq{font-size:12.6px;line-height:1.6}
+.mn-item .wa{font-size:11.5px;font-weight:800;color:#8fe8b8;margin-top:3px}
+.mn-item .wh{font-size:11px;color:#ffd98a;margin-top:3px;line-height:1.55}
+.mn-sol{margin-top:7px;border-top:1px dashed var(--line);padding-top:7px;font-size:12px;line-height:1.7;color:#dcd2f5}
+.tag{display:inline-block;font-size:10px;font-weight:800;padding:2px 8px;border-radius:999px;margin:0 5px 5px 0}
+.tag.hot{background:rgba(255,94,138,.15);color:#ff8a9c;border:1px solid rgba(255,94,138,.4)}
+.tag.err{background:rgba(255,217,138,.14);color:#ffd98a;border:1px solid rgba(255,217,138,.38)}
+.tag.fml{background:rgba(94,224,240,.13);color:#5ee0f0;border:1px solid rgba(94,224,240,.34)}
+.tag.lit{background:rgba(143,232,184,.13);color:#8fe8b8;border:1px solid rgba(143,232,184,.34)}
+.tag.due{background:rgba(255,138,209,.16);color:#ff8ad1;border:1px solid rgba(255,138,209,.4)}
 </style>
 </head>
 <body>
@@ -613,6 +651,10 @@
       <button class="btn ghost" onclick="go('s-cards')">🧠 公式 & 考点</button>
       <button class="btn ghost" onclick="go('s-note')">📖 考点速记</button>
     </div>
+    <div class="row2 mt10">
+      <button class="btn ghost" onclick="go('s-tree')">🌳 知识世界树</button>
+      <button class="btn ghost" onclick="go('s-myNotes')">📒 我的笔记</button>
+    </div>
     <button class="btn gold mt10" onclick="go('s-games')">🎮 记忆游乐场 · 10 个小游戏</button>
     <button class="btn ghost mt10" onclick="go('s-plan')">📅 3 天作战地图</button>
     <button class="btn magenta mt10" onclick="startDrill('all')">⚔️ 全部模块混合刷题</button>
@@ -651,6 +693,33 @@
     <button class="btn ghost mt10" onclick="noteTab('高数')" id="ntab-高数">∫ 高数二</button>
     <input class="search mt10" id="noteSearch" placeholder="🔍 搜考点，如 主要矛盾 / 虚拟语气 / 洛必达" oninput="renderNote(this.value)">
     <div id="noteList"></div>
+  </section>
+
+  <!-- ============ 知识世界树 ============ -->
+  <section class="screen" id="s-tree">
+    <div class="back" onclick="go('s-study')">← 返回自习室</div>
+    <div class="sec-title"><span class="bar"></span>知识世界树<small>点亮每一个模块</small></div>
+    <div class="card" style="padding:12px 14px">
+      <div id="treeSummary"></div>
+    </div>
+    <div class="tree-legend" id="treeLegend"></div>
+    <div id="treeWrap"></div>
+    <div id="treeDetail" class="treedet"></div>
+    <button class="btn ghost mt10" onclick="go('s-myNotes')">📒 打开我的笔记（自动归类）</button>
+  </section>
+
+  <!-- ============ 我的笔记 · 自动归类 ============ -->
+  <section class="screen" id="s-myNotes">
+    <div class="back" onclick="go('s-study')">← 返回自习室</div>
+    <div class="sec-title"><span class="bar"></span>我的笔记<small>自动标重点 · 按模块归类</small></div>
+    <div class="row2 mt10">
+      <button class="btn ghost" onclick="myNoteTab('math')" id="mntab-math">∫ 高数二</button>
+      <button class="btn ghost" onclick="myNoteTab('pol')" id="mntab-pol">★ 政治</button>
+    </div>
+    <button class="btn ghost mt10" onclick="myNoteTab('eng')" id="mntab-eng">A 英语</button>
+    <input class="search mt10" id="myNoteSearch" placeholder="🔍 搜笔记，如 洛必达 / 虚拟语气 / 主要矛盾" oninput="renderMyNotes(this.value)">
+    <button class="btn gold mt10" onclick="copyMyNotes()">📋 复制本页笔记（Markdown）</button>
+    <div id="myNoteList"></div>
   </section>
 
   <!-- ============ PLAN ============ -->
@@ -1831,6 +1900,8 @@ function go(t){
   else if(t === 's-study') renderStudy();
   else if(t === 's-cards') renderCards();
   else if(t === 's-note') renderNote();
+  else if(t === 's-tree') renderTree();
+  else if(t === 's-myNotes') renderMyNotes();
   else if(t === 's-plan') renderPlan();
   else if(t === 's-drill') renderDrill();
   else if(t === 's-boss') renderBoss();
@@ -3097,6 +3168,302 @@ function reviewWrong(){
 function resetWrong(){
   if(!st.wrong.length){ toast('错题本已经是空的啦'); return; }
   if(confirm('确定清空错题本？共 ' + st.wrong.length + ' 题。')){ st.wrong = []; save(); renderMe(); toast('错题本已清空'); }
+}
+
+/* =================== Phase2 · 知识世界树 =================== */
+const TREE_SHORT = {m1:'极限', m2:'微分', m3:'积分', m4:'多元', m5:'概率',
+  p1:'马原', p2:'毛概中特', p3:'新思想', p4:'史纲', p5:'时政', p6:'思修',
+  e1:'语音', e2:'词汇语法', e3:'完形', e4:'阅读', e5:'对话'};
+const TREE_LV = [
+  {n: '未点亮', c: '#6e5f92'},
+  {n: '萌芽',   c: '#b794ff'},
+  {n: '成长',   c: '#5ee0f0'},
+  {n: '盛放',   c: '#ffd166'}
+];
+const RING_C = 2 * Math.PI * 22;
+
+/* 模块掌握度：0.5×覆盖(刷满30题即满) + 0.5×正确率；每道未毕业错题 -4 分 */
+function moduleStat(id){
+  const qs = ALLQ.filter(q => q && q.m === id);
+  const total = qs.length;
+  const prog = (st.mod && st.mod[id]) || {c: 0, t: 0};
+  const cap = Math.min(total || 30, 30);
+  const cover = cap ? Math.min(1, prog.t / cap) : 0;
+  const acc = prog.t ? prog.c / prog.t : 0;
+  let wrongs = 0;
+  st.wrong.forEach(w => { const q = ALLQ.find(x => x.id === w.id); if(q && q.m === id) wrongs++; });
+  let m = 0;
+  if(prog.t > 0){ m = Math.round(100 * (0.5 * cover + 0.5 * acc)) - wrongs * 4; m = Math.max(1, Math.min(100, m)); }
+  return {id, total, seen: prog.t, right: prog.c, acc: Math.round(acc * 100),
+    cover: Math.round(cover * 100), wrongs, m};
+}
+function masteryLv(m){ return m <= 0 ? 0 : m < 40 ? 1 : m < 75 ? 2 : 3; }
+function subjOfMod(id){ return SUBJECTS.find(s => (s.mods || []).some(m => m.id === id)) || null; }
+/* 跨科目进入刷题必须先切科（否则 pool 取不到该模块题） */
+function treeDrill(id){
+  const sj = subjOfMod(id);
+  if(sj && sj.id !== FILTER.subj) setSubject(sj.id);
+  startDrill(id);
+}
+function openModuleNote(id){
+  const sj = subjOfMod(id);
+  MYNOTE_SUBJ = sj ? sj.id : 'math';
+  MYNOTE_FOCUS = id;
+  const el = document.getElementById('myNoteSearch'); if(el) el.value = '';
+  go('s-myNotes');
+}
+
+let TREE_SEL = null;
+function renderTree(){
+  const wrap = document.getElementById('treeWrap'); if(!wrap) return;
+  const COLS = [
+    {subj:'math', x:52,  mods:MODULES,                color:'#5ee0f0', d:'M180,505 C150,482 92,480 52,470 L52,60'},
+    {subj:'pol',  x:180, mods:(SUBJ_MODULES.pol || []), color:'#ffd166', d:'M180,505 L180,60'},
+    {subj:'eng',  x:304, mods:(SUBJ_MODULES.eng || []), color:'#ff8ad1', d:'M180,505 C210,482 268,480 304,470 L304,60'}
+  ];
+  const Y0 = 470, Y1 = 60;
+  let sum = 0, litN = 0, fullN = 0, totN = 0;
+  COLS.forEach(c => c.mods.forEach(mo => { const s = moduleStat(mo.id); sum += s.m; totN++; if(s.m > 0) litN++; if(s.m >= 75) fullN++; }));
+  const avg = totN ? Math.round(sum / totN) : 0;
+  const sumEl = document.getElementById('treeSummary');
+  if(sumEl) sumEl.innerHTML =
+    '<div style="display:flex;align-items:center;gap:11px">'
+    + '<div style="font-size:26px">🌳</div>'
+    + '<div style="flex:1;min-width:0">'
+    + '<div style="font-weight:900;font-size:14px">世界树点亮率 <span style="color:#ffd166">' + avg + '%</span></div>'
+    + '<div style="font-size:11.5px;color:var(--sub);margin-top:2px">已点亮 ' + litN + '/' + totN + ' 模块 · 盛放(≥75%) ' + fullN + ' 个 · 点节点看详情</div>'
+    + '</div></div>'
+    + '<div class="mbar"><i style="width:' + avg + '%;background:linear-gradient(90deg,#5ee0f0,#ffd166)"></i></div>';
+  const lg = document.getElementById('treeLegend');
+  if(lg) lg.innerHTML = TREE_LV.map(l => '<span class="lg"><i style="background:' + l.c + '"></i>' + l.n + '</span>').join('')
+    + '<span class="lg">⭕ 外环 = 掌握度</span>';
+
+  let out = '<svg class="tree-svg" viewBox="0 0 360 620" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="知识世界树">'
+    + '<line x1="180" y1="600" x2="180" y2="505" stroke="#6b4fa8" stroke-width="8" stroke-linecap="round" opacity=".8"/>';
+  COLS.forEach(c => { out += '<path class="branchline" d="' + c.d + '" stroke="' + c.color + '"/>'; });
+  COLS.forEach(c => {
+    const n = c.mods.length; if(!n) return;
+    const step = n > 1 ? (Y0 - Y1) / (n - 1) : 0;
+    c.mods.forEach((mo, i) => {
+      const s = moduleStat(mo.id), lv = masteryLv(s.m), col = mo.c || c.color;
+      const x = c.x, y = Math.round(Y0 - i * step);
+      const off = (RING_C * (1 - s.m / 100)).toFixed(1);
+      const haloOp = [0, .1, .22, .4][lv];
+      const coreOp = [0, .28, .72, 1][lv];
+      const icoCol = lv === 0 ? '#6e5f92' : (lv === 3 ? '#241a3a' : '#f2ecff');
+      const glow = lv >= 2 ? ' style="filter:drop-shadow(0 0 7px ' + col + ')"' : '';
+      const nm = TREE_SHORT[mo.id] || (mo.name || '').slice(0, 5);
+      out += '<g class="tree-node" data-mod="' + mo.id + '" data-subj="' + c.subj + '">'
+        + '<circle cx="' + x + '" cy="' + y + '" r="31" fill="' + col + '" opacity="' + haloOp + '"/>'
+        + '<circle cx="' + x + '" cy="' + y + '" r="22" fill="none" stroke="' + col + '" stroke-opacity="' + (lv ? .85 : .26) + '" stroke-width="3" stroke-dasharray="' + RING_C.toFixed(1) + '" stroke-dashoffset="' + off + '" transform="rotate(-90 ' + x + ' ' + y + ')"/>'
+        + '<circle cx="' + x + '" cy="' + y + '" r="17" fill="' + (lv ? col : '#241a3a') + '" fill-opacity="' + (lv ? coreOp : 1) + '" stroke="' + col + '" stroke-opacity="' + (lv ? .9 : .3) + '" stroke-width="1.5"/>'
+        + '<text class="nico" x="' + x + '" y="' + (y + 1) + '" fill="' + icoCol + '"' + glow + '>' + (mo.ico || '·') + '</text>'
+        + '<text class="nname" x="' + x + '" y="' + (y + 34) + '">' + nm + '</text>'
+        + '<text class="npct" x="' + x + '" y="' + (y + 46) + '" fill="' + (lv ? col : '#6e5f92') + '">' + (s.m ? s.m + '%' : '未刷') + '</text>'
+        + '</g>';
+    });
+  });
+  out += '</svg>';
+  wrap.innerHTML = out;
+  wrap.querySelectorAll('.tree-node').forEach(g => { g.onclick = () => selectTreeNode(g.dataset.mod); });
+  const keep = (TREE_SEL && modById(TREE_SEL)) ? TREE_SEL : COLS[0].mods[0].id;
+  selectTreeNode(keep);
+}
+function selectTreeNode(id){
+  const mo = modById(id); if(!mo) return;
+  TREE_SEL = id;
+  document.querySelectorAll('#treeWrap .tree-node').forEach(g => g.classList.toggle('sel', g.dataset.mod === id));
+  const sj = subjOfMod(id), mate = getMate(MOD2MATE[id]);
+  const s = moduleStat(id), lv = masteryLv(s.m);
+  const box = document.getElementById('treeDetail'); if(!box) return;
+  box.innerHTML =
+    '<div class="card mt10" style="padding:13px 15px">'
+    + '<div class="dh"><div class="dic" style="background:' + (mo.c || '#b794ff') + '22;color:' + (mo.c || '#b794ff') + '">' + (mo.ico || '·') + '</div>'
+    + '<div style="flex:1;min-width:0"><div class="dname">' + mo.name + ' <span class="pill">' + (sj ? sj.name : '') + '</span></div>'
+    + '<div class="dsub">陪练·' + (mate ? mate.name : '—') + ' · 掌握度 ' + s.m + '%（' + TREE_LV[lv].n + '）</div></div></div>'
+    + '<div class="mbar"><i style="width:' + s.m + '%;background:linear-gradient(90deg,' + (mo.c || '#b794ff') + ',#ffd166)"></i></div>'
+    + '<div style="font-size:12.5px;line-height:1.7;color:var(--sub);margin-top:8px">' + (mo.ds || '') + '</div>'
+    + '<div class="dstat"><span>📚 题库 ' + s.total + ' 题</span><span>✍️ 已刷 ' + s.seen + ' 题</span>'
+    + '<span>🎯 正确率 ' + (s.seen ? s.acc + '%' : '—') + '</span><span>🔁 待复习 ' + s.wrongs + ' 题</span></div>'
+    + '<div class="row2 mt10">'
+    + '<button class="btn magenta" onclick="treeDrill(\'' + id + '\')">⚔️ 刷这个模块</button>'
+    + '<button class="btn ghost" onclick="openModuleNote(\'' + id + '\')">📒 看这模块笔记</button>'
+    + '</div></div>';
+}
+
+/* =================== Phase2 · 自动笔记（规则版 A） =================== */
+let MYNOTE_SUBJ = 'math', MYNOTE_FOCUS = null;
+function myNoteTab(s){
+  MYNOTE_SUBJ = s; MYNOTE_FOCUS = null;
+  const el = document.getElementById('myNoteSearch'); if(el) el.value = '';
+  renderMyNotes();
+}
+function myNoteMods(){
+  const s = SUBJECTS.find(x => x.id === MYNOTE_SUBJ) || SUBJECTS[0];
+  return s.mods || [];
+}
+function ansOf(q){
+  if(!q) return '';
+  if(q.t === 'choice') return (q.o && q.o[q.a]) || '';
+  if(q.ans && q.ans.length) return q.ans.join(' / ');
+  return q.answer || '';
+}
+/* 精选必刷：确定性采样（优先非错题），最多 4 题，避免每次刷新都变 */
+function notePicks(id){
+  const qs = ALLQ.filter(q => q && q.m === id && q.sol);
+  if(!qs.length) return [];
+  const wrongIds = {}; st.wrong.forEach(w => { wrongIds[w.id] = 1; });
+  const fresh = qs.filter(q => !wrongIds[q.id]);
+  const arr = fresh.length >= 4 ? fresh : qs;
+  const step = Math.max(1, Math.floor(arr.length / 4));
+  const out = [];
+  for(let i = 0; i < arr.length && out.length < 4; i += step) out.push(arr[i]);
+  return out;
+}
+function noteTags(mo, s, wrongN){
+  const t = [];
+  if(s.total >= 60) t.push('<span class="tag hot">🔥 高频大模块</span>');
+  if(wrongN) t.push('<span class="tag err">🔁 易错 ' + wrongN + '</span>');
+  if(/公式|定理|背|模板|规律/.test(mo.ds || '')) t.push('<span class="tag fml">📐 公式/规律</span>');
+  if(s.seen) t.push('<span class="tag lit">✍️ 已刷 ' + s.seen + '</span>'); else t.push('<span class="tag">🕗 还没刷</span>');
+  if(s.seen >= 10 && s.acc >= 80) t.push('<span class="tag lit">🎯 正确率 ' + s.acc + '%</span>');
+  return t.join('');
+}
+function wrongsOfMod(id){
+  const out = [];
+  st.wrong.forEach(w => { const q = ALLQ.find(x => x.id === w.id); if(q && q.m === id) out.push(q); });
+  return out;
+}
+function renderMyNotes(kw){
+  const box = document.getElementById('myNoteList'); if(!box) return;
+  ['math', 'pol', 'eng'].forEach(s => {
+    const b = document.getElementById('mntab-' + s);
+    if(b) b.className = 'btn ' + (s === MYNOTE_SUBJ ? 'magenta' : 'ghost') + (s === 'eng' ? ' mt10' : '');
+  });
+  const k = (kw || '').trim();
+  box.innerHTML = '';
+  const mods = myNoteMods();
+  let shown = 0, errN = 0;
+  mods.forEach(mo => {
+    const s = moduleStat(mo.id);
+    const wrongs = wrongsOfMod(mo.id);
+    errN += wrongs.length;
+    const picks = notePicks(mo.id);
+    const hay = mo.name + ' ' + (mo.ds || '') + ' ' + wrongs.map(q => q.q).join(' ') + ' ' + picks.map(q => q.q + (q.sol || '')).join(' ');
+    if(k && hay.indexOf(k) < 0) return;
+    shown++;
+    const card = document.createElement('div'); card.className = 'card mt10';
+    card.innerHTML =
+      '<div class="mn-top" style="cursor:pointer">'
+      + '<div class="ic" style="background:' + (mo.c || '#b794ff') + '22;color:' + (mo.c || '#b794ff') + '">' + (mo.ico || '·') + '</div>'
+      + '<div style="flex:1;min-width:0"><div style="font-weight:900;font-size:14.5px">' + mo.name + '</div>'
+      + '<div style="font-size:11px;color:var(--sub);margin-top:2px">掌握度 ' + s.m + '% · 已刷 ' + s.seen + '/' + s.total + ' 题 · 正确率 ' + (s.seen ? s.acc + '%' : '—') + '</div></div>'
+      + '<span style="color:var(--sub)">▾</span></div>'
+      + '<div class="mbar"><i style="width:' + s.m + '%;background:linear-gradient(90deg,' + (mo.c || '#b794ff') + ',#ffd166)"></i></div>'
+      + '<div style="margin-top:7px">' + noteTags(mo, s, wrongs.length) + '</div>';
+    const bodyEl = document.createElement('div');
+    bodyEl.style.display = 'none';
+    card.appendChild(bodyEl);
+    let open = false, built = false;
+    const head = card.querySelector('.mn-top');
+    const build = () => { if(built) return; built = true; buildMyNoteBody(bodyEl, mo, s, wrongs, picks); };
+    head.onclick = () => { open = !open; bodyEl.style.display = open ? 'block' : 'none'; if(open) build(); };
+    box.appendChild(card);
+    if(MYNOTE_FOCUS === mo.id || (k && shown <= 3)){ open = true; bodyEl.style.display = 'block'; build(); }
+  });
+  if(!shown){
+    const e = document.createElement('div'); e.className = 'empty';
+    e.textContent = '没找到相关笔记，换个关键词试试～'; box.appendChild(e);
+  }
+  const head = document.createElement('div');
+  head.style.cssText = 'font-size:11.5px;color:var(--sub);margin:12px 0 2px';
+  head.textContent = '📒 ' + ((SUBJECTS.find(x => x.id === MYNOTE_SUBJ) || {}).name || '') + ' · ' + shown + ' 个模块 · 待复习错题 ' + errN + ' 题'
+    + (k ? '（关键词「' + k + '」）' : '');
+  box.insertBefore(head, box.firstChild);
+  MYNOTE_FOCUS = null;
+}
+function buildMyNoteBody(el, mo, s, wrongs, picks){
+  const sec = t => { const d = document.createElement('div'); d.className = 'mn-sec'; d.innerHTML = '<div class="h">' + t + '</div>'; return d; };
+  const s1 = sec('📌 模块要点 · 必背');
+  const p = document.createElement('div');
+  p.style.cssText = 'font-size:12.8px;line-height:1.75;color:#e6dcff';
+  p.textContent = mo.ds || '暂无要点';
+  s1.appendChild(p);
+  const mate = getMate(MOD2MATE[mo.id]);
+  if(mate){
+    const g = document.createElement('div');
+    g.style.cssText = 'font-size:11.5px;color:var(--sub);margin-top:6px;line-height:1.6';
+    g.textContent = '💞 ' + mate.name + '：' + pick(mate.lines.tip) + '先圈关键词，再套这个模块的固定套路。';
+    s1.appendChild(g);
+  }
+  el.appendChild(s1);
+
+  const s2 = sec('🔁 我的易错 · ' + wrongs.length + ' 题');
+  if(!wrongs.length){
+    const e = document.createElement('div'); e.style.cssText = 'font-size:12px;color:var(--sub)';
+    e.textContent = '这个模块还没有错题，继续保持 ✨'; s2.appendChild(e);
+  }
+  wrongs.slice(0, 8).forEach(q => {
+    const it = document.createElement('div'); it.className = 'mn-item';
+    it.innerHTML = '<div class="wq">' + escapeHtml(String(q.q || '')).slice(0, 96) + '</div>'
+      + '<div class="wa">✅ 正确答案：' + escapeHtml(ansOf(q)).slice(0, 80) + '</div>'
+      + (q.hint ? '<div class="wh">💡 ' + escapeHtml(q.hint).slice(0, 110) + '</div>' : '');
+    s2.appendChild(it);
+  });
+  if(wrongs.length > 8){
+    const m = document.createElement('div'); m.style.cssText = 'font-size:11px;color:var(--sub)';
+    m.textContent = '…还有 ' + (wrongs.length - 8) + ' 题，去「错题重做」清一轮'; s2.appendChild(m);
+  }
+  el.appendChild(s2);
+
+  const s3 = sec('⭐ 精选必刷 · ' + picks.length + ' 题（含解析）');
+  if(!picks.length){
+    const e = document.createElement('div'); e.style.cssText = 'font-size:12px;color:var(--sub)';
+    e.textContent = '暂无带解析的题'; s3.appendChild(e);
+  }
+  picks.forEach(q => {
+    const it = document.createElement('div'); it.className = 'mn-item';
+    it.innerHTML = '<div class="wq">' + escapeHtml(String(q.q || '')).slice(0, 110) + '</div>'
+      + '<div class="wa">✅ ' + escapeHtml(ansOf(q)).slice(0, 70) + '</div>';
+    if(q.sol){
+      const b = document.createElement('button'); b.className = 'btn ghost sm mt10'; b.textContent = '🔦 展开解析';
+      const sol = document.createElement('div'); sol.className = 'mn-sol'; sol.style.display = 'none'; sol.textContent = q.sol;
+      b.onclick = () => { const on = sol.style.display === 'none'; sol.style.display = on ? 'block' : 'none'; b.textContent = on ? '收起解析' : '🔦 展开解析'; };
+      it.appendChild(b); it.appendChild(sol);
+    }
+    s3.appendChild(it);
+  });
+  el.appendChild(s3);
+}
+function fallbackCopy(text, cb){
+  try{
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.cssText = 'position:fixed;top:-1000px;left:0';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta); cb();
+  }catch(e){ toast('复制失败，请手动长按选择复制'); }
+}
+function copyMyNotes(){
+  const sj = SUBJECTS.find(x => x.id === MYNOTE_SUBJ) || SUBJECTS[0];
+  let md = '# ' + sj.name + ' · 我的笔记（自动归类）\n\n';
+  myNoteMods().forEach(mo => {
+    const s = moduleStat(mo.id), wrongs = wrongsOfMod(mo.id), picks = notePicks(mo.id);
+    md += '## ' + mo.name + '（掌握度 ' + s.m + '%，已刷 ' + s.seen + '/' + s.total + '，正确率 ' + (s.seen ? s.acc + '%' : '—') + '）\n';
+    md += '- 要点：' + (mo.ds || '') + '\n';
+    if(wrongs.length){
+      md += '- 易错：\n';
+      wrongs.slice(0, 8).forEach(q => { md += '  - ' + String(q.q || '').replace(/\s+/g, ' ').slice(0, 80) + ' → 答案：' + ansOf(q) + '\n'; });
+    }
+    if(picks.length){
+      md += '- 必刷：\n';
+      picks.forEach(q => { md += '  - ' + String(q.q || '').replace(/\s+/g, ' ').slice(0, 80) + ' → 答案：' + ansOf(q) + '\n'; });
+    }
+    md += '\n';
+  });
+  const done = () => toast('笔记已复制，去粘贴到备忘录吧～');
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(md).then(done, () => fallbackCopy(md, done));
+  } else fallbackCopy(md, done);
 }
 
 /* =================== 我的 =================== */
