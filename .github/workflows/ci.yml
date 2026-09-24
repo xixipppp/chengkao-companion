@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Playwright
+        run: |
+          npm init -y >/dev/null 2>&1 || true
+          npm install playwright --no-fund --no-audit
+          npx playwright install --with-deps chromium
+
+      - name: Start static server (port 8900)
+        run: |
+          python3 -m http.server 8900 --bind 127.0.0.1 &
+          sleep 2
+          curl -s -o /dev/null -w "server: %{http_code}\n" http://127.0.0.1:8900/index.html
+
+      - name: Core regression suites
+        run: |
+          set -e
+          for t in audit_fix_test legacy_fix_test conv_test gap2_test offline_test perf_test; do
+            echo "===== $t ====="
+            node "tests/$t.js"
+          done
+
+      - name: Games suite (slow)
+        run: node tests/games_test.js
+        continue-on-error: false
