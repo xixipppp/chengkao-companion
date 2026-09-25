@@ -18,6 +18,8 @@
     --green:#5be3a7; --red:#ff7a9c; --pink:#ff9ed6;
     --acc:#ff8ad1; /* 科目主题色，由 setAccent() 动态覆盖 */
     --shadow:0 12px 34px rgba(0,0,0,.5);
+    /* 浅底卡片专用墨色：游戏区为甜美浅色卡片，不能继承深色主题的 --txt，否则白底白字 */
+    --ink:#2f2334; --ink-sub:#6b5a6b; --ink-dim:#8d7a8c;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0;background:radial-gradient(1200px 800px at 50% -10%, #241640 0%, var(--bg) 55%);color:var(--txt);
@@ -106,6 +108,15 @@
   .ex .eb{font-size:12.5px;line-height:1.65;color:#d6deff}
   .qtag{display:inline-block;font-size:11px;padding:3px 10px;border-radius:999px;background:var(--panel2);border:1px solid var(--line);color:var(--cyan);margin-bottom:10px}
   .qtext{font-size:16px;line-height:1.75;font-family:"Cambria Math",Georgia,serif;margin-bottom:14px}
+  /* 英语语音朗读控件 */
+  .ttsbar{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap}
+  .ttsbtn{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:999px;cursor:pointer;
+    font-size:11.5px;font-weight:700;font-family:inherit;
+    background:rgba(94,224,240,.12);border:1px solid rgba(94,224,240,.42);color:var(--cyan)}
+  .ttsbtn:active{transform:scale(.96)}
+  .ttsmini{margin-left:auto;flex:0 0 auto;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;
+    font-size:13px;background:rgba(94,224,240,.12);border:1px solid rgba(94,224,240,.35)}
+  .ttsmini:active{transform:scale(.9)}
   .opt{display:flex;align-items:center;gap:11px;background:var(--panel);border:1.5px solid var(--line);
     border-radius:14px;padding:13px 14px;margin-bottom:9px;cursor:pointer;font-size:14.5px;font-family:"Cambria Math",Georgia,serif;transition:.15s}
   .opt:active{transform:scale(.99)}
@@ -136,6 +147,34 @@
     color:#a9d8ff;font-size:11.5px;line-height:1.55}
   .coachline .tip b{color:#ffd98a;font-weight:800}
   .qbar{display:flex;align-items:center;gap:10px;margin-bottom:12px;font-size:12px;color:var(--sub)}
+  /* ---- 任务状态条（错题清零） ---- */
+  .taskbar{border-radius:14px;padding:10px 13px;margin-bottom:10px;
+    background:linear-gradient(135deg,rgba(91,227,167,.14),rgba(94,224,240,.08));
+    border:1px solid rgba(91,227,167,.34)}
+  .taskbar.has-wrong{background:linear-gradient(135deg,rgba(255,122,156,.16),rgba(255,209,102,.08));
+    border-color:rgba(255,122,156,.42)}
+  .taskbar .tbtitle{font-size:12px;font-weight:800;line-height:1.5;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .taskbar .tbmode{font-size:10px;font-weight:800;padding:2px 7px;border-radius:999px;
+    background:var(--acc);color:#1a0a1e}
+  .taskbar .tbstat{font-size:12px;margin-top:4px;color:var(--sub)}
+  .taskbar .tbstat b{color:var(--green);font-size:14px}
+  .taskbar.has-wrong .tbstat b{color:var(--red)}
+  .taskbar .tbsep{opacity:.45;margin:0 4px}
+  .redotag{color:var(--red);font-weight:800}
+  /* ---- 通关思维导图 · 记忆口诀 ---- */
+  .mindroot{display:inline-block;padding:8px 14px;border-radius:12px;font-weight:900;font-size:13px;
+    background:linear-gradient(135deg,var(--magenta),var(--purple));color:#1a0a1e}
+  .mindline{width:2px;height:14px;background:var(--line);margin:0 auto 4px}
+  .mindnode{margin:8px 0;padding:10px 12px;border-radius:12px;border:1px solid var(--line);
+    background:var(--panel2);border-left:4px solid var(--dim)}
+  .mindnode.lv1{border-left-color:var(--gold)} .mindnode.lv2{border-left-color:var(--cyan)}
+  .mindnode.lv3{border-left-color:var(--green)}
+  .mindnode .mn-t{font-weight:800;font-size:13.5px}
+  .mindnode .mn-s{font-size:11.5px;color:var(--sub);margin-top:3px}
+  .mindnode .mn-d{font-size:11.5px;color:var(--dim);margin-top:4px;line-height:1.6}
+  .memobox{border-radius:12px;padding:12px 14px;background:rgba(255,209,102,.09);border:1px dashed rgba(255,209,102,.45)}
+  .memobox .mm-who{font-size:11px;font-weight:800;color:var(--gold);margin-bottom:5px}
+  .memobox .mm-t{font-size:14px;line-height:1.9;font-weight:700}
   .qbar .prog{flex:1;height:8px;border-radius:999px;background:#0a0614;border:1px solid var(--line);overflow:hidden}
   .qbar .prog i{display:block;height:100%;background:linear-gradient(90deg,var(--magenta),var(--purple))}
   .bosswrap{position:relative;text-align:center;margin-bottom:12px}
@@ -340,40 +379,47 @@
   .spd i.on{background:#c9b8ff;box-shadow:0 0 8px #a98bff}
   .stepitem{margin:8px 0;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid rgba(170,140,255,.25);font-size:13px;line-height:1.75;opacity:0;transform:translateY(6px);transition:all .45s ease}
   .stepitem.lit{opacity:1;transform:none;animation:stepGlow 1.2s ease}
+  /* 分步讲题：每一步的 ABCD 检测 */
+  .stepquiz{margin:8px 0 4px;padding:11px 12px;border-radius:12px;
+    background:rgba(94,224,240,.05);border:1px dashed rgba(94,224,240,.3)}
+  .stepquiz .sq-q{font-size:13px;font-weight:800;margin-bottom:9px;line-height:1.6}
+  .stepquiz .opt{background:var(--panel);margin-bottom:7px;padding:11px 12px;font-size:13.5px}
+  .steptip{font-size:12px;color:var(--sub);padding:8px 2px}
+  .steptip.ok{color:var(--green);font-weight:700}
   .stepitem .sk{font-size:12px;font-weight:800;color:#a98bff;margin-bottom:3px}
   @keyframes stepGlow{0%{box-shadow:0 0 0 rgba(169,139,255,0)}35%{box-shadow:0 0 18px rgba(169,139,255,.45)}100%{box-shadow:0 0 0 rgba(169,139,255,0)}}
   /* ---- 游戏中心 ---- */
-  .gcard{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid rgba(232,83,111,.15);border-radius:14px;padding:12px 14px;margin-bottom:10px;cursor:pointer;transition:transform .15s}
+  .gcard{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid rgba(232,83,111,.15);border-radius:14px;padding:12px 14px;margin-bottom:10px;cursor:pointer;transition:transform .15s;color:var(--ink)}
   .gcard:active{transform:scale(.98)}
   .gi{font-size:24px;width:46px;height:46px;border-radius:12px;background:#fdeef3;display:flex;align-items:center;justify-content:center;flex:none}
-  .gn{font-weight:800;font-size:14.5px}
-  .gd{font-size:12px;color:var(--sub)}
-  .gb{font-size:11.5px;color:#b08ca0;margin-top:2px}
+  .gn{font-weight:800;font-size:14.5px;color:var(--ink)}
+  .gd{font-size:12px;color:var(--ink-sub)}
+  .gb{font-size:11.5px;color:var(--ink-dim);margin-top:2px}
   .go{margin-left:auto;color:#e8536f;font-weight:800}
   .timerbar{height:8px;border-radius:6px;background:rgba(232,83,111,.12);overflow:hidden;margin:8px 0 10px}
   .timerbar i{display:block;height:100%;background:#e8536f;border-radius:6px;transition:width .1s linear}
   .timerbar.big{height:12px}
   .mrow{display:flex;gap:10px}
   .mcol{flex:1;display:flex;flex-direction:column;gap:8px}
-  .mchip{padding:9px 10px;border-radius:10px;background:#fff;border:1.5px solid rgba(232,83,111,.25);font-size:12.5px;cursor:pointer;text-align:center;transition:all .2s}
+  .mchip{padding:9px 10px;border-radius:10px;background:#fff;border:1.5px solid rgba(232,83,111,.25);font-size:12.5px;cursor:pointer;text-align:center;transition:all .2s;color:var(--ink);font-weight:600}
   .mchip.ok{background:#e1f5ee;border-color:#2fbf71;opacity:.55}
   .mchip.no{animation:shake .4s;border-color:#e8536f}
   .flipgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-  .fcard{height:64px;border-radius:10px;background:#fdeef3;border:1.5px solid rgba(232,83,111,.25);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;cursor:pointer;text-align:center;padding:4px;transition:all .25s;color:#3d2e38}
+  .fcard{height:64px;border-radius:10px;background:#fdeef3;border:1.5px solid rgba(232,83,111,.25);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;cursor:pointer;text-align:center;padding:4px;transition:all .25s;color:var(--ink)}
   .fcard.open{background:#fff0f6;transform:scale(1.04)}
   .fcard.done{background:#e1f5ee;border-color:#2fbf71;opacity:.6}
   .ochips{display:flex;flex-direction:column;gap:8px}
-  .ochip{padding:10px 12px;border-radius:10px;background:#fff;border:1.5px solid rgba(232,83,111,.25);font-size:13px;cursor:pointer;line-height:1.6}
+  .ochip{padding:10px 12px;border-radius:10px;background:#fff;border:1.5px solid rgba(232,83,111,.25);font-size:13px;cursor:pointer;line-height:1.6;color:var(--ink);font-weight:600}
   .chatline{margin:6px 0;cursor:pointer}
-  .chatline .bub{display:inline-block;max-width:88%;padding:8px 12px;border-radius:14px;background:#fff;border:1px solid rgba(232,83,111,.25);font-size:12.5px;transition:all .2s}
+  .chatline .bub{display:inline-block;max-width:88%;padding:8px 12px;border-radius:14px;background:#fff;border:1px solid rgba(232,83,111,.25);font-size:12.5px;transition:all .2s;color:var(--ink)}
   .bub.bok{background:#e1f5ee;border-color:#2fbf71}
   .bub.bno{background:#fcebeb;border-color:#e8536f}
-  .chatin{background:#f6efff;border-radius:12px;padding:10px 12px;font-size:13px;margin-bottom:8px}
+  .chatin{background:#f6efff;border-radius:12px;padding:10px 12px;font-size:13px;margin-bottom:8px;color:var(--ink)}
   .gacha-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-  .gcard2{border-radius:12px;padding:10px 12px;font-size:12px;line-height:1.6;background:#fff;border:1.5px solid rgba(232,83,111,.2)}
+  .gcard2{border-radius:12px;padding:10px 12px;font-size:12px;line-height:1.6;background:#fff;border:1.5px solid rgba(232,83,111,.2);color:var(--ink)}
   .gcard2.r4{border-color:#7f5cff;background:#f6efff}
   .gcard2.r5{border-color:#d4a017;background:#fdf6e3}
-  .gcard2 .gm{font-size:11px;color:var(--sub);margin-top:4px}
+  .gcard2 .gm{font-size:11px;color:var(--ink-sub);margin-top:4px}
   @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 
   /* ===== A+C 混合主题：星光应援 × 甜心加冕 ===== */
@@ -657,7 +703,20 @@
     </div>
     <button class="btn gold mt10" onclick="go('s-games')">🎮 记忆游乐场 · 10 个小游戏</button>
     <button class="btn ghost mt10" onclick="go('s-plan')">📅 3 天作战地图</button>
-    <button class="btn magenta mt10" onclick="startDrill('all')">⚔️ 全部模块混合刷题</button>
+    <div class="row2 mt10">
+      <button class="btn magenta" onclick="startDrill('all','normal')">⚔️ 全部模块混合刷题</button>
+      <button class="btn gold" onclick="startDrill('all','solid')">🔨 巩固模式</button>
+    </div>
+    <button class="btn ghost mt10" onclick="startDrill('all','quiz')">🎯 摸底自测（混合多考点）</button>
+    <div class="sec-title"><span class="bar"></span>任务规则<small>错题清零才算通关</small></div>
+    <div class="card" style="padding:12px 14px">
+      <div style="font-size:12px;line-height:1.8;color:var(--sub)">
+        🔁 <b style="color:var(--txt)">错题强制清零</b>：任务中答错的题会自动排到队尾重刷，反复循环直到<b style="color:var(--txt)">零错题</b>才算通关。<br>
+        🔨 <b style="color:var(--txt)">巩固模式</b>：错了不重考原题，换一道<b style="color:var(--txt)">同考点的新题</b>，换花样考同一个点。<br>
+        🎯 <b style="color:var(--txt)">摸底自测</b>：跨知识点混合抽题，检验是不是真的学会了。<br>
+        🏆 通关后自动生成<b style="color:var(--txt)">知识点思维导图 + 专属记忆口诀</b>，可保存回看。
+      </div>
+    </div>
     <div class="row2 mt10">
       <button class="btn gold" onclick="startMock()">📝 全真模拟卷</button>
       <button class="btn ghost" onclick="startBoss()">👹 Boss 模拟战</button>
@@ -687,12 +746,37 @@
       </div>
     </div>
     <div class="row2 mt10">
-      <button class="btn ghost" onclick="noteTab('英语')" id="ntab-英语">A 英语</button>
-      <button class="btn ghost" onclick="noteTab('政治')" id="ntab-政治">★ 政治</button>
+      <button class="btn magenta" id="nsrc-doc" onclick="noteSrc('doc')">📚 资料库</button>
+      <button class="btn ghost" id="nsrc-gold" onclick="noteSrc('gold')">🏆 2026黄金考点</button>
     </div>
-    <button class="btn ghost mt10" onclick="noteTab('高数')" id="ntab-高数">∫ 高数二</button>
-    <input class="search mt10" id="noteSearch" placeholder="🔍 搜考点，如 主要矛盾 / 虚拟语气 / 洛必达" oninput="renderNote(this.value)">
-    <div id="noteList"></div>
+
+    <!-- 资料库视图 -->
+    <div id="noteDocWrap">
+      <div class="row2 mt10">
+        <button class="btn ghost" onclick="noteTab('英语')" id="ntab-英语">A 英语</button>
+        <button class="btn ghost" onclick="noteTab('政治')" id="ntab-政治">★ 政治</button>
+      </div>
+      <button class="btn ghost mt10" onclick="noteTab('高数')" id="ntab-高数">∫ 高数二</button>
+      <input class="search mt10" id="noteSearch" placeholder="🔍 搜考点，如 主要矛盾 / 虚拟语气 / 洛必达" oninput="renderNote(this.value)">
+      <div id="noteList"></div>
+    </div>
+
+    <!-- 2026 黄金考点视图（388 个结构化考点，来自《黄金考点汇编》） -->
+    <div id="noteGoldWrap" style="display:none">
+      <div class="card" style="padding:12px 14px">
+        <div style="font-size:12.5px;line-height:1.7;color:var(--sub)">
+          🏆 2026《黄金考点汇编》<b id="gpTotal" style="color:var(--gold)">0</b> 个考点：政治 294 · 高数二 68 · 英语 26。
+          每个考点都能<b style="color:var(--magenta)">「考考我」</b>——AI 按该考点现场出新题，学完立刻检验。
+        </div>
+      </div>
+      <div class="row2 mt10">
+        <button class="btn ghost" onclick="gpTab('pol')" id="gptab-pol">★ 政治</button>
+        <button class="btn ghost" onclick="gpTab('mat')" id="gptab-mat">∫ 高数二</button>
+      </div>
+      <button class="btn ghost mt10" onclick="gpTab('eng')" id="gptab-eng">A 英语</button>
+      <input class="search mt10" id="gpSearch" placeholder="🔍 搜考点，如 矛盾 / 洛必达 / 虚拟语气" oninput="renderGold(this.value)">
+      <div id="gpList"></div>
+    </div>
   </section>
 
   <!-- ============ 知识世界树 ============ -->
@@ -720,6 +804,8 @@
     <input class="search mt10" id="myNoteSearch" placeholder="🔍 搜笔记，如 洛必达 / 虚拟语气 / 主要矛盾" oninput="renderMyNotes(this.value)">
     <button class="btn gold mt10" onclick="copyMyNotes()">📋 复制本页笔记（Markdown）</button>
     <div id="myNoteList"></div>
+    <div class="sec-title"><span class="bar"></span>通关记录<small>导图和口诀都存这儿</small></div>
+    <div id="taskMindList"></div>
   </section>
 
   <!-- ============ PLAN ============ -->
@@ -778,6 +864,17 @@
         </div>
         <button class="btn ghost sm" style="margin-left:auto" onclick="editName()">改名</button>
       </div>
+    </div>
+    <div class="card">
+      <div style="font-weight:900;margin-bottom:8px">🔊 英语语音朗读</div>
+      <div style="font-size:12px;color:var(--sub);line-height:1.7;margin-bottom:10px">
+        英语题目与选项都带小喇叭，点一下即可朗读，支持慢速。练听力 + 记单词两不误。
+      </div>
+      <div class="row2">
+        <button class="btn ghost" id="ttsToggle" onclick="toggleTts()">🔊 已开启</button>
+        <button class="btn ghost" id="ttsRateBtn" onclick="cycleTtsRate()">语速 0.92x</button>
+      </div>
+      <button class="btn ghost mt10" onclick="testTts()">▶️ 试听一句</button>
     </div>
     <div class="card">
       <div class="row2" style="text-align:center">
@@ -853,6 +950,7 @@
 <script src="data/mathbank.js"></script>
 <script src="data/subjectbank.js"></script>
 <script src="data/kaodian.js"></script>
+<script src="data/goldpoints.js"></script>
 <script>
 /* =================== 数据 =================== */
 const MODULES = [
@@ -1646,20 +1744,21 @@ function roiList(subjId){
       reason: prog.t ? (mastery < 0.6 ? '正确率 ' + Math.round(mastery * 100) + '%，提分空间大' : '正确率 ' + Math.round(mastery * 100) + '%，保持手感') : '还没刷过，先探底'};
   }).filter(Boolean).sort((a, b) => b.roi - a.roi);
 }
-function startMod(mid){
+function startMod(mid, mode){
   FILTER.year = 'all'; FILTER.src = 'all';
-  if(mid === 'all'){ startDrill('all'); return; }
+  if(mid === 'all'){ startDrill('all', mode); return; }
   const subj = mid[0] === 'm' ? 'math' : mid[0] === 'p' ? 'pol' : 'eng';
   if(FILTER.subj !== subj) setSubject(subj);
-  startDrill(mid);
+  startDrill(mid, mode);
 }
 function renderRoi(){
   const list = roiList().slice(0, 3);
   const box = document.createElement('div'); box.className = 'card';
   box.style.borderColor = 'rgba(255,138,209,.45)';
-  let h = `<div style="font-weight:900;font-size:14px">🚀 提分雷达 · 今日最该刷 <span style="font-size:11px;color:var(--sub);font-weight:500">分值×错误率×提分空间</span></div>`;
+  let h = `<div style="font-weight:900;font-size:14px">🚀 提分雷达 · 今日最该刷 <span style="font-size:11px;color:var(--sub);font-weight:500">分值×错误率×提分空间</span></div>`
+    + `<div style="font-size:11px;color:var(--dim);margin-top:3px">点一下直接进入「巩固模式」定向攻克：错了换同考点新题，直到清零</div>`;
   list.forEach((r, k) => {
-    h += `<div style="display:flex;align-items:center;gap:10px;margin-top:10px;cursor:pointer" onclick="startMod('${r.mo.id}')">
+    h += `<div style="display:flex;align-items:center;gap:10px;margin-top:10px;cursor:pointer" onclick="startMod('${r.mo.id}','solid')">
       <div style="font-size:18px;font-weight:900;color:var(--pink);width:18px;flex:0 0 auto">${k + 1}</div>
       <div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:800">${r.mo.ico} ${r.mo.name}</div>
         <div style="font-size:11px;color:var(--sub)">${r.reason} · 权重 ★${r.w.toFixed(1)}</div></div>
@@ -1884,6 +1983,57 @@ function toast(msg){
 }
 function pick(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
 function shuffle(a){ return a.slice().sort(() => Math.random() - 0.5); }
+
+/* =================== 英语语音朗读（Web Speech API） =================== */
+const TTS = {
+  get on(){ return st.ttsOn !== false; },
+  get rate(){ return st.ttsRate || 0.92; }
+};
+function ttsOk(){ return typeof window !== 'undefined' && window.speechSynthesis && window.SpeechSynthesisUtterance; }
+function ttsVoice(lang){
+  if(!ttsOk()) return null;
+  const vs = window.speechSynthesis.getVoices() || [];
+  const want = (lang || 'en').slice(0, 2).toLowerCase();
+  return vs.find(v => (v.lang || '').toLowerCase().replace('_','-').startsWith(want === 'en' ? 'en-gb' : want))
+      || vs.find(v => (v.lang || '').toLowerCase().startsWith(want)) || null;
+}
+function speak(text, opt){
+  opt = opt || {};
+  if(!TTS.on){ if(opt.toast !== false) toast('语音已关闭，可在「我的」里打开 🔊'); return; }
+  if(!ttsOk()){ toast('当前浏览器不支持语音朗读'); return; }
+  const t = String(text || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  if(!t) return;
+  try{
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(t);
+    u.lang = opt.lang || (isEnText(t) ? 'en-US' : 'zh-CN');
+    u.rate = opt.rate || TTS.rate;
+    u.pitch = opt.pitch || 1;
+    const v = ttsVoice(u.lang); if(v) u.voice = v;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+function stopSpeak(){ try{ if(ttsOk()) window.speechSynthesis.cancel(); }catch(e){} }
+function isEnText(s){
+  const t = String(s || '');
+  const en = (t.match(/[A-Za-z]/g) || []).length;
+  return en > 0 && en / Math.max(1, t.length) > 0.25;
+}
+/* 题目旁的语音按钮组：读题 / 慢速 / 停止 */
+function ttsBar(getText, opt){
+  opt = opt || {};
+  const bar = document.createElement('div');
+  bar.className = 'ttsbar';
+  const mk = (ico, label, fn) => {
+    const b = document.createElement('button');
+    b.className = 'ttsbtn'; b.innerHTML = '<span>' + ico + '</span>' + label;
+    b.onclick = fn; bar.appendChild(b); return b;
+  };
+  mk('🔊', '朗读', () => speak(getText(), {lang: opt.lang}));
+  mk('🐢', '慢速', () => speak(getText(), {lang: opt.lang, rate: 0.62}));
+  mk('⏹', '停止', () => stopSpeak());
+  return bar;
+}
 function mateLine(mateId, ok){ const m = getMate(mateId); return pick(ok ? m.lines.correct : m.lines.wrong); }
 
 /* =================== 导航 =================== */
@@ -2285,21 +2435,131 @@ function restoreDrill(){
     weakPaper: sv.weakPaper, label: sv.label, used5050: sv.used5050};
   setTimeout(() => toast('📎 上次刷到第 ' + (sv.i + 1) + ' 题，进度已帮你记着啦'), 900);
 }
-function startDrill(mod){
-  const full = shuffle(pool(mod));
+/* 任务模式：normal 普通 / solid 巩固（同考点换花样）/ quiz 摸底自测（混合多考点） */
+const DRILL_MODE_NAME = {normal:'标准任务', solid:'巩固模式', quiz:'摸底自测'};
+function startDrill(mod, mode){
+  mode = mode || 'normal';
+  let full = shuffle(pool(mod));
+  if(mode === 'quiz'){
+    // 摸底自测：跨知识点混合抽题，检验是否真的学会
+    const mods = curMods().map(m => m.id);
+    const per = Math.max(2, Math.ceil(20 / Math.max(1, mods.length)));
+    const mixed = [];
+    mods.forEach(m => mixed.push.apply(mixed, shuffle(pool(m)).slice(0, per)));
+    full = shuffle(mixed);
+  }
   if(!full.length){ toast('该筛选下暂无题目，换个年份或题源试试～'); return; }
   const list = full.slice(0, 20);
   const srcTag = FILTER.src === 'library' ? ' · 真题' : FILTER.src === 'curated' ? ' · 原创' : '';
   const yTag = FILTER.year !== 'all' ? ' · ' + FILTER.year + '年' : '';
   const mo = (curMods().find(x => x.id === mod) || {}).name || '全部模块';
-  S.drill = {mod, list, i: 0, right: 0, total: full.length, label: curSubject().name + ' · ' + mo + yTag + srcTag};
+  S.drill = {
+    mod, mode, list, i: 0, right: 0, total: full.length,
+    baseLen: list.length,
+    cleared: {},        // id -> 1 已掌握（答对过）
+    wrongN: {},         // id -> 累计答错次数
+    pendingWrong: 0,    // 队列里还欠着几道错题要清零
+    label: curSubject().name + ' · ' + mo + yTag + srcTag
+  };
   go('s-drill'); renderDrill();
+}
+/* 任务顶部状态条：一眼看清还有几道错题要重刷 */
+function drillStatusBar(d){
+  const mastered = Object.keys(d.cleared || {}).length;
+  const pend = d.pendingWrong || 0;
+  const el = document.createElement('div');
+  el.className = 'taskbar' + (pend ? ' has-wrong' : '');
+  const modeTag = d.mode && d.mode !== 'normal' ? ('<span class="tbmode">' + DRILL_MODE_NAME[d.mode] + '</span>') : '';
+  el.innerHTML = '<div class="tbtitle">当前任务：' + escapeHtml(d.label || '') + modeTag + '</div>'
+    + '<div class="tbstat">✅ 已掌握 <b>' + mastered + '</b> 题'
+    + (pend ? ' <span class="tbsep">·</span> 🔁 待清零错题 <b class="hl">' + pend + '</b> 题' : ' <span class="tbsep">·</span> 🎉 错题已清零')
+    + '</div>';
+  return el;
+}
+/* 巩固模式：错一道 → 换一道同考点的题接着考，杜绝死记答案 */
+function pickAltSameMod(q, d){
+  // 注意：ALLQ 是顶层 const，不挂在 window 上，必须直接引用
+  const bank = (typeof ALLQ !== 'undefined' && ALLQ) || [];
+  const seen = {};
+  (d.list || []).forEach(x => seen[x.id] = 1);
+  const same = bank.filter(x => x && x.m === q.m && x.id !== q.id && x.o && x.o.length);
+  const fresh = same.filter(x => !seen[x.id]);
+  return pick(fresh.length ? fresh : same) || null;
+}
+/* 任务通关：生成知识点思维导图 + 专属记忆口诀 */
+function drillClear(d){
+  const body = document.getElementById('drillBody');
+  const modIds = [];
+  (d.list || []).forEach(q => { if(modIds.indexOf(q.m) < 0) modIds.push(q.m); });
+  const acc = d.baseLen ? Math.round(Object.keys(d.cleared).length / d.baseLen * 100) : 100;
+  const mkey = 'task_' + d.mod + '_' + (d.mode || 'normal');
+  const wrap = document.createElement('div');
+  wrap.innerHTML = '<div class="card" style="text-align:center">'
+    + '<div style="font-size:40px">🏆</div>'
+    + '<div class="rank">100<span style="font-size:22px">%</span></div>'
+    + '<div style="color:var(--sub);margin:8px 0 14px">任务通关 · 错题已清零 ✂️<br>'
+    + '共掌握 <b class="hl">' + Object.keys(d.cleared).length + '</b> 题'
+    + (d.totalWrong ? '，其中重刷消灭错题 <b class="hl">' + d.totalWrong + '</b> 道' : '，一遍过 🎯')
+    + '</div></div>'
+    + '<div class="card" id="mindWrap"><div style="font-weight:900;margin-bottom:10px">🧠 本任务知识点思维导图</div><div id="mindBody"></div></div>'
+    + '<div class="card" id="memoWrap"><div style="font-weight:900;margin-bottom:10px">🎵 专属记忆口诀</div><div id="memoBody"><button class="btn magenta" id="memoBtn">✨ 生成记忆口诀</button></div></div>'
+    + '<div class="row2 mt10"><button class="btn ghost" id="mindSave">💾 保存导图与口诀</button><button class="btn ghost" id="mindGoNote">📖 去考点速记回看</button></div>'
+    + '<button class="btn magenta mt10" onclick="go(\'s-study\')">返回自习室</button>';
+  body.innerHTML = '';
+  body.appendChild(wrap);
+  renderMindMap(document.getElementById('mindBody'), modIds, acc);
+  document.getElementById('memoBtn').onclick = () => genMnemonic(modIds, document.getElementById('memoBody'), d);
+  document.getElementById('mindSave').onclick = () => {
+    st.taskMind = st.taskMind || {};
+    st.taskMind[mkey] = {
+      mods: modIds, acc, at: Date.now(),
+      label: d.label, mode: d.mode,
+      memo: (document.getElementById('memoBody').textContent || '').slice(0, 500)
+    };
+    save(); toast('已保存，可在「我的笔记」随时回看 💾');
+  };
+  document.getElementById('mindGoNote').onclick = () => { go('s-note'); noteSrc('gold'); };
+}
+function renderMindMap(box, modIds, acc){
+  if(!box) return;
+  const rows = modIds.map(id => {
+    const mo = modById(id);
+    const nm = mo ? mo.name : id;
+    const stat = moduleStat ? moduleStat(id) : null;
+    const lv = stat ? masteryLv(stat.mastery || 0) : 0;
+    const lvName = ['未学','熟悉','掌握','精通'][lv] || '未学';
+    return {id, nm, lv, lvName, ds: (mo && mo.ds) || ''};
+  });
+  let html = '<div class="mindroot">🎯 ' + escapeHtml(curSubject().name) + ' · 本次任务</div><div class="mindline"></div>';
+  rows.forEach(r => {
+    html += '<div class="mindnode lv' + r.lv + '"><div class="mn-t">' + escapeHtml(r.nm) + '</div>'
+      + '<div class="mn-s">熟练度：' + r.lvName + '</div>'
+      + (r.ds ? '<div class="mn-d">' + escapeHtml(r.ds.slice(0, 60)) + '</div>' : '') + '</div>';
+  });
+  box.innerHTML = html;
+}
+async function genMnemonic(modIds, box, d){
+  const names = modIds.map(id => modName(id)).filter(Boolean);
+  box.innerHTML = '<div style="font-size:12px;color:var(--sub)">她正在为你编口诀…</div>';
+  const mate = getMate(MOD2MATE[modIds[0]] || 'luo');
+  const sys = aiPrompt(mate) + '\n\n【当前任务】用你的口吻，为下面的考点编一段好记的中文口诀。要求：口语化、押韵、不超过 80 字，只输出口诀本身。';
+  const req = '本次任务通关了，考点是：' + names.join('、') + '。请编一段记忆口诀。';
+  try{
+    const out = await sfChat([{role:'system',content:sys},{role:'user',content:req}]);
+    box.innerHTML = '<div class="memobox"><div class="mm-who">' + escapeHtml(mate.name) + '的口诀</div>'
+      + '<div class="mm-t">' + escapeHtml(out).replace(/\n/g,'<br>') + '</div></div>';
+    addAff(mate.id, 2);
+  }catch(e){
+    box.innerHTML = '<div class="memobox"><div class="mm-t">口诀口诀，多练几遍就熟；错题清零，考场自然不慌。</div></div>';
+  }
 }
 function renderDrill(){
   const d = S.drill, body = document.getElementById('drillBody');
   if(!d) return;
   saveDrillProgress();
   if(d.i >= d.list.length){
+    // 错题已全部清零 → 任务真正完成
+    if(d.cleared && d.pendingWrong === 0 && !d.isWrong){ drillClear(d); return; }
     const acc = Math.round(d.right / d.list.length * 100);
     body.innerHTML = `<div class="card" style="text-align:center">
       <div class="rank">${d.right}<span style="font-size:22px">/${d.list.length}</span></div>
@@ -2313,8 +2573,12 @@ function renderDrill(){
   d.help = 0;
   body.innerHTML = '';
   setBg(MOD2MATE[q.m]);
+  // ① 任务状态条：已掌握 / 待清零错题
+  if(d.cleared) body.appendChild(drillStatusBar(d));
   const head = document.createElement('div'); head.className = 'qbar';
-  head.innerHTML = `<span>${d.weakPaper ? '🎯特训卷' : (d.isWrong ? '🔁错题' : (d.label || (mo ? mo.name : '')))}</span><div class="prog"><i style="width:${Math.round(d.i / d.list.length * 100)}%"></i></div><span>${d.i+1}/${d.list.length}</span>`;
+  const againN = (d.wrongN || {})[q.id] || 0;
+  const againTag = againN ? ' <span class="redotag">🔁 第' + (againN + 1) + '次重刷</span>' : '';
+  head.innerHTML = `<span>${d.weakPaper ? '🎯特训卷' : (d.isWrong ? '🔁错题' : (d.label || (mo ? mo.name : '')))}${againTag}</span><div class="prog"><i style="width:${Math.round(d.i / d.list.length * 100)}%"></i></div><span>${d.i+1}/${d.list.length}</span>`;
   body.appendChild(head);
   const chat = document.createElement('div'); chat.className = 'chat';
   if(DUP_REAL[q.id]){
@@ -2332,13 +2596,24 @@ function renderDrill(){
   const av = document.createElement('img'); av.className = 'chat-av'; av.src = mate.img; av.onerror = () => av.style.display = 'none';
   const bub = document.createElement('div'); bub.className = 'bubble qbubble';
   const qt = document.createElement('div'); qt.className = 'qtext'; qt.textContent = q.q; bub.appendChild(qt);
+  // 英语题：题目可朗读（读题 / 慢速 / 停止）
+  const voiceOn = FILTER.subj === 'eng' || q.subj === 'eng' || isEnText(q.q);
+  if(voiceOn) bub.appendChild(ttsBar(() => q.q));
   qb.appendChild(av); qb.appendChild(bub); chat.appendChild(qb);
   if(q.t === 'choice'){
     const replies = document.createElement('div'); replies.className = 'chat-replies';
     q.o.forEach((o, k) => {
       const op = document.createElement('div'); op.className = 'opt chat-opt';
       op.innerHTML = `<div class="k">${String.fromCharCode(65 + k)}</div><div>${o}</div>`;
-      op.onclick = () => submitDrill(k, op); replies.appendChild(op);
+      op.onclick = () => submitDrill(k, op);
+      // 英语选项：右侧小喇叭，单读这一项
+      if(voiceOn){
+        const sp = document.createElement('div'); sp.className = 'ttsmini'; sp.textContent = '🔊';
+        sp.title = '朗读这个选项';
+        sp.onclick = e => { e.stopPropagation(); speak(o); };
+        op.appendChild(sp);
+      }
+      replies.appendChild(op);
     });
     if(affLv(st.aff[MOD2MATE[q.m]] || 0) >= 3 && !d.used5050){
       const b50 = document.createElement('button'); b50.className = 'btn ghost sm selfbtn';
@@ -2363,7 +2638,7 @@ function renderDrill(){
   hb.onclick = () => askHelp(q);
   body.appendChild(hb);
   const sb = document.createElement('button'); sb.className = 'btn ghost sm mt10'; sb.id = 'stepBtn';
-  sb.textContent = '🔦 一步一步讲给我听（分步点亮）';
+  sb.textContent = '🔦 一步一步讲给我听（每步带 ABCD 检测）';
   sb.onclick = () => openSteps(q, sb);
   body.appendChild(sb);
   const coach = document.createElement('div'); coach.className = 'coachline';
@@ -2406,39 +2681,112 @@ function buildSteps(q){
   steps.push({k:'🎯 最后 · 答案确认', x: last + '<br><span style="color:var(--sub);font-size:12px">现在合上讲解，闭眼把这几步再走一遍——走通了就回去作答。</span>'});
   return steps;
 }
-function openSteps(q, btn){
+/* ---- 分步讲题：每一步都配一道 ABCD 检测，答对才放行下一步 ---- */
+/* 降级方案（AI 不可用/返回异常时）：用同模块其他题的解析句做干扰项 */
+function localStepQuiz(q, steps){
+  const bank = (typeof ALLQ !== 'undefined' && ALLQ) || [];
+  const same = bank.filter(x => x && x.m === q.m && x.id !== q.id && x.sol);
+  const distract = [];
+  same.slice(0, 40).forEach(x => {
+    splitSol(x.sol).forEach(s => { if(s.length > 8) distract.push(s.slice(0, 40)); });
+  });
+  return steps.map(s => {
+    const plain = String(s.x || '').replace(/<[^>]+>/g, '').trim();
+    const right = plain.slice(0, 38) || '按这一步的思路继续往下推';
+    const ds = shuffle(distract).filter(x => x !== right).slice(0, 3);
+    const o = shuffle([right].concat(ds));
+    while(o.length < 4) o.push('先把概念理清楚再动笔');
+    const opts = o.slice(0, 4);
+    return Object.assign({}, s, {
+      q: '这一步的关键是什么？', o: opts,
+      a: Math.max(0, opts.indexOf(right)), exp: plain.slice(0, 90)
+    });
+  });
+}
+async function buildStepQuiz(q){
+  const steps = buildSteps(q);
+  const mate = getMate(MOD2MATE[q.m]);
+  const sys = aiPrompt(mate) + '\n\n【当前任务】你是拆题高手。把题目拆成若干步，每一步配一道 ABCD 小检测。只输出一个 JSON 对象，禁止任何解释或 markdown 标记。';
+  const req = '题目：' + q.q + '\n'
+    + (q.t === 'choice' ? '选项：' + q.o.join(' | ') + '\n' : '')
+    + '正确答案：' + ansText(q) + '\n'
+    + '解析：' + String(q.sol || '').replace(/<[^>]+>/g, ' ').slice(0, 400) + '\n'
+    + '请拆成 3-5 步，每步都要「先讲清楚这一步怎么想」再「出一道 ABCD 检测题」。输出：\n'
+    + '{"steps":[{"k":"步骤名","x":"这一步的讲解","q":"检测小题","o":["A","B","C","D"],"a":0,"exp":"为什么"}]}'
+    + '（a 为正确选项下标 0-3）';
+  try{
+    const out = await sfChat([{role:'system', content: sys}, {role:'user', content: req}]);
+    const j = extractJSON(out);
+    if(j && Array.isArray(j.steps) && j.steps.length >= 2){
+      return j.steps.slice(0, 6).map(s => {
+        const o = (Array.isArray(s.o) && s.o.length >= 2) ? s.o.slice(0, 4).map(String) : null;
+        if(!o) return null;
+        return {k: s.k || '步骤', x: s.x || '', q: s.q || '这一步的关键是什么？',
+                o, a: Math.max(0, Math.min(o.length - 1, parseInt(s.a, 10) || 0)), exp: s.exp || ''};
+      }).filter(Boolean);
+    }
+  }catch(e){ /* 走降级 */ }
+  return localStepQuiz(q, steps);
+}
+async function openSteps(q, btn){
   const d = S.drill; if(!d || !q) return;
   const old = document.getElementById('stepPanel');
-  if(old){ old.remove(); if(btn) btn.textContent = '🔦 一步一步讲给我听（分步点亮）'; return; }
+  if(old){ old.remove(); if(btn) btn.textContent = '🔦 一步一步讲给我听（每步带检测）'; return; }
   const mate = getMate(MOD2MATE[q.m]);
-  const steps = buildSteps(q);
   const panel = document.createElement('div'); panel.className = 'steppanel'; panel.id = 'stepPanel';
-  panel.innerHTML = `<div class="sph">${mate.img ? `<img src="${mate.img}" onerror="this.style.display='none'">` : ''}<span>${mate.name} 的分步讲解 · 一步一步点亮</span><span class="spd">${steps.map(() => '<i></i>').join('')}</span></div><div id="stepList"></div>`;
+  panel.innerHTML = `<div class="sph">${mate.img ? `<img src="${mate.img}" onerror="this.style.display='none'">` : ''}<span>${mate.name} 的分步讲解 · 每步一道检测</span><span class="spd" id="spdBox"></span></div>`
+    + '<div id="stepList"></div><div id="stepQuiz"><div class="steptip">她正在把这道题拆成带检测的步骤…</div></div>';
   btn.after(panel);
+  if(btn) btn.textContent = '🔦 收起分步讲解';
+  const steps = await buildStepQuiz(q);
+  const spd = panel.querySelector('#spdBox');
+  if(spd) spd.innerHTML = steps.map(() => '<i></i>').join('');
+  const listBox = panel.querySelector('#stepList');
+  const quizBox = panel.querySelector('#stepQuiz');
+  quizBox.innerHTML = '';
   let idx = 0;
-  const nb = document.createElement('button'); nb.className = 'btn ghost sm mt10'; nb.id = 'stepNext';
-  const light = () => {
-    if(idx >= steps.length) return;
+  function step(){
+    if(idx >= steps.length){
+      quizBox.innerHTML = '<div class="steptip ok">✅ 全部步骤都走通了，合上讲解回去作答吧！</div>';
+      d.help = Math.max(d.help || 0, 3);
+      addAff(MOD2MATE[q.m], 2); save();
+      const sp = panel.querySelectorAll('.spd i'); sp.forEach(x => x.classList.add('on'));
+      return;
+    }
     const s = steps[idx];
     const it = document.createElement('div'); it.className = 'stepitem lit';
-    it.innerHTML = `<div class="sk">${s.k}</div><div>${s.x}</div>`;
-    document.getElementById('stepList').appendChild(it);
-    panel.querySelectorAll('.spd i')[idx].classList.add('on');
-    idx++;
-    if(idx >= steps.length){
-      nb.textContent = '✅ 讲解完毕 · 合上去作答吧';
-      nb.disabled = true;
-      d.help = Math.max(d.help || 0, 3);   // 看完完整分步 = 学习模式，答案次日回访
-      addAff(MOD2MATE[q.m], 1);
-      save();
-    } else {
-      nb.textContent = '✨ 点亮下一步（' + idx + '/' + steps.length + '）';
-    }
+    it.innerHTML = '<div class="sk">' + escapeHtml(s.k) + '</div><div>' + s.x + '</div>';
+    listBox.appendChild(it);
+    const sp = panel.querySelectorAll('.spd i');
+    if(sp[idx]) sp[idx].classList.add('on');
+    // 该步的 ABCD 检测
+    const qz = document.createElement('div'); qz.className = 'stepquiz';
+    qz.innerHTML = '<div class="sq-q">❓ ' + escapeHtml(s.q) + '</div>';
+    s.o.forEach((t, k) => {
+      const op = document.createElement('div'); op.className = 'opt';
+      op.innerHTML = '<div class="k">' + String.fromCharCode(65 + k) + '</div><div>' + escapeHtml(t) + '</div>';
+      op.onclick = () => {
+        if(op.classList.contains('dis')) return;
+        qz.querySelectorAll('.opt').forEach(x => x.classList.add('dis'));
+        const ok = k === s.a;
+        op.classList.add(ok ? 'ok' : 'no');
+        if(!ok) qz.querySelectorAll('.opt')[s.a].classList.add('ok');
+        const fb = document.createElement('div'); fb.className = 'sol show ' + (ok ? 'good' : 'bad');
+        fb.innerHTML = '<div class="h">' + (ok ? '✅ 跟上啦' : '❌ 这一步再看看 · 正确：' + escapeHtml(s.o[s.a])) + '</div>'
+          + escapeHtml(s.exp || s.x.replace(/<[^>]+>/g, '').slice(0, 120));
+        qz.appendChild(fb);
+        const nx = document.createElement('button'); nx.className = 'btn ' + (ok ? 'magenta' : 'ghost') + ' sm mt10';
+        nx.textContent = idx + 1 >= steps.length ? '🏁 完成讲解' : '➡️ 进入第 ' + (idx + 2) + ' 步';
+        nx.onclick = () => { idx++; quizBox.innerHTML = ''; step(); };
+        qz.appendChild(nx);
+        if(ok) addAff(MOD2MATE[q.m], 1);
+      };
+      qz.appendChild(op);
+    });
+    quizBox.appendChild(qz);
     it.scrollIntoView({behavior:'smooth', block:'nearest'});
-  };
-  nb.textContent = '✨ 点亮下一步（0/' + steps.length + '）';
-  nb.onclick = light;
-  panel.appendChild(nb);
+  }
+  step();
   panel.scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 function ansText(q){ return q.t === 'choice' ? q.o[q.a] : q.ans.join(' / '); }
@@ -2492,6 +2840,35 @@ function drillFeedback(q, ok){
   nb.onclick = () => { S.drill.i++; renderDrill(); };
   body.appendChild(nb);
 }
+/* ★ 错题强制清零核心：答错→自动排到任务末尾重刷；答对→销掉一笔欠账。
+   巩固模式下错题换成同考点的另一道题（换花样考同一考点，杜绝死记答案）。 */
+function drillVerdict(q, ok){
+  const d = S.drill; if(!d || !d.cleared) return;   // 错题本等老任务不受影响
+  const cid = q.__clearFor || q.id;
+  if(ok){
+    d.cleared[cid] = 1;
+    if(d.wrongN[cid]){
+      d.pendingWrong = Math.max(0, (d.pendingWrong || 0) - 1);
+      d.wrongN[cid] = 0;
+      d.clearedAgain = (d.clearedAgain || 0) + 1;
+    }
+  } else {
+    const n = (d.wrongN[cid] || 0) + 1;
+    d.wrongN[cid] = n;
+    d.totalWrong = (d.totalWrong || 0) + 1;
+    if(n === 1) d.pendingWrong = (d.pendingWrong || 0) + 1;
+    if(n > 3){
+      // 同一考点连错 3 次：先放行，避免任务卡死，转错题本继续攻克
+      d.wrongN[cid] = 0;
+      d.pendingWrong = Math.max(0, d.pendingWrong - 1);
+      toast('这题先记下啦，任务结束后去错题本攻克它 💪');
+      return;
+    }
+    const alt = (d.mode === 'solid') ? pickAltSameMod(q, d) : null;
+    if(alt){ const c = Object.assign({}, alt); c.__clearFor = cid; d.list.push(c); }
+    else d.list.push(q);
+  }
+}
 function submitDrill(k, el){
   const d = S.drill, q = d.list[d.i];
   if(el.dataset.done) return; el.dataset.done = 1;
@@ -2501,6 +2878,7 @@ function submitDrill(k, el){
   d.lastAns = q.o[k];
   if(ok){ el.classList.add('ok'); d.right++; }
   else{ el.classList.add('no'); opts[q.a].classList.add('ok'); }
+  drillVerdict(q, ok);
   if(ok && d.isWrong){
     const w = st.wrong.find(x => x.id === q.id);
     if(w){
@@ -2539,6 +2917,7 @@ function submitFill(v){
     addAff(MOD2MATE[q.m], st.combo >= 5 ? 2 : 1);
     if(affLv(st.aff[MOD2MATE[q.m]] || 0) >= 2) addXp(4);
   } else st.combo = 0;
+  drillVerdict(q, ok);
   save();
   recordAnswer(q, ok, (d.help || 0) >= 3);
   drillFeedback(q, ok);
@@ -2949,6 +3328,148 @@ function buildNoteBody(el, d, kw){
   el.appendChild(pre);
 }
 
+/* =================== 2026 黄金考点（388 个结构化考点 · 来自《黄金考点汇编》） =================== */
+const GP_NAME = {pol:'政治', mat:'高数二', eng:'英语'};
+let GP_SUBJ = 'pol', GP_SRC = 'doc';
+function noteSrc(src){
+  GP_SRC = src;
+  const d = document.getElementById('noteDocWrap'), g = document.getElementById('noteGoldWrap');
+  const bd = document.getElementById('nsrc-doc'), bg = document.getElementById('nsrc-gold');
+  const isG = src === 'gold';
+  if(d) d.style.display = isG ? 'none' : '';
+  if(g) g.style.display = isG ? '' : 'none';
+  if(bd) bd.className = 'btn ' + (isG ? 'ghost' : 'magenta');
+  if(bg) bg.className = 'btn ' + (isG ? 'magenta' : 'ghost');
+  if(isG) renderGold(''); else renderNote('');
+}
+function gpAll(){ return (window.GOLD_POINTS && window.GOLD_POINTS.data) || {}; }
+function gpTab(tag){
+  GP_SUBJ = tag;
+  const si = document.getElementById('gpSearch'); if(si) si.value = '';
+  renderGold('');
+}
+function renderGold(kw){
+  const box = document.getElementById('gpList'); if(!box) return;
+  const all = gpAll();
+  const tot = document.getElementById('gpTotal');
+  if(tot) tot.textContent = ['pol','mat','eng'].reduce((n,k)=>n+((all[k]||[]).length),0);
+  ['pol','mat','eng'].forEach(s => {
+    const b = document.getElementById('gptab-' + s); if(!b) return;
+    b.className = 'btn ' + (s === GP_SUBJ ? 'magenta' : 'ghost') + (s === 'eng' ? ' mt10' : '');
+  });
+  const k = (kw || '').trim();
+  const mine = all[GP_SUBJ] || [];
+  const items = k ? mine.filter(p => (p.t||'').indexOf(k) >= 0 || (p.b||'').indexOf(k) >= 0 || (p.chap||'').indexOf(k) >= 0) : mine;
+  box.innerHTML = '';
+  const cnt = document.createElement('div');
+  cnt.style.cssText = 'font-size:11.5px;color:var(--sub);margin:12px 0 8px';
+  cnt.textContent = '🏆 ' + GP_NAME[GP_SUBJ] + ' · ' + items.length + ' / ' + mine.length + ' 个考点' + (k ? '（关键词「' + k + '」）' : '');
+  box.appendChild(cnt);
+  if(!items.length){ const e = document.createElement('div'); e.className='empty'; e.textContent='没找到相关考点，换个关键词试试～'; box.appendChild(e); return; }
+  // 按章节分组
+  const groups = [];
+  items.forEach(p => {
+    const key = p.part ? p.part + ' ▸ ' + (p.chap || '') : (p.chap || '考点');
+    let g = groups.find(x => x.key === key);
+    if(!g){ g = {key, chap: p.chap, list: []}; groups.push(g); }
+    g.list.push(p);
+  });
+  groups.forEach(g => {
+    const c = document.createElement('div'); c.className = 'card'; c.style.padding = '0';
+    const gh = document.createElement('div');
+    gh.style.cssText = 'padding:11px 14px;font-weight:900;font-size:13px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.03)';
+    gh.textContent = '📂 ' + g.key;
+    c.appendChild(gh);
+    g.list.forEach(p => {
+      const row = document.createElement('div');
+      row.style.cssText = 'padding:11px 14px;border-bottom:1px solid rgba(255,255,255,.05)';
+      const head = document.createElement('div');
+      head.style.cssText = 'display:flex;gap:8px;align-items:flex-start;cursor:pointer';
+      head.innerHTML = '<div style="flex:1;min-width:0;font-size:13px;font-weight:700;line-height:1.5">考点' + p.i + ' · ' + escapeHtml(p.t || '') + '</div>'
+        + '<span style="color:var(--sub);flex:0 0 auto;font-size:12px">▾</span>';
+      const bEl = document.createElement('div');
+      bEl.style.cssText = 'display:none;padding-top:8px';
+      let open = false;
+      head.onclick = () => {
+        open = !open;
+        bEl.style.display = open ? 'block' : 'none';
+        if(open && !bEl.dataset.built){
+          bEl.dataset.built = '1';
+          const pre = document.createElement('pre');
+          pre.style.cssText = 'white-space:pre-wrap;word-break:break-word;font:inherit;font-size:12.5px;line-height:1.85;color:var(--txt);margin:0;max-height:340px;overflow:auto';
+          pre.textContent = p.b || '（无正文）';
+          bEl.appendChild(pre);
+          const bar = document.createElement('div');
+          bar.className = 'row2 mt10';
+          bar.innerHTML = '<button class="btn magenta gpquiz">🎯 考考我（AI 出題）</button><button class="btn ghost" onclick="gpFav(this)">⭐ 收藏</button>';
+          const qb = bar.querySelector('.gpquiz');
+          qb.onclick = () => gpQuiz(p, bEl, qb);
+          bEl.appendChild(bar);
+          const qbox = document.createElement('div'); qbox.className = 'gpqbox mt10';
+          bEl.appendChild(qbox);
+        }
+      };
+      row.appendChild(head); row.appendChild(bEl);
+      c.appendChild(row);
+      if(k && items.length <= 4) head.onclick();
+    });
+    box.appendChild(c);
+  });
+}
+function gpFav(btn){
+  btn.textContent = btn.textContent.indexOf('已') >= 0 ? '⭐ 收藏' : '✅ 已收藏';
+  toast(btn.textContent.indexOf('已') >= 0 ? '已收藏，可在「我的笔记」回看' : '已取消收藏');
+}
+/* AI 按单个考点现场出一道全新模拟题 */
+async function gpQuiz(pt, bodyEl, btn){
+  const box = bodyEl.querySelector('.gpqbox');
+  if(!box) return;
+  btn.disabled = true; btn.textContent = '🤖 出题ing…';
+  box.innerHTML = '<div style="font-size:12px;color:var(--sub)">AI 正在按「' + escapeHtml(pt.t) + '」出题…</div>';
+  const mate = getMate(GP_SUBJ === 'mat' ? 'luo' : GP_SUBJ === 'pol' ? 'xue' : 'ziyuan');
+  const sys = aiPrompt(mate) + '\n\n【当前任务】你是成考专升本出题老师。只输出一个 JSON 对象，禁止任何解释或 markdown 标记。';
+  const req = '下面是《2026 黄金考点汇编》中的一个考点，请严格围绕它出一道全新模拟题（不要照抄原文例句，换情境换数字）。\n'
+    + '科目：' + GP_NAME[GP_SUBJ] + '\n'
+    + '考点标题：' + pt.t + '\n'
+    + '考点内容：' + String(pt.b || '').slice(0, 700) + '\n'
+    + '输出格式（只输出这一行 JSON）：\n'
+    + '{"t":"choice","q":"题干","o":["选项A","选项B","选项C","选项D"],"a":0,"sol":"一句话解析"}（a 为正确选项下标 0-3）';
+  try{
+    const out = await sfChat([{role:'system',content:sys},{role:'user',content:req}]);
+    const j = extractJSON(out);
+    if(!j || !j.q || !Array.isArray(j.o) || j.o.length < 2) throw new Error('AI 返回的题目格式不对');
+    renderGpQuiz(box, j, pt);
+  }catch(e){
+    box.innerHTML = '<div style="font-size:12.5px;color:var(--red)">⚠️ ' + escapeHtml(e.message) + '<br>网络不好或模型开小差了，点上面按钮再试一次～</div>';
+  }
+  btn.disabled = false; btn.textContent = '🎯 换一道（再来）';
+}
+function renderGpQuiz(box, j, pt){
+  const a = Math.max(0, Math.min(j.o.length - 1, parseInt(j.a, 10) || 0));
+  box.innerHTML = '';
+  const tag = document.createElement('div');
+  tag.innerHTML = '<span class="qtag">🎯 ' + escapeHtml(pt.t) + ' · AI 新题</span>';
+  box.appendChild(tag);
+  const qt = document.createElement('div'); qt.className = 'qtext'; qt.textContent = j.q; box.appendChild(qt);
+  j.o.forEach((o, k) => {
+    const op = document.createElement('div'); op.className = 'opt';
+    op.innerHTML = '<div class="k">' + String.fromCharCode(65 + k) + '</div><div>' + escapeHtml(o) + '</div>';
+    op.onclick = () => {
+      if(op.classList.contains('dis')) return;
+      box.querySelectorAll('.opt').forEach(x => x.classList.add('dis'));
+      const ok = k === a;
+      op.classList.add(ok ? 'ok' : 'no');
+      if(!ok) box.querySelectorAll('.opt')[a].classList.add('ok');
+      const fb = document.createElement('div'); fb.className = 'sol show ' + (ok ? 'good' : 'bad');
+      fb.innerHTML = '<div class="h">' + (ok ? '✅ 拿下！' : '❌ 正确答案：' + escapeHtml(j.o[a])) + '</div>' + escapeHtml(j.sol || '');
+      box.appendChild(fb);
+      addAff(GP_SUBJ === 'mat' ? 'luo' : GP_SUBJ === 'pol' ? 'xue' : 'ziyuan', ok ? 2 : 1);
+      if(ok){ rankUpCheck(st.xp, st.xp + 8); st.xp += 8; save(); }
+    };
+    box.appendChild(op);
+  });
+}
+
 /* =================== 3 天计划 =================== */
 function renderPlan(){
   renderSprintPlan();
@@ -3200,10 +3721,10 @@ function moduleStat(id){
 function masteryLv(m){ return m <= 0 ? 0 : m < 40 ? 1 : m < 75 ? 2 : 3; }
 function subjOfMod(id){ return SUBJECTS.find(s => (s.mods || []).some(m => m.id === id)) || null; }
 /* 跨科目进入刷题必须先切科（否则 pool 取不到该模块题） */
-function treeDrill(id){
+function treeDrill(id, mode){
   const sj = subjOfMod(id);
   if(sj && sj.id !== FILTER.subj) setSubject(sj.id);
-  startDrill(id);
+  startDrill(id, mode);
 }
 function openModuleNote(id){
   const sj = subjOfMod(id);
@@ -3286,8 +3807,10 @@ function selectTreeNode(id){
     + '<div class="dstat"><span>📚 题库 ' + s.total + ' 题</span><span>✍️ 已刷 ' + s.seen + ' 题</span>'
     + '<span>🎯 正确率 ' + (s.seen ? s.acc + '%' : '—') + '</span><span>🔁 待复习 ' + s.wrongs + ' 题</span></div>'
     + '<div class="row2 mt10">'
-    + '<button class="btn magenta" onclick="treeDrill(\'' + id + '\')">⚔️ 刷这个模块</button>'
-    + '<button class="btn ghost" onclick="openModuleNote(\'' + id + '\')">📒 看这模块笔记</button>'
+    + '<button class="btn magenta" onclick="treeDrill(\'' + id + '\',\'normal\')">⚔️ 刷这个模块</button>'
+    + '<button class="btn gold" onclick="treeDrill(\'' + id + '\',\'solid\')">🔨 巩固定向</button>'
+    + '</div>'
+    + '<button class="btn ghost mt10" onclick="openModuleNote(\'' + id + '\')">📒 看这模块笔记</button>'
     + '</div></div>';
 }
 
@@ -3334,7 +3857,43 @@ function wrongsOfMod(id){
   st.wrong.forEach(w => { const q = ALLQ.find(x => x.id === w.id); if(q && q.m === id) out.push(q); });
   return out;
 }
+/* 通关记录：任务清零后保存的思维导图 + 记忆口诀，随时回看 */
+function renderTaskMind(){
+  const box = document.getElementById('taskMindList'); if(!box) return;
+  const m = st.taskMind || {};
+  const keys = Object.keys(m);
+  if(!keys.length){ box.innerHTML = '<div class="empty">还没有通关记录～ 完成一个任务（错题清零）后，导图和口诀会存到这里</div>'; return; }
+  box.innerHTML = '';
+  keys.sort((a, b) => (m[b].at || 0) - (m[a].at || 0)).forEach(k => {
+    const r = m[k], d = new Date(r.at || Date.now());
+    const c = document.createElement('div'); c.className = 'card';
+    const head = document.createElement('div');
+    head.style.cssText = 'display:flex;gap:8px;align-items:center';
+    head.innerHTML = '<div style="flex:1;min-width:0;font-weight:800;font-size:13px">🏆 ' + escapeHtml(r.label || '任务') + '</div>'
+      + '<span class="pill">' + (DRILL_MODE_NAME[r.mode] || '标准任务') + '</span>';
+    c.appendChild(head);
+    const meta = document.createElement('div');
+    meta.style.cssText = 'font-size:11.5px;color:var(--sub);margin-top:4px';
+    meta.textContent = (d.getMonth() + 1) + '月' + d.getDate() + '日通关 · 掌握度 ' + (r.acc || 100) + '%';
+    c.appendChild(meta);
+    const b1 = document.createElement('div'); b1.className = 'memobox mt10';
+    b1.innerHTML = '<div class="mm-who">专属记忆口诀</div><div class="mm-t">' + escapeHtml(r.memo || '（当时没生成口诀）') + '</div>';
+    c.appendChild(b1);
+    const mb = document.createElement('div'); mb.className = 'mt10';
+    renderMindMap(mb, r.mods || [], r.acc || 100);
+    c.appendChild(mb);
+    const row = document.createElement('div'); row.className = 'row2 mt10';
+    row.innerHTML = '<button class="btn ghost" onclick="go(\'s-note\');noteSrc(\'gold\')">📖 去考点速记</button>'
+      + '<button class="btn ghost" onclick="delTaskMind(\'' + k + '\')">🗑 删除</button>';
+    c.appendChild(row);
+    box.appendChild(c);
+  });
+}
+function delTaskMind(k){
+  if(st.taskMind){ delete st.taskMind[k]; save(); renderTaskMind(); toast('已删除这条通关记录'); }
+}
 function renderMyNotes(kw){
+  renderTaskMind();
   const box = document.getElementById('myNoteList'); if(!box) return;
   ['math', 'pol', 'eng'].forEach(s => {
     const b = document.getElementById('mntab-' + s);
@@ -3467,8 +4026,29 @@ function copyMyNotes(){
 }
 
 /* =================== 我的 =================== */
+const TTS_RATES = [0.92, 0.75, 0.62, 1.0];
+function toggleTts(){
+  st.ttsOn = (st.ttsOn === false); save(); syncTtsUI();
+  toast(st.ttsOn ? '语音朗读已开启 🔊' : '语音朗读已关闭 🔇');
+  if(st.ttsOn) speak('Voice is on.', {lang:'en-US'});
+}
+function cycleTtsRate(){
+  const cur = st.ttsRate || 0.92;
+  const i = TTS_RATES.indexOf(cur);
+  st.ttsRate = TTS_RATES[(i + 1) % TTS_RATES.length];
+  save(); syncTtsUI();
+  speak('This is the speaking speed.', {lang:'en-US'});
+}
+function syncTtsUI(){
+  const b = document.getElementById('ttsToggle'), r = document.getElementById('ttsRateBtn');
+  if(b){ b.textContent = TTS.on ? '🔊 已开启' : '🔇 已关闭'; b.className = 'btn ' + (TTS.on ? 'magenta' : 'ghost'); }
+  if(r) r.textContent = '语速 ' + (st.ttsRate || 0.92) + 'x';
+}
+function testTts(){ speak('Practice makes perfect. Keep going, you are doing great.', {lang:'en-US'}); }
+
 function renderMe(){
   const info = levelInfo();
+  syncTtsUI();
   document.getElementById('meLv').textContent = info.lv;
   document.getElementById('meXp').textContent = info.total;
   document.getElementById('meQ').textContent = st.total;
