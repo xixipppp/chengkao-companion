@@ -65,6 +65,25 @@
   .rb-body b{color:var(--gold)}
   .rb-mod{color:var(--sub);font-size:11.5px}
   .rb-say{font-size:12px;color:var(--sub);margin-top:8px;line-height:1.65;font-style:italic}
+  /* ---- 闭环④ 角色 × 科目 × 进度 三位一体 ---- */
+  .homebonus{display:inline-block;margin-top:8px;font-size:11.5px;font-weight:800;color:#8fe8b8;
+    background:rgba(47,191,113,.14);border:1px solid rgba(47,191,113,.4);border-radius:999px;padding:3px 10px}
+  .mateinvite{margin-top:12px;border-radius:18px;padding:14px;border:1px solid rgba(255,138,209,.42);
+    background:linear-gradient(140deg,rgba(255,138,209,.12),rgba(94,224,240,.08))}
+  .mi-top{display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:800;color:var(--magenta)}
+  .mi-body{display:flex;gap:10px;align-items:center;margin-top:9px}
+  .mi-body img{width:46px;height:46px;border-radius:12px;object-fit:cover;object-position:50% 14%;flex:0 0 auto}
+  .mi-txt{flex:1;min-width:0;font-size:12.5px;line-height:1.65;color:var(--txt)}
+  .mi-focus{color:var(--gold);font-weight:800}
+  .bondcard .cb-title{font-size:12.5px;font-weight:800;color:var(--magenta);margin-bottom:9px}
+  .cb-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .cb-item{background:var(--panel2);border:1px solid var(--line);border-radius:13px;padding:10px 6px;text-align:center}
+  .cb-item b{display:block;font-size:17px;color:var(--gold)}
+  .cb-item span{font-size:10px;color:var(--sub)}
+  .cb-note{font-size:11.5px;color:var(--sub);margin-top:9px;line-height:1.7}
+  .cb-note .mi-focus{color:var(--gold)}
+  .mt-home{display:inline-block;font-size:9.5px;font-weight:800;color:#231600;
+    background:linear-gradient(135deg,var(--gold),#f59e0b);border-radius:999px;padding:1px 7px;margin-left:6px;vertical-align:middle}
   @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
   .sec-title{display:flex;align-items:center;gap:8px;margin:18px 2px 10px;font-weight:800;font-size:15px}
   .sec-title .bar{width:4px;height:16px;border-radius:3px;background:linear-gradient(180deg,var(--magenta),var(--purple))}
@@ -648,7 +667,7 @@
 .anime-speak{position:absolute;left:12px;right:12px;bottom:14px;display:flex;gap:10px;align-items:flex-end}
 .anime-speak .av{width:46px;height:46px;border-radius:12px;flex:0 0 auto;background:#2a1c3a;object-fit:cover;border:1px solid rgba(255,255,255,.15)}
 .anime-speak .bub{background:rgba(20,12,32,.92);border:1px solid rgba(255,138,209,.4);border-radius:14px;padding:10px 13px;font-size:13px;line-height:1.65;color:#fff;flex:1}
-.anime-board{position:absolute;inset:14px;background:rgba(18,12,30,.94);border:1px solid rgba(94,224,240,.3);border-radius:14px;padding:16px;overflow:auto}
+.anime-board{position:absolute;top:14px;right:14px;bottom:14px;left:14px;background:rgba(18,12,30,.94);border:1px solid rgba(94,224,240,.3);border-radius:14px;padding:16px;overflow:auto}
 .anime-board .bh{font-size:15px;font-weight:800;color:#5ee0f0;margin-bottom:8px}
 .anime-board .bb{font-size:13.5px;line-height:1.9;color:#eee}
 .anime-ctrl{display:flex;align-items:center;gap:8px;margin:10px 0;flex-wrap:wrap}
@@ -703,6 +722,8 @@
     <div id="todayWrap"></div>
 
     <div id="homeResume"></div>
+
+    <div id="mateInviteWrap"></div>
 
     <div class="card" style="margin-top:12px">
       <div class="xpwrap">
@@ -793,6 +814,7 @@
       <span class="bar"><i id="dAffBar"></i></span>
       <span class="val" id="dAffVal">0</span>
     </div>
+    <div class="card bondcard" id="bondCard"></div>
     <div class="card">
       <div style="font-size:13px;line-height:1.7;color:var(--sub)" id="dDesc"></div>
     </div>
@@ -1739,6 +1761,16 @@ const MOD2MATE = {m1:'luo', m2:'cheng', m3:'qing', m4:'ziyuan', m5:'ye', all:'xu
   e1:'ye',  e2:'qing',  e3:'cheng', e4:'xue', e5:'ziyuan'};
 // 兜底：任何未列出的模块 id 都归到雪见，避免 MOD2MATE[q.m] 为 undefined 时崩溃
 SUBJECTS.forEach(s => (s.mods || []).forEach(mo => { if(!MOD2MATE[mo.id]) MOD2MATE[mo.id] = 'xue'; }));
+
+/* =================== 闭环④ 角色 × 科目 × 进度 三位一体 ===================
+   每位角色的「主场科目」：与 TA 一起学这门课，会吃到专属增益（主场共鸣）；
+   学任何一科都会涨对应陪练的好感（防偏科红线：好感照给，增益只在主场叠加）。 */
+const MATE_FOCUS = {xue:'all', luo:'math', cheng:'math', qing:'math', ziyuan:'eng', ye:'pol'};
+const FOCUS_LABEL = {all:'全科', math:'高数二', pol:'政治', eng:'英语'};
+function focusOf(id){ return MATE_FOCUS[id] || 'all'; }
+function focusLabel(id){ return FOCUS_LABEL[focusOf(id)] || '全科'; }
+/* 是否处于该角色的主场科目（雪见是全科总教官，任何科都算主场） */
+function isHomeSubj(mateId, subjId){ const f = focusOf(mateId); return f === 'all' || f === subjId; }
 const LVNAMES = ['初识','熟悉','信赖','心动','命定'];
 const ERR_TYPES = ['概念不清','计算失误','审题错误','方法不会'];
 const RADAR_LBL = {m1:'极限', m2:'微分', m3:'积分', m4:'多元', m5:'概率'};
@@ -1759,7 +1791,7 @@ function blank(){ return {name:'女主', xp:0, correct:0, total:0,
   dq:null, streak:0, lastDay:'', examDate:'', p10:null,
   records:{}, sessions:[], butler:{weights:{math:1,pol:1,eng:1}, wDone:{}}, sprint:null,
   variants:{}, aiStats:{api:0, hit:0},
-  todayTask:null, lastReport:null, planExtra:[], lessonFeed:[]}; }
+  todayTask:null, lastReport:null, planExtra:[], lessonFeed:[], bond:{}}; }
 function load(){
   try{
     const s = JSON.parse(localStorage.getItem(KEY) || 'null');
@@ -1767,13 +1799,15 @@ function load(){
     const b = blank();
     for(const k in b){ if(s[k] === undefined) s[k] = b[k]; }
     for(const k in b.aff){ if(s.aff[k] === undefined) s.aff[k] = 0; }
+    s.bond = s.bond || {};
+    MATES.forEach(m => { const t = s.bond[m.id] || (s.bond[m.id] = {}); t.q = t.q || 0; t.clear = t.clear || 0; t.kill = t.kill || 0; });
     return s;
   }catch(e){ return blank(); }
 }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(st)); }catch(e){} }
 let st = load();
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v2.3.0';   // 同步 GitHub Release 标签
+const APP_VER = 'v2.4.0';   // 同步 GitHub Release 标签
 
 /* =================== 工具 =================== */
 function getMate(id){ return MATES.find(m => m.id === id); }
@@ -2136,6 +2170,11 @@ function addAff(id, n){
   if(nv > old) showLup(id, nv);
   save();
 }
+/* 闭环④ 羁绊档案：好感之外，记录「我们一起做过什么」——角色×进度的凭证 */
+function bondOf(id){ st.bond = st.bond || {}; const b = st.bond[id] || (st.bond[id] = {q:0, clear:0, kill:0}); b.q = b.q||0; b.clear = b.clear||0; b.kill = b.kill||0; return b; }
+function bondAdd(id, field, n){ if(!id || id === 'all') return; const b = bondOf(id); b[field] = (b[field] || 0) + (n || 1); }
+/* 共同经历值：把三类凭证折算成一个可比较的「羁绊进度」（用于陪练邀请排序） */
+function bondScore(id){ const b = bondOf(id); return b.q + b.clear * 20 + b.kill * 5; }
 function showLup(id, lv){
   const m = getMate(id); if(!m) return;
   document.getElementById('lupBig').textContent = '💞';
@@ -2264,6 +2303,7 @@ function renderHome(){
   document.getElementById('stBoss').textContent = st.bossBest ? st.bossBest + '连破' : '--';
   const av = document.getElementById('appVer'); if(av) av.textContent = APP_VER;
   renderTodayCard();                    // 首屏唯一指令 + 上一轮战报
+  renderMateInvite();                   // 闭环④：今日任务完成后才邀请陪练，不与唯一指令抢注意力
   const hr = document.getElementById('homeResume');
   if(hr) hr.innerHTML = resumeBanner();
   setAccent();
@@ -2294,9 +2334,10 @@ function renderMates(){
     const el = document.createElement('div'); el.className = 'mate';
     el.onclick = () => openDetail(m.id);
     el.innerHTML = `<img class="av" src="${m.img}" onerror="this.style.display='none'">
-      <div class="mi"><div class="mnh"><div class="mn">${m.name}</div><div class="mt">${m.title}</div></div>
+      <div class="mi"><div class="mnh"><div class="mn">${m.name}<span class="mt-home">主场·${focusLabel(m.id)}</span></div><div class="mt">${m.title}</div></div>
       <div class="mds">${m.desc}</div>
-      <div class="affrow"><div class="affbar"><i style="width:${pct}%"></i></div><div class="afflv">💞${LVNAMES[lv-1]}</div></div></div>`;
+      <div class="affrow"><div class="affbar"><i style="width:${pct}%"></i></div><div class="afflv">💞${LVNAMES[lv-1]}</div></div>
+      <div style="margin-top:6px;font-size:11px;color:var(--sub)">🧩 一起练 ${bondOf(m.id).q || 0} 题 · 通关 ${bondOf(m.id).clear || 0} 次</div></div>`;
     box.appendChild(el);
   });
 }
@@ -2312,6 +2353,7 @@ function openDetail(id){
   document.getElementById('dAffBar').style.width = affPct(v, lv) + '%';
   document.getElementById('dAffVal').textContent = v + ' / ' + AFF_T[4];
   document.getElementById('dDesc').textContent = m.desc;
+  renderBondCard(id);
   const ql = document.getElementById('quoteList'); ql.innerHTML = '';
   m.quotes.forEach((q, i) => {
     const locked = i + 1 > lv;
@@ -2322,6 +2364,45 @@ function openDetail(id){
   go('s-detail');
 }
 function studyWith(id){ addAff(id, 1); toast('和 ' + getMate(id).name + ' 一起自习 💞'); go('s-study'); }
+/* 闭环④ 羁绊档案卡：把「好感」还原成共同经历（角色 × 进度） */
+function renderBondCard(id){
+  const box = document.getElementById('bondCard'); if(!box) return;
+  const b = bondOf(id);
+  const fTxt = focusOf(id) === 'all' ? '全科总教官 · 任何科目都是 TA 的主场' : '主场科目：' + focusLabel(id);
+  const lvl = affLv(st.aff[id] || 0);
+  const note = (b.q || b.clear)
+    ? '好感不只是聊出来的——这些数字，是我们一起熬出来的。'
+    : '还没和 TA 并肩过。去 ' + focusLabel(id) + ' 刷一轮，从这里开始记录。';
+  box.innerHTML = '<div class="cb-title">💞 羁绊档案 · 我们一起走过的路</div>'
+    + '<div class="cb-grid">'
+    + '<div class="cb-item"><b>' + (b.q || 0) + '</b><span>一起练的题</span></div>'
+    + '<div class="cb-item"><b>' + (b.clear || 0) + '</b><span>共同通关</span></div>'
+    + '<div class="cb-item"><b>' + (b.kill || 0) + '</b><span>携手消灭错题</span></div>'
+    + '</div>'
+    + '<div class="cb-note">🎖️ ' + escapeHtml(fTxt) + '　·　羁绊等级：<b style="color:var(--magenta)">' + LVNAMES[lvl - 1] + '</b><br>' + escapeHtml(note) + '</div>'
+    + '<button class="btn ghost sm mt10" style="width:100%" onclick="studyMateHome(\'' + id + '\')">📚 去 TA 的主场（' + focusLabel(id) + '）陪学一轮</button>';
+}
+/* 闭环④：一键去某角色的主场科目练一轮（优先该科目下最薄弱的模块） */
+function studyMateHome(id){
+  const m = getMate(id); if(!m) return;
+  const f = focusOf(id);
+  const subjId = (f === 'all') ? ((SUBJECTS.find(s => s.id === FILTER.subj) || SUBJECTS[0]).id) : f;
+  const subj = SUBJECTS.find(s => s.id === subjId) || SUBJECTS[0];
+  setSubject(subj.id);
+  let target = null;
+  try{
+    const weak = weakModules().filter(x => (subj.mods || []).some(mo => mo.id === x.m.id));
+    if(weak.length) target = weak[0].m.id;
+  }catch(e){}
+  if(!target){
+    const own = (subj.mods || []).find(mo => MOD2MATE[mo.id] === id);
+    target = ((own || (subj.mods || [])[0] || {}).id) || null;
+  }
+  if(!target){ toast('这个科目暂时没有可练的模块～'); return; }
+  addAff(id, 1);
+  startDrill(target, 'normal');
+  toast('💞 ' + m.name + ' 在 ' + focusLabel(id) + ' 陪你练一轮');
+}
 
 /* =================== 消息 & 聊天 =================== */
 function renderMsg(){
@@ -2781,6 +2862,11 @@ function drillClear(d){
       ? rMate.name + '：这轮反杀 ' + d.totalWrong + ' 道错题，漂亮，我也记住你了。'
       : rMate.name + '：一遍过，这科你已经稳了。'
   };
+  /* 闭环④：通关 = 共同经历的凭证 → 好感主来源从「互动」升级为「一起完成任务」，并写入羁绊档案 */
+  const affGain = d.fromPlan ? 8 : 5;
+  addAff(rMate.id, affGain);
+  bondAdd(rMate.id, 'clear', 1);
+  if(d.totalWrong) bondAdd(rMate.id, 'kill', d.totalWrong);
   /* 闭环①：这一轮若由「今日唯一任务卡」下发，通关即自动打卡 */
   if(d.fromPlan && st.todayTask && st.todayTask.mod === d.mod) markTodayTaskDone();
   save();
@@ -2791,6 +2877,7 @@ function drillClear(d){
     + '<div style="color:var(--sub);margin:8px 0 14px">任务通关 · 错题已清零 ✂️<br>'
     + '共掌握 <b class="hl">' + Object.keys(d.cleared).length + '</b> 题'
     + (d.totalWrong ? '，其中重刷消灭错题 <b class="hl">' + d.totalWrong + '</b> 道' : '，一遍过 🎯')
+    + '<br><span style="color:var(--magenta);font-weight:800">💞 ' + escapeHtml(rMate.name) + ' 好感 +' + affGain + ' · 你们共同的战绩 +1</span>'
     + '</div></div>'
     + '<div class="card" id="mindWrap"><div style="font-weight:900;margin-bottom:10px">🧠 本任务知识点思维导图</div><div id="mindBody"></div></div>'
     + '<div class="card" id="memoWrap"><div style="font-weight:900;margin-bottom:10px">🎵 专属记忆口诀</div><div id="memoBody"><button class="btn magenta" id="memoBtn">✨ 生成记忆口诀</button></div></div>'
@@ -3139,8 +3226,10 @@ function drillFeedback(q, ok){
     body.appendChild(g);
     S.drill.graduated = false;
   }
+  const homeHit = ok && isHomeSubj(MOD2MATE[q.m], subjOfMod(q.m));
   const sol = document.createElement('div'); sol.className = 'sol show ' + (ok ? 'good' : 'bad');
-  sol.innerHTML = `<div class="h">${ok ? '✅ 答对了' : '❌ 答错了 · 正确答案：' + ansText(q)}</div>${q.sol}`;
+  sol.innerHTML = `<div class="h">${ok ? '✅ 答对了' : '❌ 答错了 · 正确答案：' + ansText(q)}</div>`
+    + (homeHit ? `<div class="homebonus">💞 ${mate.name} 的主场共鸣 · 经验 +2</div>` : '') + q.sol;
   body.appendChild(sol);
   if(ok && (S.drill.help || 0) >= 3 && !S.drill.isWrong){
     const tg = document.createElement('div'); tg.className = 'helpstep lv3';
@@ -3222,6 +3311,7 @@ function submitDrill(k, el){
   else st.combo = 0;
   if(ok) addAff(MOD2MATE[q.m], st.combo >= 5 ? 2 : 1);
   if(ok && affLv(st.aff[MOD2MATE[q.m]] || 0) >= 2) addXp(4);
+  if(ok && isHomeSubj(MOD2MATE[q.m], subjOfMod(q.m))) addXp(2);   // 闭环④ 主场共鸣：在 TA 的主场科目作答，额外 +2 XP
   save();
   recordAnswer(q, ok, (d.help || 0) >= 3);
   saveDrillProgress();
@@ -3249,6 +3339,7 @@ function submitFill(v){
     st.combo = (st.combo || 0) + 1; if(st.combo > (st.bestCombo || 0)) st.bestCombo = st.combo;
     addAff(MOD2MATE[q.m], st.combo >= 5 ? 2 : 1);
     if(affLv(st.aff[MOD2MATE[q.m]] || 0) >= 2) addXp(4);
+    if(isHomeSubj(MOD2MATE[q.m], subjOfMod(q.m))) addXp(2);   // 闭环④ 主场共鸣
   } else st.combo = 0;
   drillVerdict(q, ok);
   save();
@@ -3270,6 +3361,8 @@ function recordAnswer(q, ok, tutor){
   let sess = st.sessions.find(x => x.d === ds);
   if(!sess){ sess = {d:ds, n:0, c:0}; st.sessions.push(sess); if(st.sessions.length > 120) st.sessions.shift(); }
   sess.n++; if(ok) sess.c++;
+  /* 闭环④：这一题是和哪位陪练一起做的（角色×进度凭证） */
+  bondAdd(MOD2MATE[q.m], 'q', 1);
   const w = st.wrong.find(x => x.id === q.id);
   if(!ok){
     if(w) w.srs = {stage: 0, due: Date.now() + 864e5};   // 复习又错：重新回到 1 天后
@@ -4081,16 +4174,17 @@ function moduleStat(id){
     cover: Math.round(cover * 100), wrongs, m};
 }
 function masteryLv(m){ return m <= 0 ? 0 : m < 40 ? 1 : m < 75 ? 2 : 3; }
-function subjOfMod(id){ return SUBJECTS.find(s => (s.mods || []).some(m => m.id === id)) || null; }
+/* 模块 → 科目 id（返回字符串，如 'math'/'pol'/'eng'；找不到时回落到当前科目） */
+function subjOfMod(id){ const s = SUBJECTS.find(x => (x.mods || []).some(m => m.id === id)); return s ? s.id : FILTER.subj; }
 /* 跨科目进入刷题必须先切科（否则 pool 取不到该模块题） */
 function treeDrill(id, mode){
   const sj = subjOfMod(id);
-  if(sj && sj.id !== FILTER.subj) setSubject(sj.id);
+  if(sj && sj !== FILTER.subj) setSubject(sj);
   startDrill(id, mode);
 }
 function openModuleNote(id){
   const sj = subjOfMod(id);
-  MYNOTE_SUBJ = sj ? sj.id : 'math';
+  MYNOTE_SUBJ = sj || 'math';
   MYNOTE_FOCUS = id;
   const el = document.getElementById('myNoteSearch'); if(el) el.value = '';
   go('s-myNotes');
@@ -4156,7 +4250,7 @@ function selectTreeNode(id){
   const mo = modById(id); if(!mo) return;
   TREE_SEL = id;
   document.querySelectorAll('#treeWrap .tree-node').forEach(g => g.classList.toggle('sel', g.dataset.mod === id));
-  const sj = subjOfMod(id), mate = getMate(MOD2MATE[id]);
+  const sj = SUBJECTS.find(s => s.id === subjOfMod(id)) || null, mate = getMate(MOD2MATE[id]);
   const s = moduleStat(id), lv = masteryLv(s.m);
   const box = document.getElementById('treeDetail'); if(!box) return;
   box.innerHTML =
@@ -4625,7 +4719,7 @@ function setWeight(s,v){ st.butler.weights[s]=+v; save(); const e=document.getEl
 
 /* ---------- 闭环① 今日唯一任务卡：把管家的排课变成「一条指令」 ---------- */
 function modsOfSubj(sid){ const s = SUBJECTS.find(x => x.id === sid); return s ? (s.mods || []) : []; }
-function subjOfMod(id){ const s = SUBJECTS.find(x => (x.mods || []).some(m => m.id === id)); return s ? s.id : FILTER.subj; }
+/* subjOfMod 已在上方统一定义（返回科目 id 字符串），此处不再重复声明 */
 function planBlockNow(){
   const now = new Date(), mins = now.getHours() * 60 + now.getMinutes();
   const bs = genDailyPlan().filter(b => b.type === 'study');
@@ -4719,6 +4813,63 @@ function renderTodayCard(){
     + reportHTML();
 }
 
+/* ---------- 闭环④ 防偏科陪练邀请：把「角色」变成补齐短板的入口 ---------- */
+/* 今天已经练过的科目集合（按 st.records 的最后作答时间判断） */
+function todaySubjects(){
+  const t0 = new Date(); t0.setHours(0, 0, 0, 0);
+  const set = {};
+  Object.keys(st.records || {}).forEach(k => { const r = st.records[k]; if(r && r.last >= t0.getTime() && r.subj) set[r.subj] = 1; });
+  return set;
+}
+/* 挑一位「今天还没被陪到」的角色；都没落下时挑羁绊最浅的（越少陪越优先，不惩罚只邀请） */
+function mateInvitePick(){
+  const done = todaySubjects();
+  const cand = MATES.filter(m => focusOf(m.id) !== 'all');
+  if(!cand.length) return null;
+  const missing = cand.filter(m => !done[focusOf(m.id)]);
+  const pool = missing.length ? missing : cand;
+  return pool.slice().sort((a, b) => {
+    const da = done[focusOf(a.id)] ? 1 : 0, db = done[focusOf(b.id)] ? 1 : 0;
+    if(da !== db) return da - db;                                  // 今天没碰的那科优先
+    const sa = bondScore(a.id) + (st.aff[a.id] || 0);
+    const sb = bondScore(b.id) + (st.aff[b.id] || 0);
+    if(sa !== sb) return sa - sb;                                  // 陪得少的优先（防偏科）
+    return a.id < b.id ? -1 : 1;
+  })[0];
+}
+function renderMateInvite(){
+  const box = document.getElementById('mateInviteWrap'); if(!box) return;
+  /* 首屏唯一指令优先：今日任务还没完成时，不额外抛第二个 CTA */
+  if(!(st.todayTask && st.todayTask.done)){ box.innerHTML = ''; return; }
+  const m = mateInvitePick(); if(!m){ box.innerHTML = ''; return; }
+  const b = bondOf(m.id);
+  const missed = !todaySubjects()[focusOf(m.id)];
+  box.innerHTML = '<div class="mateinvite">'
+    + '<div class="mi-top">💌 今日陪练邀请</div>'
+    + '<div class="mi-body"><img src="' + m.img + '" onerror="this.style.display=\'none\'">'
+    + '<div class="mi-txt">' + escapeHtml(m.name) + ' 的主场是 <span class="mi-focus">' + escapeHtml(focusLabel(m.id)) + '</span>，想陪你练一轮。'
+    + (missed ? '今天这科你还没碰呢～' : '再练一轮，手感更稳。')
+    + '<br><span style="color:var(--sub);font-size:11.5px">我们一起练了 ' + (b.q || 0) + ' 题 · 通关 ' + (b.clear || 0) + ' 次</span></div></div>'
+    + '<button class="btn gold sm mt10" style="width:100%" onclick="studyMateHome(\'' + m.id + '\')">💞 去 ' + escapeHtml(focusLabel(m.id)) + ' 陪 TA 练一轮</button>'
+    + '</div>';
+}
+/* 闭环④：管家诊断里的「陪练平衡」一行（角色 × 科目分布，防偏科） */
+function mateBalanceHTML(){
+  const done = todaySubjects();
+  const rows = MATES.map(m => {
+    const b = bondOf(m.id), lv = affLv(st.aff[m.id] || 0);
+    const f = focusOf(m.id);
+    const state = f === 'all' ? '全科' : (done[f] ? '✅ 今日已陪' : '⏳ 今日待陪');
+    return '· ' + m.name + '（主场 <b style="color:var(--gold)">' + focusLabel(m.id) + '</b>）· ' + state
+      + ' · 羁绊 ' + LVNAMES[lv - 1] + '（共练 ' + (b.q || 0) + ' 题 / 通关 ' + (b.clear || 0) + ' 次）';
+  });
+  const invite = mateInvitePick();
+  return '<div class="card"><div style="font-weight:900;font-size:13px;margin-bottom:7px">💞 陪练平衡 · 别偏科（角色 × 科目）</div>'
+    + '<div style="font-size:12px;line-height:1.85;color:var(--sub)">' + rows.join('<br>') + '</div>'
+    + (invite ? '<button class="btn gold sm mt10" onclick="studyMateHome(\'' + invite.id + '\')">💞 去找' + escapeHtml(invite.name) + '补 ' + escapeHtml(focusLabel(invite.id)) + '</button>' : '')
+    + '</div>';
+}
+
 /* ---------- 每日诊断报告 ---------- */
 function renderDiag(){
   const today = (st.sessions||[]).find(s=>s.d===todayStr(0));
@@ -4739,6 +4890,7 @@ function renderDiag(){
     '<div class="diag-ok">✅ <b>今日已完成进度</b><br>已作答 '+doneN+' 题，正确 '+doneC+' 题（'+(doneN?Math.round(doneC/doneN*100):0)+'%）。</div>'+
     '<div class="diag-warn">📭 <b>尚未学习的模块清单</b><br>'+uTxt+'</div>'+
     '<div class="diag-warn">⚠️ <b>自动挖掘的薄弱考点</b><br>'+wTxt+'<br><button class="btn gold mt10" onclick="weakDrill()">🎯 一键推送薄弱专项（错题清零）</button></div>'+
+    mateBalanceHTML()+
     '<div class="card"><div style="font-size:12.5px;line-height:1.8;color:var(--sub)">📝 <b>当日学习总结复盘</b><br>'+diagSummary(doneN,doneC,weak,unl)+'</div></div>';
 }
 function diagSummary(n,c,weak,unl){
@@ -4861,7 +5013,9 @@ function buildSprint(){
   phases.forEach(p=>{ for(let k=0;k<p.n;k++){ i++; days.push({date: dayAfter(i-1), phase:p.name, focus:p.foc, mock: i%3===0}); } });
   return {start: todayStr(0), days};
 }
-function renderSprint(){
+/* 注意：函数名不能叫 renderSprint —— 那是 s-sprint 页面（考前 24h 冲刺）的渲染函数。
+   这里是管家「15 天冲刺」标签页，必须用独立名字，否则会覆盖 s-sprint 导致该页空白。 */
+function renderSprint15(){
   let sp = st.sprint; if(!sp) sp = buildSprint();
   const days = sp.days.map((d,i)=>{
     const done = d.date < todayStr(0);
@@ -4871,7 +5025,7 @@ function renderSprint(){
     '<div class="card" style="border-color:rgba(255,209,102,.4)"><div style="font-size:12.5px;line-height:1.7;color:#f6e3b0">🚀 <b>15 天冲刺过线</b>：AI 按精力曲线排课，高 ROI 考点优先攻坚，有效学习密度稳步提升。每天 12h 学习 + 2h 强制休闲回血 + 夜间 7h 睡眠固化，每 3 天一次阶段性模考动态修正。保过线、能抢则抢，不空喊满分。</div><button class="btn gold mt10" onclick="activateSprint()">🔥 激活我的 15 天冲刺计划</button></div>'+
     '<div id="sprintDays">'+days+'</div>';
 }
-function activateSprint(){ st.sprint = buildSprint(); save(); toast('🔥 15 天冲刺已激活！去「每日规划」看今天的课表'); renderSprint(); }
+function activateSprint(){ st.sprint = buildSprint(); save(); toast('🔥 15 天冲刺已激活！去「每日规划」看今天的课表'); renderSprint15(); }
 
 /* ---------- 数据存档 ---------- */
 function renderArc(){
@@ -4894,7 +5048,7 @@ function butlerTab(t){
   if(t==='dash') renderDash();
   else if(t==='plan') renderPlan();
   else if(t==='diag') renderDiag();
-  else if(t==='sprint') renderSprint();
+  else if(t==='sprint') renderSprint15();
   else if(t==='arc') renderArc();
 }
 function aiPanelHTML(){

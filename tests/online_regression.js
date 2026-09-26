@@ -75,7 +75,7 @@ const URL = process.env.TEST_URL || 'https://chengkao.xixipp.cloud/index.html';
     };
   });
   T('B1', '导航入口≥30', b.nav >= 30, 'nav=' + b.nav);
-  T('B2', '版本号显示 v2.3.0', b.ver.trim() === 'v2.3.0', JSON.stringify(b.ver));
+  T('B2', '版本号显示 v2.4.0', b.ver.trim() === 'v2.4.0', JSON.stringify(b.ver));
   T('B3', '主页内容渲染正常', b.hero);
   T('B4', '主页含英语动画课堂入口', b.hasAnimeEntry);
   T('B5', '主页含AI学习管家入口', b.hasButlerEntry);
@@ -615,6 +615,156 @@ const URL = process.env.TEST_URL || 'https://chengkao.xixipp.cloud/index.html';
   T('R10', '自动插入 10 分钟巩固块（只补未到时段）', r4.futureN === 0 || (r4.hasEx && r4.boostN === 1 && r4.boostDur === 10), 'future=' + r4.futureN + ' drop=' + r4.boostN + ' dur=' + r4.boostDur + ' at=' + r4.exStart);
   T('R11', '今日诊断置顶课堂弱点卡 + 一键巩固', r4.firstIsLesson && r4.diagHasBtn, 'top=' + r4.firstIsLesson + ' btn=' + r4.diagHasBtn);
   T('R12', '巩固块可一键撤销（课表恢复原样）', (r4.futureN === 0 || r4.hasRevoked) && r4.boostAfter === 0, 'revoked=' + r4.hasRevoked + ' after=' + r4.boostAfter);
+
+  /* ---------- S. P2 模块联动：角色 × 科目 × 进度 三位一体 ---------- */
+  sect('S. P2 模块联动（角色×科目×进度：羁绊档案 / 主场共鸣 / 防偏科邀请）');
+  const s1 = await page.evaluate(() => {
+    const fns = ['focusOf', 'focusLabel', 'isHomeSubj', 'bondOf', 'bondAdd', 'bondScore',
+      'renderBondCard', 'studyMateHome', 'todaySubjects', 'mateInvitePick', 'renderMateInvite', 'mateBalanceHTML'];
+    return { miss: fns.filter(f => typeof window[f] !== 'function'),
+      focus: MATE_FOCUS, home: [isHomeSubj('luo', 'math'), isHomeSubj('ziyuan', 'eng'), isHomeSubj('ziyuan', 'math'), isHomeSubj('xue', 'eng')],
+      subjId: [subjOfMod('m1'), subjOfMod('e1'), subjOfMod('p1'), typeof subjOfMod('e1')] };
+  });
+  T('S1', 'P2 联动函数齐备（12 个）', s1.miss.length === 0, s1.miss.join(',') || 'ok');
+  T('S2', '主场科目映射正确（洛/澄/晴=高数，紫苑=英语，夜喵=政治，雪见=全科）',
+    s1.focus.luo === 'math' && s1.focus.cheng === 'math' && s1.focus.qing === 'math' && s1.focus.ziyuan === 'eng' && s1.focus.ye === 'pol' && s1.focus.xue === 'all',
+    JSON.stringify(s1.focus));
+  T('S3', '主场判定语义正确（主场=True / 非主场=False / 雪见全科恒 True）',
+    s1.home[0] === true && s1.home[1] === true && s1.home[2] === false && s1.home[3] === true, JSON.stringify(s1.home));
+  T('S4', 'subjOfMod 统一返回科目 id 字符串（跨科切科修复）',
+    s1.subjId[0] === 'math' && s1.subjId[1] === 'eng' && s1.subjId[2] === 'pol' && s1.subjId[3] === 'string', JSON.stringify(s1.subjId));
+
+  /* S5/S6：通关 → 好感 + 羁绊档案；答题 → 累计共练题数 */
+  const s5 = await page.evaluate(() => {
+    st.aff = { xue: 0, luo: 0, cheng: 0, qing: 0, ziyuan: 0, ye: 0 };
+    st.bond = {}; st.combo = 0; save();
+    const before = { aff: st.aff.luo, b: JSON.parse(JSON.stringify(bondOf('luo'))) };
+    S.drill = { mod: 'm1', mode: 'normal', list: [], i: 0, right: 0, total: 1, baseLen: 1,
+      cleared: { m1: 1 }, wrongN: {}, pendingWrong: 0, totalWrong: 3, startAt: Date.now() - 60000,
+      fromPlan: false, label: 'S段回归' };
+    go('s-drill');
+    const after = { aff: st.aff.luo, b: JSON.parse(JSON.stringify(bondOf('luo'))), rep: st.lastReport && st.lastReport.killed };
+    const txt = document.getElementById('drillBody').innerText || '';
+    return { before, after, txt: txt.replace(/\n/g, ' ').slice(0, 120) };
+  });
+  T('S5', '通关 = 共同经历的凭证（好感 +5，写回角色 xue/luo）', s5.before.aff === 0 && s5.after.aff === 5, 'aff ' + s5.before.aff + ' -> ' + s5.after.aff);
+  T('S6', '羁绊档案记录共同通关 + 携手消灭错题', s5.after.b.clear === 1 && s5.after.b.kill === 3, JSON.stringify(s5.after.b));
+  T('S7', '通关页显性告知「好感 + / 共同战绩 +1」', /好感 \+5/.test(s5.txt) && /共同的战绩/.test(s5.txt), s5.txt.slice(-50));
+
+  /* S8：主场共鸣 —— 同科目下，主场模块比非主场模块多 2 XP */
+  const s8 = await page.evaluate(() => {
+    const run = (mod) => {
+      st.xp = 0; st.combo = 0; st.aff = { xue: 0, luo: 0, cheng: 0, qing: 0, ziyuan: 0, ye: 0 }; save();
+      const q = ALLQ.find(x => x.m === mod && x.t === 'choice');
+      if (!q) return null;
+      S.drill = { mod, mode: 'normal', list: [q], i: 0, right: 0, total: 1, baseLen: 1, cleared: {},
+        wrongN: {}, pendingWrong: 0, label: 'S段共鸣', startAt: Date.now() };
+      go('s-drill');
+      const opts = document.querySelectorAll('#drillBody .opt');
+      opts[q.a].click();
+      const body = document.getElementById('drillBody').innerText.replace(/\n/g, ' ');
+      return { xp: st.xp, home: isHomeSubj(MOD2MATE[mod], subjOfMod(mod)), badge: /主场共鸣/.test(body) };
+    };
+    const homeMod = run('m1');    // m1 → 洛（高数主场）
+    const offMod = run('m4');     // m4 → 紫苑（英语主场，做高数题=非主场）
+    return { homeMod, offMod };
+  });
+  T('S8', '主场共鸣：主场科目答对额外 +2 XP', s8.homeMod.home === true && s8.offMod.home === false && s8.homeMod.xp - s8.offMod.xp === 2,
+    'home=' + s8.homeMod.xp + ' off=' + s8.offMod.xp);
+  T('S9', '只有主场科目才亮出「主场共鸣」标记（不刷屏）', s8.homeMod.badge === true && s8.offMod.badge === false,
+    'homeBadge=' + s8.homeMod.badge + ' offBadge=' + s8.offMod.badge);
+
+  /* S10：答题累计「一起练的题」 */
+  const s10 = await page.evaluate(() => {
+    st.bond = {}; save();
+    const q = ALLQ.find(x => x.m === 'm3' && x.t === 'choice');
+    S.drill = { mod: 'm3', mode: 'normal', list: [q], i: 0, right: 0, total: 1, baseLen: 1, cleared: {},
+      wrongN: {}, pendingWrong: 0, label: 'S段进度', startAt: Date.now() };
+    go('s-drill');
+    const opts = document.querySelectorAll('#drillBody .opt');
+    opts[q.a].click();
+    const b = bondOf('qing');   // m3 → 晴
+    return { q: b.q, clear: b.clear, mate: MOD2MATE.m3 };
+  });
+  T('S10', '每答一题写入「一起练的题」（角色×进度凭证）', s10.mate === 'qing' && s10.q === 1 && s10.clear === 0, JSON.stringify(s10));
+
+  /* S11：角色详情页羁绊档案卡 */
+  const s11 = await page.evaluate(() => {
+    st.bond = { xue: { q: 42, clear: 3, kill: 9 } }; save();
+    openDetail('xue');
+    const card = document.getElementById('bondCard');
+    const txt = card ? card.innerText.replace(/\n/g, ' ') : '';
+    return { has: !!card && card.children.length > 0, txt,
+      q: /42/.test(txt), c: /3/.test(txt), k: /9/.test(txt),
+      focus: /全科总教官|主场科目/.test(txt), btn: /陪学一轮/.test(txt) };
+  });
+  T('S11', '角色页「羁绊档案」展示共同经历（练题/通关/消灭错题）', s11.has && s11.q && s11.c && s11.k, s11.txt.slice(0, 70));
+  T('S12', '羁绊档案标明主场科目 + 一键去主场陪学', s11.focus && s11.btn, 'focus=' + s11.focus + ' btn=' + s11.btn);
+
+  /* S13：同伴列表主场标签 + 羁绊摘要 */
+  const s13 = await page.evaluate(() => {
+    go('s-mates'); renderMates();
+    const tags = document.querySelectorAll('#mateList .mt-home').length;
+    const txt = document.getElementById('mateList').innerText || '';
+    return { tags, hasBond: /一起练 \d+ 题 · 通关 \d+ 次/.test(txt) };
+  });
+  T('S13', '同伴列表 6 位角色均标主场科目', s13.tags === 6, 'tags=' + s13.tags);
+  T('S14', '同伴列表展示羁绊摘要（一起练 X 题）', s13.hasBond, 'hasBond=' + s13.hasBond);
+
+  /* S15/S16：首屏陪练邀请 —— 今日任务未完成时让位给唯一指令 */
+  const s15 = await page.evaluate(() => {
+    st.todayTask = null; save(); go('s-home');
+    const noTask = document.querySelectorAll('#mateInviteWrap .mateinvite').length;
+    st.todayTask = { d: todayStr(0), subj: 'math', mod: 'm1', why: 'S段', done: false, at: Date.now() }; save();
+    go('s-home');
+    const undone = document.querySelectorAll('#mateInviteWrap .mateinvite').length;
+    st.todayTask = { d: todayStr(0), subj: 'math', mod: 'm1', why: 'S段', done: true, doneAt: Date.now(), at: Date.now() }; save();
+    go('s-home');
+    const box = document.querySelector('#mateInviteWrap .mateinvite');
+    return { noTask, undone, shown: !!box, txt: box ? box.innerText.replace(/\n/g, ' ') : '' };
+  });
+  T('S15', '唯一指令优先：今日任务未完成时不抛第二个 CTA', s15.undone === 0, 'undone=' + s15.undone);
+  T('S16', '今日任务完成后，出现「今日陪练邀请」并说明理由', s15.shown && /今日陪练邀请/.test(s15.txt) && /主场/.test(s15.txt), s15.txt.slice(0, 64));
+
+  /* S17/S18：防偏科 —— 已陪科目让位，优先未陪科目；一键直达主场 */
+  const s17 = await page.evaluate(() => {
+    st.records = {}; st.bond = {}; st.aff = { xue: 0, luo: 0, cheng: 0, qing: 0, ziyuan: 0, ye: 0 };
+    ALLQ.filter(q => q.m === 'm1').slice(0, 3).forEach(q => { st.records[q.id] = { n: 1, c: 1, last: Date.now(), ok: 1, subj: q.subj, m: q.m }; });
+    save();
+    const done = todaySubjects();
+    const pick = mateInvitePick();
+    const focus = focusOf(pick.id);
+    const rel = !!done[focus];
+    // 一键直达
+    st.todayTask = { d: todayStr(0), subj: 'math', mod: 'm1', why: 'S段', done: true, doneAt: Date.now(), at: Date.now() }; save();
+    go('s-home');
+    const btn = document.querySelector('#mateInviteWrap .mateinvite .btn');
+    if (btn) btn.click();
+    return { doneKeys: Object.keys(done), pick: pick.id, focus, rel, screen: (document.querySelector('.screen.active') || {}).id,
+      filSubj: FILTER.subj, mod: S.drill && S.drill.mod, dayTaskDone: !!(st.todayTask && st.todayTask.done) };
+  });
+  T('S17', '防偏科：今天已练的科目让位，优先邀请还没陪到的科目',
+    s17.doneKeys.indexOf('math') >= 0 && s17.focus !== 'math' && s17.rel === false, JSON.stringify(s17.doneKeys) + ' pick=' + s17.pick + '/' + s17.focus);
+  T('S18', '陪练邀请一键直达该角色主场的答题页', s17.screen === 's-drill' && s17.filSubj === s17.focus && !!s17.mod,
+    'screen=' + s17.screen + ' subj=' + s17.filSubj + ' focus=' + s17.focus + ' mod=' + s17.mod);
+
+  /* S19：管家诊断「陪练平衡」卡（角色×科目分布） */
+  const s19 = await page.evaluate(() => {
+    st.todayTask = { d: todayStr(0), subj: 'math', mod: 'm1', why: 'S段', done: true, doneAt: Date.now(), at: Date.now() }; save();
+    go('s-butler'); butlerTab('diag');
+    const t = (document.getElementById('butlerBody').innerText || '').replace(/\n/g, ' ');
+    return { has: /陪练平衡/.test(t), perMate: /主场/.test(t), invite: /去补|补 /.test(t) };
+  });
+  T('S19', '管家诊断含「陪练平衡」卡（角色×科目，防偏科提示）', s19.has && s19.perMate && s19.invite,
+    'has=' + s19.has + ' perMate=' + s19.perMate + ' invite=' + s19.invite);
+
+  /* S20：跨科目切科回归（subjOfMod 修复后 treeDrill 正常） */
+  const s20 = await page.evaluate(() => {
+    setSubject('math');
+    treeDrill('e1', 'normal');
+    return { subj: FILTER.subj, mod: S.drill && S.drill.mod, n: (S.drill && S.drill.list.length) || 0, label: (S.drill && S.drill.label) || '' };
+  });
+  T('S20', '跨科目刷题自动切科（思维导图 → 语音模块）', s20.subj === 'eng' && s20.mod === 'e1' && s20.n > 0, JSON.stringify(s20));
 
   /* ---------- N. 运行期 JS 错误 & 资源 ---------- */
   sect('N. 运行期 JS 错误 & 资源完整性');

@@ -22,20 +22,22 @@ const { chromium } = require('playwright');
   });
   T('背景层存在且挂图', bg.has && bg.src && bg.src.includes('.jpg'), JSON.stringify(bg));
   await p.waitForTimeout(500);
-  await p.screenshot({ path: 'C:/Users/xihan/WorkBuddy/2026-09-18-14-06-09/_p1_home.png' });
+  await p.screenshot({ path: require('path').join(__dirname, '_p1_home.png') });
 
   // 2) 进入刷题，检查气泡对话结构与回归选择器
   await p.evaluate(() => startDrill('m1'));
   await p.waitForTimeout(700);
-  await p.screenshot({ path: 'C:/Users/xihan/WorkBuddy/2026-09-18-14-06-09/_p1_drill.png' });
+  await p.screenshot({ path: require('path').join(__dirname, '_p1_drill.png') });
   const dom = await p.evaluate(() => ({
     opt: document.querySelectorAll('#drillBody .opt').length,
+    fill: !!document.querySelector('#drillBody #fillInput'),
     qbar: !!document.querySelector('#drillBody .qbar'),
     coachline: !!document.querySelector('#drillBody .coachline'),
     chat: document.querySelectorAll('#drillBody .chat, #drillBody .chat-q, #drillBody .bubble.qbubble, #drillBody .chat-replies').length,
     bgStillVisible: document.getElementById('bgLayer') ? getComputedStyle(document.getElementById('bgLayer')).display : 'none'
   }));
-  T('回归选择器 .opt 保留', dom.opt > 0, 'opt=' + dom.opt);
+  /* m1 题池含选择题与填空题，随机抽题时两者都可能先出，任一作答入口存在即算通过 */
+  T('回归选择器 .opt 保留', dom.opt > 0 || dom.fill, 'opt=' + dom.opt + ' fill=' + dom.fill);
   T('回归选择器 .qbar 保留', dom.qbar);
   T('回归选择器 .coachline 保留', dom.coachline);
   T('气泡对话结构渲染', dom.chat >= 3, JSON.stringify(dom));

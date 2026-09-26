@@ -1,0 +1,11 @@
+# 测试运行产物（截图等），不入库
+tests/_*.png
+tests/_*.html
+
+# 临时推送/发布脚本
+_push*.js
+_release*.js
+
+# 操作系统
+.DS_Store
+Thumbs.db

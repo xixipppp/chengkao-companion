@@ -140,7 +140,7 @@ const { chromium } = require('playwright');
   T('零 pageerror/console.error', errors.length === 0, errors.slice(0, 3).join(' ; '));
 
   console.log('\n========== 结果: ' + pass + ' 通过 / ' + fail + ' 失败 ==========');
-  await page.screenshot({ path: 'C:/Users/xihan/WorkBuddy/2026-09-18-14-06-09/_audit_fix.png', fullPage: false });
+  await page.screenshot({ path: require('path').join(__dirname, '_audit_fix.png'), fullPage: false });
   await browser.close();
   process.exit(fail ? 1 : 0);
 })().catch(e => { console.error('FATAL', e); process.exit(2); });
