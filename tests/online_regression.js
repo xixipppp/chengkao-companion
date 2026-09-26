@@ -75,7 +75,7 @@ const URL = process.env.TEST_URL || 'https://chengkao.xixipp.cloud/index.html';
     };
   });
   T('B1', '导航入口≥30', b.nav >= 30, 'nav=' + b.nav);
-  T('B2', '版本号显示 v2.1.0', b.ver.trim() === 'v2.1.0', JSON.stringify(b.ver));
+  T('B2', '版本号显示 v2.2.0', b.ver.trim() === 'v2.2.0', JSON.stringify(b.ver));
   T('B3', '主页内容渲染正常', b.hero);
   T('B4', '主页含英语动画课堂入口', b.hasAnimeEntry);
   T('B5', '主页含AI学习管家入口', b.hasButlerEntry);
@@ -479,6 +479,67 @@ const URL = process.env.TEST_URL || 'https://chengkao.xixipp.cloud/index.html';
   T('P4', '考点速记资料库渲染', p3.noteTxt.length > 5, p3.noteTxt.slice(0, 45));
   T('P5', '黄金考点视图渲染', /黄金考点|考点/.test(p3.goldTxt), p3.goldTxt.slice(0, 45));
   T('P6', '模拟卷 & Boss 战模块存在', p3.hasMock && p3.hasBoss, 'mock=' + p3.hasMock + ' boss=' + p3.hasBoss);
+
+  /* ---------- Q. P0 模块联动：今日唯一任务卡 + 通关战报 ---------- */
+  sect('Q. P0 模块联动（管家中枢：唯一指令 + 战报回流）');
+  const q1 = await page.evaluate(() => {
+    st.todayTask = null; save();
+    go('s-home');
+    const c = document.querySelector('#todayWrap .todaycard');
+    const qt = (sel) => (c && c.querySelector(sel) ? c.querySelector(sel).textContent.trim() : '');
+    const miss = ['renderTodayCard', 'todayTaskNow', 'pickTodayTask', 'startTodayTask', 'markTodayTaskDone', 'reportHTML', 'againFromReport', 'regenTodayTask']
+      .filter(f => typeof window[f] !== 'function');
+    return { has: !!c, main: qt('.tc-main'), why: qt('.tc-why'), tag: qt('.tc-tag'), miss };
+  });
+  T('Q1', '首页出现「今日唯一任务卡」', q1.has && q1.main.length > 0, q1.main.slice(0, 40));
+  T('Q2', '任务卡标明「今天只做这一件事」', /今天只做这一件事/.test(q1.tag), q1.tag);
+  T('Q3', '任务卡给出挑选依据（薄弱/未学/轮转）', /薄弱项|还没开练|课表轮转/.test(q1.why), q1.why.slice(0, 46));
+  T('Q4', 'P0 联动函数齐备（8 个）', q1.miss.length === 0, q1.miss.join(',') || 'ok');
+
+  const q2 = await page.evaluate(() => {
+    const a = st.todayTask && st.todayTask.mod;
+    go('s-home'); go('s-study'); go('s-home'); go('s-butler'); go('s-home');
+    return { a, b: st.todayTask && st.todayTask.mod };
+  });
+  T('Q5', '当天任务固定不抖动（唯一指令生效）', !!q2.a && q2.a === q2.b, q2.a + ' -> ' + q2.b);
+
+  const q3 = await page.evaluate(() => {
+    go('s-home');
+    const btn = document.querySelector('#todayWrap .todaycard .btn');
+    if (btn) btn.click();
+    const d = S.drill || {};
+    return { screen: (document.querySelector('.screen.active') || {}).id, mod: d.mod, fromPlan: !!d.fromPlan,
+      taskMod: st.todayTask && st.todayTask.mod, opts: document.querySelectorAll('#drillBody .opt').length,
+      q: d.list && d.list[0] ? String(d.list[0].q).slice(0, 30) : '' };
+  });
+  T('Q6', '点任务卡 1 步直达答题页', q3.screen === 's-drill' && q3.opts > 0, q3.screen + ' opts=' + q3.opts + ' | ' + q3.q);
+  T('Q7', '任务卡下发标记 fromPlan 正确', q3.fromPlan && q3.mod === q3.taskMod, 'fromPlan=' + q3.fromPlan + ' mod=' + q3.mod + ' task=' + q3.taskMod);
+
+  const q4 = await page.evaluate(() => {
+    st.lastReport = { at: Date.now() - 60000, mod: 'm1', subj: 'math', killed: 3, mastered: 20, min: 12, say: '测试战报' };
+    save(); go('s-home');
+    const bar = document.querySelector('#todayWrap .reportbar');
+    const txt = bar ? bar.innerText.replace(/\n/g, ' ') : '';
+    const btns = bar ? bar.querySelectorAll('button').length : 0;
+    st.lastReport.at = Date.now() - 30 * 36e5; save(); go('s-home');
+    const gone = !document.querySelector('#todayWrap .reportbar');
+    return { has: !!bar, btns, hasAgain: /再来一轮同考点/.test(txt), hasMind: /看思维导图/.test(txt), txt: txt.slice(0, 60), gone };
+  });
+  T('Q8', '通关战报回流首页（24h 内）', q4.has && /消灭/.test(q4.txt), q4.txt);
+  T('Q9', '战报带 2 个一键动作', q4.btns >= 2 && q4.hasAgain && q4.hasMind, 'btns=' + q4.btns);
+  T('Q10', '超 24h 战报自动消失', q4.gone, 'gone=' + q4.gone);
+
+  const q5 = await page.evaluate(() => {
+    go('s-home');
+    st.todayTask = { d: todayStr(0), subj: 'math', mod: 'm1', why: 'test', done: false, at: Date.now() }; save();
+    S.drill = { mod: 'm1', mode: 'normal', list: [], i: 0, right: 0, total: 1, baseLen: 1,
+      cleared: { m1: 1 }, wrongN: {}, pendingWrong: 0, totalWrong: 2, startAt: Date.now() - 60000, fromPlan: true, label: '回归测试任务' };
+    go('s-drill');
+    const r = st.lastReport || {};
+    return { done: st.todayTask && st.todayTask.done, killed: r.killed, mod: r.mod, subj: r.subj, min: r.min, say: String(r.say || '').slice(0, 30) };
+  });
+  T('Q11', '通关自动打卡（fromPlan 任务标记完成）', q5.done === true, 'done=' + q5.done);
+  T('Q12', '通关写入战报（消灭数/模块/科目/用时）', q5.killed === 2 && q5.mod === 'm1' && q5.subj === 'math' && q5.min >= 1, 'killed=' + q5.killed + ' mod=' + q5.mod + ' subj=' + q5.subj + ' min=' + q5.min);
 
   /* ---------- N. 运行期 JS 错误 & 资源 ---------- */
   sect('N. 运行期 JS 错误 & 资源完整性');
