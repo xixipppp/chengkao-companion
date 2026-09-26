@@ -629,6 +629,12 @@
 .slot .tp{font-size:10.5px;color:var(--sub)}
 .slot .en{font-size:10px;color:#5ee0f0}
 .slot.relax{background:rgba(143,232,184,.1);border-radius:8px;padding:6px 8px;border:0}
+.slot.boost{background:rgba(94,224,240,.12);border-radius:8px;padding:6px 8px;border:0}
+.slot.boost .sb{color:#bff0f8}
+.slot .en .xbtn{font:inherit;font-size:10px;padding:1px 7px;margin-left:4px;border-radius:999px;cursor:pointer;border:1px solid rgba(255,255,255,.25);background:transparent;color:#dfe9ff}
+.slot .en .xbtn:hover{border-color:var(--gold);color:var(--gold)}
+.injecthint{margin:0 0 10px;padding:9px 12px;border-radius:12px;font-size:12px;line-height:1.6;color:#f6e3b0;background:rgba(255,209,102,.10);border:1px solid rgba(255,209,102,.35)}
+.diag-warn.lessoncard{background:rgba(94,224,240,.1);border-color:rgba(94,224,240,.45)}
 .diag-warn{background:rgba(255,217,138,.12);border:1px solid rgba(255,217,138,.35);border-radius:12px;padding:10px 12px;margin:8px 0;font-size:12.5px;line-height:1.7}
 .diag-ok{background:rgba(143,232,184,.12);border:1px solid rgba(143,232,184,.35);border-radius:12px;padding:10px 12px;margin:8px 0;font-size:12.5px;line-height:1.7}
 .sprint-day{background:var(--panel2);border-radius:12px;padding:10px 12px;margin-bottom:8px;border-left:4px solid var(--pink)}
@@ -1753,7 +1759,7 @@ function blank(){ return {name:'女主', xp:0, correct:0, total:0,
   dq:null, streak:0, lastDay:'', examDate:'', p10:null,
   records:{}, sessions:[], butler:{weights:{math:1,pol:1,eng:1}, wDone:{}}, sprint:null,
   variants:{}, aiStats:{api:0, hit:0},
-  todayTask:null, lastReport:null}; }
+  todayTask:null, lastReport:null, planExtra:[], lessonFeed:[]}; }
 function load(){
   try{
     const s = JSON.parse(localStorage.getItem(KEY) || 'null');
@@ -1767,7 +1773,7 @@ function load(){
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(st)); }catch(e){} }
 let st = load();
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v2.2.0';   // 同步 GitHub Release 标签
+const APP_VER = 'v2.3.0';   // 同步 GitHub Release 标签
 
 /* =================== 工具 =================== */
 function getMate(id){ return MATES.find(m => m.id === id); }
@@ -2844,7 +2850,8 @@ function renderDrill(){
   saveDrillProgress();
   if(d.i >= d.list.length){
     // 错题已全部清零 → 任务真正完成
-    if(d.cleared && d.pendingWrong === 0 && !d.isWrong){ drillClear(d); return; }
+    if(d.cleared && d.pendingWrong === 0 && !d.isWrong){ lessonFeedFromDrill(d); drillClear(d); return; }
+    lessonFeedFromDrill(d);
     const acc = Math.round(d.right / d.list.length * 100);
     body.innerHTML = `<div class="card" style="text-align:center">
       <div class="rank">${d.right}<span style="font-size:22px">/${d.list.length}</span></div>
@@ -3270,6 +3277,11 @@ function recordAnswer(q, ok, tutor){
   }
   else if(tutor){   // 看完完整讲解还能答对 = 真学会了 → 直接毕业，不再占着错题本
     if(w){ st.wrong = st.wrong.filter(x => x.id !== q.id); st.srsGrad = (st.srsGrad || 0) + 1; }
+  }
+  /* 闭环③：动画课堂配套练习答错的题，单独记账，课堂结束时统一回流管家 */
+  if(!ok && S.drill && S.drill.mode === 'readanime'){
+    S.drill._lessonWrong = S.drill._lessonWrong || [];
+    if(S.drill._lessonWrong.indexOf(q.id) < 0) S.drill._lessonWrong.push(q.id);
   }
   addXp(ok ? 8 : 3);   // 求助不再被惩罚：看过讲解答对，一样给满 XP
   if(ok){
@@ -4553,7 +4565,7 @@ function renderDash(){
 }
 
 /* ---------- 每日 12h 智能规划 ---------- */
-function genDailyPlan(){
+function genDailyPlan(noExtra){
   const w = st.butler.weights;
   const totalW = (w.math+w.pol+w.eng)||1;
   const STUDY = 12*60;
@@ -4576,6 +4588,15 @@ function genDailyPlan(){
   blocks.push({start:'18:30', dur:30, type:'meal', label:'🍱 晚餐'});
   blocks.push({start:'21:00', dur:60, subj:'all', type:'study', label:'🔁 错题循环清零 · 同考点变式补强'});
   blocks.push({start:'23:00', dur:420, type:'sleep', label:'🌙 夜间睡眠固化（强制下线 7 小时，记忆在睡梦中定型）'});
+  /* 闭环③：动画课堂暴露的弱点 → 只往「还没到点」的时段追加 10 分钟巩固块（不推翻已过时段，可撤销） */
+  if(!noExtra){
+    const nowMin = (new Date()).getHours()*60 + (new Date()).getMinutes();
+    (st.planExtra || []).forEach(x=>{
+      if(!x || x.revoked || x.d !== todayStr(0)) return;
+      if(toMin(x.start) <= nowMin) return;
+      blocks.push({start:x.start, dur:x.dur||10, subj:x.subj, mod:x.mod, type:'boost', d:x.d, label:x.label});
+    });
+  }
   blocks.sort((a,b)=> toMin(a.start)-toMin(b.start));
   return blocks;
 }
@@ -4589,11 +4610,14 @@ function renderPlan(){
     if(b.type==='relax') return '<div class="slot relax"><span class="tm">'+b.start+'</span><span class="sb">'+b.label+'</span><span class="en">强制回血</span></div>';
     if(b.type==='meal') return '<div class="slot"><span class="tm">'+b.start+'</span><span class="sb">'+b.label+'</span><span class="en">用餐</span></div>';
     if(b.type==='sleep') return '<div class="slot sleep"><span class="tm">'+b.start+'</span><span class="sb">'+b.label+'</span><span class="en">强制下线</span></div>';
+    if(b.type==='boost') return '<div class="slot boost"><span class="tm">'+b.start+'</span><span class="sb">'+b.label+'</span><span class="en">课堂回流 · '+b.dur+' 分钟 <button class="xbtn" onclick="revokePlanBoost(\''+(b.d+'|'+b.mod)+'\')">撤销</button></span></div>';
     return '<div class="slot"><span class="tm">'+b.start+'</span><span class="sb">'+b.label+'</span><span class="tp">'+b.dur+' 分钟</span></div>';
   }).join('');
+  const boosts = (st.planExtra||[]).filter(x=>!x.revoked && x.d === todayStr(0));
+  const boostNote = boosts.length ? '<div class="diag-warn" style="border-color:rgba(94,224,240,.4);background:rgba(94,224,240,.08)">📖 <b>课堂回流已生效</b>：'+boosts.map(x=>x.start+' 起 '+x.dur+' 分钟 · '+escapeHtml(modName(x.mod))).join('、')+'。<br>只补「还没到点」的时段，不动已过去的安排；不想要就点上面的「撤销」。</div>' : '';
   document.getElementById('butlerBody').innerHTML =
     '<div class="card"><div style="font-size:12.5px;color:var(--sub);margin-bottom:6px">拖动滑块调整科目权重，AI 按精力曲线重排 12 小时课表：脑力高峰排高数，下午排政治，傍晚排英语，晚间错题清零。每日固定 2 小时休闲回血。</div>'+sliders+
-    '<button class="btn magenta mt10" onclick="renderPlan()">🔄 按当前权重重排课表</button></div>'+
+    '<button class="btn magenta mt10" onclick="renderPlan()">🔄 按当前权重重排课表</button></div>'+ boostNote +
     '<div class="sec-title"><span class="bar"></span>今日 12 小时课表</div>'+
     '<div class="card">'+blocks+'</div>';
 }
@@ -4702,7 +4726,15 @@ function renderDiag(){
   const weak = weakModules(); const unl = unlearnedModules();
   const wTxt = weak.length ? weak.slice(0,6).map(x=>x.m.ico+' '+x.m.name+'（正确率 '+x.s.acc+'%）').join('、') : '暂无显著薄弱点，保持！';
   const uTxt = unl.length ? unl.map(x=>x.ico+' '+x.name).join('、') : '全部模块已开练 ✅';
-  document.getElementById('butlerBody').innerHTML =
+  /* 闭环③：动画课堂暴露的弱点置顶显示（含是否已排入巩固块） */
+  const lf = todayLessonFeeds();
+  const lfCard = lf.length ? '<div class="diag-warn lessoncard">📖 <b>今日动画课堂暴露的弱点</b><br>'
+    + lf.map(f=>{ const mo = modById(f.mod); const ex = boostOf(f.mod, f.d);
+        return '· ' + (mo ? mo.ico + ' ' + mo.name : f.mod) + ' · <b>' + f.wrongIds.length + '</b> 道错题'
+          + (ex ? ' → 已插入 <b>' + ex.start + '</b> 起的 ' + ex.dur + ' 分钟巩固块（只补未到时段，可撤销）' : ' → 今日时段已过，明早优先安排'); }).join('<br>')
+    + '<div class="row2 mt10"><button class="btn gold sm" onclick="weakDrillMod(\'' + lf[0].mod + '\')">🎯 立刻针对巩固</button>'
+    + '<button class="btn ghost sm" onclick="go(\'s-readanime\')">📖 回课堂</button></div></div>' : '';
+  document.getElementById('butlerBody').innerHTML = lfCard +
     '<div class="card"><div class="kpi"><div class="k"><b>'+doneN+'</b><span>今日已练</span></div><div class="k"><b>'+(doneN?Math.round(doneC/doneN*100):0)+'%</b><span>今日正确率</span></div><div class="k"><b>'+(st.wrong?st.wrong.length:0)+'</b><span>在册错题</span></div></div></div>'+
     '<div class="diag-ok">✅ <b>今日已完成进度</b><br>已作答 '+doneN+' 题，正确 '+doneC+' 题（'+(doneN?Math.round(doneC/doneN*100):0)+'%）。</div>'+
     '<div class="diag-warn">📭 <b>尚未学习的模块清单</b><br>'+uTxt+'</div>'+
@@ -4724,6 +4756,96 @@ function restGuard(){
   if(h >= 23 || h < 6){
     toast('🌙 夜深了，记忆在睡眠里才固化——今天已经很棒，去睡吧 💤（想继续也随你）');
   }
+}
+
+/* ---------- 闭环② 弱点注入游戏池：玩游戏 = 刷自己的薄弱考点 ---------- */
+const WEAK_INJECT_RATIO = 0.4;      // 专家红线：注入比例 ≤40%，其余保留随机新鲜感
+let GAME_INJECT = {n:0};
+/* 该重点练的模块（错得越多越靠前 → 正确率 <65% 的已练模块） */
+function weakFocusMods(){
+  const out = [];
+  const push = id => { if(id && out.indexOf(id) < 0) out.push(id); };
+  const wc = {};
+  Object.keys(st.records || {}).forEach(k => { const r = st.records[k]; if(r && r.ok === 0 && r.m) wc[r.m] = (wc[r.m] || 0) + 1; });
+  Object.keys(wc).sort((a,b) => wc[b] - wc[a]).forEach(push);
+  weakModules().forEach(x => push(x.m.id));
+  return out;
+}
+/* 从薄弱模块取「换情境」的题：优先没做错过的同考点新题，避免复刻原题 */
+function weakInjectPool(limit, filterFn){
+  if(limit <= 0) return [];
+  const mods = weakFocusMods(); if(!mods.length) return [];
+  const wrongIds = {};
+  Object.keys(st.records || {}).forEach(k => { if(st.records[k] && st.records[k].ok === 0) wrongIds[k] = 1; });
+  const seen = {}, out = [];
+  for(const mid of mods){
+    const cand = ALLQ.filter(q => q.m === mid && !seen[q.id] && (!filterFn || filterFn(q)));
+    if(!cand.length) continue;
+    const order = shuffle(cand.filter(q => !wrongIds[q.id])).concat(shuffle(cand.filter(q => wrongIds[q.id])));
+    for(const q of order){ if(out.length >= limit) return out; if(seen[q.id]) continue; seen[q.id] = 1; out.push(q); }
+  }
+  return out;
+}
+/* 把薄弱题按 ≤40% 替换进本局题池；返回新池并累加 GAME_INJECT 供 UI 展示联动 */
+function injectIntoQS(qs, filterFn){
+  const arr = (qs || []).slice();
+  const limit = Math.min(3, Math.floor(arr.length * WEAK_INJECT_RATIO));
+  if(limit <= 0) return arr;
+  const inj = weakInjectPool(limit, filterFn).filter(q => !arr.some(x => x.id === q.id));
+  if(!inj.length) return arr;
+  const n = Math.min(inj.length, limit);
+  const keep = arr.slice(0, arr.length - n);
+  GAME_INJECT.n += n;
+  return shuffle(keep.concat(inj.slice(0, n)));
+}
+
+/* ---------- 闭环③ 课堂 → 诊断 → 排课回流 ---------- */
+const LESSON_BOOST_MIN = 10;
+function todayLessonFeeds(){ const ds = todayStr(0); return (st.lessonFeed || []).filter(f => f.d === ds && !f.revoked); }
+function boostOf(mod, ds){ return (st.planExtra || []).find(x => x.d === (ds || todayStr(0)) && x.mod === mod && !x.revoked); }
+/* 只插「还没到点」的时段，不推翻已过去的安排；可一键撤销 */
+function ensureLessonBoost(f){
+  st.planExtra = st.planExtra || [];
+  if(boostOf(f.mod, f.d)) return;
+  const nowMin = (new Date()).getHours()*60 + (new Date()).getMinutes();
+  const study = genDailyPlan(true).filter(b => b.type === 'study');
+  let slot = null;
+  for(const b of study){ if(toMin(b.start) > nowMin){ slot = b; break; } }
+  if(!slot) return;                                   // 今天时段都过了 → 不插，改由诊断提示明早优先
+  const t = toMin(slot.start) + slot.dur;
+  if(t >= 23*60) return;
+  const start = pad(Math.floor(t/60)) + ':' + pad(t%60);
+  st.planExtra.push({d:f.d, mod:f.mod, subj:subjOfMod(f.mod), start, dur:LESSON_BOOST_MIN,
+    label:'📖 课堂巩固 · ' + modName(f.mod) + '（补漏 ' + LESSON_BOOST_MIN + ' 分钟）', at:Date.now(), revoked:false});
+}
+/* 动画课堂配套练习结束 → 弱点回流：今日诊断置顶 + 插入 10 分钟巩固块 */
+function butlerOnLessonResult(mod, wrongIds){
+  if(!mod) return;
+  const ids = Array.isArray(wrongIds) ? wrongIds.filter(Boolean) : [];
+  if(!ids.length){ toast('📖 课堂练习全对，这轮不用补漏，继续保持 ✅'); return; }
+  st.lessonFeed = st.lessonFeed || [];
+  const ds = todayStr(0);
+  let f = st.lessonFeed.find(x => x.d === ds && x.mod === mod);
+  if(!f){ f = {d:ds, mod, wrongIds:[], at:Date.now(), revoked:false}; st.lessonFeed.push(f); }
+  ids.forEach(id => { if(f.wrongIds.indexOf(id) < 0) f.wrongIds.push(id); });
+  f.at = Date.now();
+  ensureLessonBoost(f);
+  save();
+  const ex = boostOf(mod, ds);
+  toast('📖 课堂暴露 ' + f.wrongIds.length + ' 个弱点，管家已回流：' + (ex ? '插到 ' + ex.start + ' 起的 ' + ex.dur + ' 分钟巩固块' : '今日时段已过，明早优先排'));
+}
+function lessonFeedFromDrill(d){
+  if(!d || d.mode !== 'readanime' || d._fed) return;
+  d._fed = true;
+  butlerOnLessonResult(d.mod, d._lessonWrong || []);
+}
+function revokePlanBoost(key){
+  (st.planExtra || []).forEach(x => { if(x.d + '|' + x.mod === key) x.revoked = true; });
+  save(); renderPlan(); toast('已撤销该巩固块，课表恢复原样 ↩️');
+}
+function weakDrillMod(mod){
+  if(!mod || !modById(mod)){ weakDrill(); return; }
+  startDrill(mod); toast('🎯 已针对课堂暴露的弱点开练：' + modName(mod));
 }
 
 /* ---------- 15 天冲刺 ---------- */
@@ -4897,8 +5019,11 @@ function openGame(id){
   document.getElementById('gTitle').textContent = g.ico + ' ' + g.name;
   document.getElementById('gSub').textContent = g.sub;
   stopGameTimer();
+  GAME_INJECT = {n:0};                       // 闭环②：重置本局"弱点注入"计数
   go('s-arcade');
   g.start(document.getElementById('gameBody'));
+  const gs = document.getElementById('gSub');
+  if(gs && GAME_INJECT.n) gs.textContent = g.sub + ' · 🎯 含 ' + GAME_INJECT.n + ' 题你的薄弱考点';
 }
 function bestUp(key, val){
   st.gameBest = st.gameBest || {};
@@ -4911,6 +5036,12 @@ function gameWrong(q){
 }
 function gameEnd(o){
   stopGameTimer();
+  /* 闭环②：结算时告诉用户「这一局练到了你几个薄弱考点」，让联动被看见 */
+  if(GAME_INJECT && GAME_INJECT.n){
+    o.lines = (o.lines || []).slice();
+    o.lines.push('🎯 本轮 ' + GAME_INJECT.n + ' 题来自你的薄弱考点（边玩边补漏）');
+    GAME_INJECT = {n:0};
+  }
   const body = document.getElementById('gameBody');
   if(o.xp){ rankUpCheck(st.xp, st.xp + o.xp); st.xp += o.xp; }
   if(o.coins) st.coins = (st.coins || 0) + o.coins;
@@ -4931,6 +5062,12 @@ function renderGames(){
   const box = document.getElementById('gameList'); if(!box) return;
   document.getElementById('gcCoins').textContent = st.coins || 0;
   box.innerHTML = '';
+  /* 闭环②：有薄弱考点可注入时，在游戏中心亮明"管家已排好题" */
+  if(weakFocusMods().length && weakInjectPool(1, q => q.t === 'choice').length){
+    const hint = document.createElement('div'); hint.className = 'injecthint';
+    hint.innerHTML = '🎯 <b>管家已联动小游戏</b>：已把你的薄弱考点排进题池，开局会优先拉来练（每局注入 ≤40%，换情境不复刻原题）。';
+    box.appendChild(hint);
+  }
   GAME_LIST.forEach(g => {
     const c = document.createElement('div'); c.className = 'gcard';
     const best = st.gameBest && st.gameBest[g.id] !== undefined ? st.gameBest[g.id] : '--';
@@ -4999,22 +5136,25 @@ function settleTimed(body, results, cfg){
 }
 /* ---- ① 极限秒答 ---- */
 function gameLim(body){
-  const qs = shuffle(ALLQ.filter(q => q.m === 'm1' && q.t === 'choice')).slice(0, 10);
+  const fLim = q => q.m === 'm1' && q.t === 'choice';
+  const qs = injectIntoQS(shuffle(ALLQ.filter(fLim)).slice(0, 10), fLim);
   gqTimed(body, {qs, secs: 6, label: '⚡ 极限秒答', onEnd(results){
     settleTimed(body, results, {key:'lim', mate:'luo', doneLine: r => r >= 8 ? '等价无穷小已经条件反射了！' : r >= 5 ? '初见成效，再来一轮固化它' : '不急，先去刷题页看分步讲解', replay: () => gameLim(body)});
   }});
 }
 /* ---- ③ 核心收割机 ---- */
+const HARVEST_RE = /(核心|根本|关键|首要|本质|标志|基础|前提|最)/;
 function gameHarvest(body){
-  const pool = ALLQ.filter(q => q.subj === 'pol' && q.t === 'choice' && /(核心|根本|关键|首要|本质|标志|基础|前提|最)/.test(q.q));
-  const qs = shuffle(pool).slice(0, 10);
+  const fHv = q => q.subj === 'pol' && q.t === 'choice' && HARVEST_RE.test(q.q);
+  const qs = injectIntoQS(shuffle(ALLQ.filter(fHv)).slice(0, 10), fHv);
   gqTimed(body, {qs, secs: 8, label: '🎯 核心收割机', onEnd(results){
     settleTimed(body, results, {key:'harvest', mate:'xue', doneLine: r => r >= 8 ? '政治选择的「关键词雷达」已开机！' : '记住：看到「核心/根本」，答案往往最抽象的那个', replay: () => gameHarvest(body)});
   }});
 }
 /* ---- ⑦ 限时 Boss 快攻 ---- */
 function gameRush(body){
-  const qs = shuffle(ALLQ.filter(q => q.subj === 'math' && q.t === 'choice'));
+  const fRush = q => q.subj === 'math' && q.t === 'choice';
+  const qs = injectIntoQS(shuffle(ALLQ.filter(fRush)).slice(0, 24), fRush);   // 注入项排在前面，60 秒内就能撞上
   let i = 0, right = 0, wrong = 0, left = 60, t = null, locked = false;
   function stopT(){ if(t){ clearInterval(t); t = null; } }
   function end(){
@@ -5152,9 +5292,11 @@ function gameFlip(body){
 }
 /* ---- ⑤ 步骤接龙 ---- */
 function gameStepOrder(body){
-  const cands = ALLQ.filter(q => q.subj === 'math' && q.t === 'choice' && splitSol(q.sol).length >= 3);
+  const fStep = q => q.subj === 'math' && q.t === 'choice' && splitSol(q.sol).length >= 3;
+  const cands = ALLQ.filter(fStep);
   if(!cands.length){ body.innerHTML = '<div class="card">题库加载中…</div>'; return; }
-  const q = shuffle(cands)[0];
+  const picked = injectIntoQS(shuffle(cands).slice(0, 8), fStep);
+  const q = picked[0] || shuffle(cands)[0];
   const steps = splitSol(q.sol);
   const shuffled = shuffle(steps.map((s, i) => ({s, i})));
   let pos = 0, miss = 0;
@@ -5230,7 +5372,8 @@ function gamePic(body){
 }
 /* ---- ⑧ 对话情景卡 ---- */
 function gameChat(body){
-  const qs = shuffle(ALLQ.filter(q => q.m === 'e5' && q.t === 'choice')).slice(0, 8);
+  const fChat = q => q.m === 'e5' && q.t === 'choice';
+  const qs = injectIntoQS(shuffle(ALLQ.filter(fChat)).slice(0, 8), fChat);
   let i = 0; const results = [];
   function ask(){
     if(i >= qs.length){
@@ -5267,7 +5410,8 @@ function gameChat(body){
 }
 /* ---- ⑨ 陷阱扫雷 ---- */
 function gameMine(body){
-  const qs = shuffle(ALLQ.filter(q => q.t === 'choice' && q.o && q.o.length === 4)).slice(0, 5);
+  const fMine = q => q.t === 'choice' && q.o && q.o.length === 4;
+  const qs = injectIntoQS(shuffle(ALLQ.filter(fMine)).slice(0, 5), fMine);
   let i = 0, defusedTotal = 0; const results = [];
   function ask(){
     if(i >= qs.length){
