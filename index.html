@@ -43,6 +43,28 @@
   .appfoot{margin:18px 2px 4px;padding-top:12px;border-top:1px dashed var(--line);text-align:center;
     font-size:11px;color:var(--sub);line-height:1.6;letter-spacing:.3px}
   .appfoot #appVer{font-weight:800;color:var(--cyan)}
+  /* ---- 闭环① 今日唯一任务卡 ---- */
+  .todaycard{margin-top:12px;border-radius:20px;padding:16px;border:1px solid rgba(255,209,102,.45);
+    background:linear-gradient(160deg,rgba(255,209,102,.14),rgba(255,138,209,.10));box-shadow:var(--shadow)}
+  .todaycard.tcdone{border-color:rgba(94,224,240,.45);background:linear-gradient(160deg,rgba(94,224,240,.12),rgba(255,138,209,.08))}
+  .tc-top{display:flex;align-items:center;gap:8px;font-size:11.5px}
+  .tc-tag{font-weight:800;color:var(--gold);letter-spacing:.4px}
+  .todaycard.tcdone .tc-tag{color:var(--cyan)}
+  .tc-subj{margin-left:auto;color:var(--sub)}
+  .tc-main{font-size:19px;font-weight:900;margin-top:8px;color:var(--txt);line-height:1.35}
+  .tc-why{font-size:12px;color:var(--sub);margin-top:5px;line-height:1.6}
+  .tc-foot{font-size:11px;color:var(--sub);margin-top:8px;text-align:center}
+  .tc-swap{color:var(--cyan);text-decoration:underline;cursor:pointer}
+  .tc-done{font-size:12.5px;color:var(--sub);margin-top:8px;line-height:1.6}
+  /* ---- 闭环⑤ 通关战报 ---- */
+  .reportbar{margin-top:12px;border-radius:18px;padding:14px;border:1px dashed rgba(255,138,209,.45);
+    background:rgba(255,138,209,.07)}
+  .rb-top{font-size:11.5px;font-weight:800;color:var(--magenta);display:flex;align-items:center;gap:8px}
+  .rb-time{margin-left:auto;font-weight:500;color:var(--sub)}
+  .rb-body{font-size:12.5px;color:var(--txt);margin-top:8px;line-height:1.75}
+  .rb-body b{color:var(--gold)}
+  .rb-mod{color:var(--sub);font-size:11.5px}
+  .rb-say{font-size:12px;color:var(--sub);margin-top:8px;line-height:1.65;font-style:italic}
   @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
   .sec-title{display:flex;align-items:center;gap:8px;margin:18px 2px 10px;font-weight:800;font-size:15px}
   .sec-title .bar{width:4px;height:16px;border-radius:3px;background:linear-gradient(180deg,var(--magenta),var(--purple))}
@@ -671,6 +693,8 @@
         </div>
       </div>
     </div>
+
+    <div id="todayWrap"></div>
 
     <div id="homeResume"></div>
 
@@ -1728,7 +1752,8 @@ function blank(){ return {name:'女主', xp:0, correct:0, total:0,
   wrong:[], mod:{}, plan:{}, mockBest:0, bossBest:0, combo:0, bestCombo:0, srsGrad:0,
   dq:null, streak:0, lastDay:'', examDate:'', p10:null,
   records:{}, sessions:[], butler:{weights:{math:1,pol:1,eng:1}, wDone:{}}, sprint:null,
-  variants:{}, aiStats:{api:0, hit:0}}; }
+  variants:{}, aiStats:{api:0, hit:0},
+  todayTask:null, lastReport:null}; }
 function load(){
   try{
     const s = JSON.parse(localStorage.getItem(KEY) || 'null');
@@ -1742,7 +1767,7 @@ function load(){
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(st)); }catch(e){} }
 let st = load();
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v2.1.0';   // 同步 GitHub Release 标签
+const APP_VER = 'v2.2.0';   // 同步 GitHub Release 标签
 
 /* =================== 工具 =================== */
 function getMate(id){ return MATES.find(m => m.id === id); }
@@ -2232,6 +2257,7 @@ function renderHome(){
   document.getElementById('stAff').textContent = sum;
   document.getElementById('stBoss').textContent = st.bossBest ? st.bossBest + '连破' : '--';
   const av = document.getElementById('appVer'); if(av) av.textContent = APP_VER;
+  renderTodayCard();                    // 首屏唯一指令 + 上一轮战报
   const hr = document.getElementById('homeResume');
   if(hr) hr.innerHTML = resumeBanner();
   setAccent();
@@ -2673,8 +2699,9 @@ function resumeBanner(){
 }
 /* 任务模式：normal 普通 / solid 巩固（同考点换花样）/ quiz 摸底自测（混合多考点） */
 const DRILL_MODE_NAME = {normal:'标准任务', solid:'巩固模式', quiz:'摸底自测'};
-function startDrill(mod, mode){
+function startDrill(mod, mode, opts){
   mode = mode || 'normal';
+  opts = opts || {};
   restGuard();
   let full = shuffle(pool(mod));
   if(mode === 'quiz'){
@@ -2696,7 +2723,9 @@ function startDrill(mod, mode){
     cleared: {},        // id -> 1 已掌握（答对过）
     wrongN: {},         // id -> 累计答错次数
     pendingWrong: 0,    // 队列里还欠着几道错题要清零
-    label: curSubject().name + ' · ' + mo + yTag + srcTag
+    label: curSubject().name + ' · ' + mo + yTag + srcTag,
+    startAt: Date.now(),      // 用于通关战报统计用时
+    fromPlan: !!opts.fromPlan // 是否由管家「今日唯一任务卡」下发（通关后自动打卡）
   };
   go('s-drill'); renderDrill();
 }
@@ -2734,6 +2763,21 @@ function drillClear(d){
   (d.list || []).forEach(q => { if(modIds.indexOf(q.m) < 0) modIds.push(q.m); });
   const acc = d.baseLen ? Math.round(Object.keys(d.cleared).length / d.baseLen * 100) : 100;
   const mkey = 'task_' + d.mod + '_' + (d.mode || 'normal');
+  /* 闭环⑤：通关战报回流首页（含角色评价），24 小时内首页可见 */
+  const rSubj = (d.mod && d.mod !== 'all') ? subjOfMod(d.mod) : FILTER.subj;
+  const rMate = getMate(MOD2MATE[d.mod] || SUBJ_MATE[rSubj] || 'xue');
+  st.lastReport = {
+    at: Date.now(), mod: d.mod, subj: rSubj,
+    killed: d.totalWrong || 0,
+    mastered: Object.keys(d.cleared || {}).length,
+    min: Math.max(1, Math.round((Date.now() - (d.startAt || Date.now())) / 6e4)),
+    say: d.totalWrong
+      ? rMate.name + '：这轮反杀 ' + d.totalWrong + ' 道错题，漂亮，我也记住你了。'
+      : rMate.name + '：一遍过，这科你已经稳了。'
+  };
+  /* 闭环①：这一轮若由「今日唯一任务卡」下发，通关即自动打卡 */
+  if(d.fromPlan && st.todayTask && st.todayTask.mod === d.mod) markTodayTaskDone();
+  save();
   const wrap = document.createElement('div');
   wrap.innerHTML = '<div class="card" style="text-align:center">'
     + '<div style="font-size:40px">🏆</div>'
@@ -4554,6 +4598,102 @@ function renderPlan(){
     '<div class="card">'+blocks+'</div>';
 }
 function setWeight(s,v){ st.butler.weights[s]=+v; save(); const e=document.getElementById('wv-'+s); if(e) e.textContent=v; }
+
+/* ---------- 闭环① 今日唯一任务卡：把管家的排课变成「一条指令」 ---------- */
+function modsOfSubj(sid){ const s = SUBJECTS.find(x => x.id === sid); return s ? (s.mods || []) : []; }
+function subjOfMod(id){ const s = SUBJECTS.find(x => (x.mods || []).some(m => m.id === id)); return s ? s.id : FILTER.subj; }
+function planBlockNow(){
+  const now = new Date(), mins = now.getHours() * 60 + now.getMinutes();
+  const bs = genDailyPlan().filter(b => b.type === 'study');
+  return bs.find(b => mins >= toMin(b.start) && mins < toMin(b.start) + b.dur)
+      || bs.find(b => toMin(b.start) > mins) || bs[0] || null;
+}
+/* 挑一个「今天就该做」的模块：服从课表科目 → 服从薄弱项 → 服从未学 → 轮转 */
+function pickTodayTask(excludeId){
+  const blk = planBlockNow();
+  let subj = (blk && blk.subj && blk.subj !== 'all') ? blk.subj : null;
+  if(!subj){
+    const ws = weakModules();
+    subj = ws.length ? subjOfMod(ws[0].m.id) : (st.lastReport && st.lastReport.subj) || 'math';
+  }
+  const cands0 = modsOfSubj(subj);
+  let cands = cands0.filter(m => m.id !== excludeId);
+  if(!cands.length) cands = cands0.length ? cands0 : ALL_MODS;
+  const withQ = cands.filter(m => modStats(m.id).total > 0);   // 只推真的有题的模块，避免空任务
+  if(withQ.length) cands = withQ;
+  const w = weakModules().find(x => cands.some(m => m.id === x.m.id));
+  if(w) return {subj, mod: w.m.id, why:'你的薄弱项 · 正确率仅 ' + w.s.acc + '%'};
+  const u = cands.find(m => modStats(m.id).cov === 0);
+  if(u) return {subj, mod: u.id, why:'还没开练的模块，先摸底'};
+  const m = cands[Math.floor(Math.random() * cands.length)];
+  return {subj, mod: m.id, why:'按今日课表轮转'};
+}
+/* 当天的任务一旦确定就固定下来（当天不抖动），这就是「唯一指令」 */
+function todayTaskNow(){
+  const d = todayStr(0);
+  let t = st.todayTask;
+  if(!t || t.d !== d || !modById(t.mod) || t.done){
+    if(t && t.d === d && t.done) return t;      // 当天已完成：保留成果，不再换任务
+    const p = pickTodayTask();
+    t = st.todayTask = {d, subj:p.subj, mod:p.mod, why:p.why, done:false, at:Date.now()};
+    save();
+  }
+  return t;
+}
+function markTodayTaskDone(){ const t = st.todayTask; if(t){ t.done = true; t.doneAt = Date.now(); save(); } }
+function regenTodayTask(){
+  const cur = todayTaskNow();
+  const p = pickTodayTask(cur.mod);
+  st.todayTask = {d: todayStr(0), subj:p.subj, mod:p.mod, why:p.why, done:false, at:Date.now()};
+  save(); renderTodayCard();
+  toast('今日任务已换成：' + modName(p.mod));
+}
+function startTodayTask(){
+  const t = todayTaskNow();
+  setSubject(t.subj);                 // 先切科目，保证题池与模块对得上
+  startDrill(t.mod, 'normal', {fromPlan:true});
+}
+/* 闭环⑤ 通关战报：做完的那一轮，回首页留下痕迹 */
+function againFromReport(){
+  const r = st.lastReport; if(!r) return;
+  if(r.subj) setSubject(r.subj);
+  startDrill(r.mod, 'normal');
+}
+function reportHTML(){
+  const r = st.lastReport; if(!r || !r.at) return '';
+  const hrs = (Date.now() - r.at) / 36e5;
+  if(hrs >= 24) return '';
+  const mo = modById(r.mod);
+  const when = hrs < 1 ? '刚刚' : (hrs < 2 ? '1 小时前' : Math.round(hrs) + ' 小时前');
+  return '<div class="reportbar">'
+    + '<div class="rb-top">📣 上一轮战报<span class="rb-time">' + when + '</span></div>'
+    + '<div class="rb-body">消灭 <b>' + (r.killed || 0) + '</b> 道错题 · 掌握 <b>' + (r.mastered || 0) + '</b> 题 · 用时 <b>' + (r.min || 1) + '</b> 分钟'
+    + (mo ? '<br><span class="rb-mod">' + mo.ico + ' ' + escapeHtml(mo.name) + '</span>' : '') + '</div>'
+    + (r.say ? '<div class="rb-say">' + escapeHtml(r.say) + '</div>' : '')
+    + '<div class="row2 mt10"><button class="btn ghost" onclick="againFromReport()">⚔️ 再来一轮同考点</button>'
+    + '<button class="btn ghost" onclick="go(\'s-myNotes\')">🧠 看思维导图</button></div>'
+    + '</div>';
+}
+function renderTodayCard(){
+  const box = document.getElementById('todayWrap'); if(!box) return;
+  const t = todayTaskNow();
+  const mo = modById(t.mod) || {name:'今日任务', ico:'🎯'};
+  const subj = SUBJECTS.find(s => s.id === t.subj) || SUBJECTS[0];
+  const N = 20;
+  box.innerHTML = '<div class="todaycard' + (t.done ? ' tcdone' : '') + '">'
+    + '<div class="tc-top"><span class="tc-tag">' + (t.done ? '✅ 今日已完成' : '🎯 今天只做这一件事') + '</span>'
+    + '<span class="tc-subj">' + subj.ico + ' ' + escapeHtml(subj.name) + '</span></div>'
+    + '<div class="tc-main">' + mo.ico + ' ' + escapeHtml(mo.name) + '</div>'
+    + '<div class="tc-why">' + escapeHtml(t.why || '') + ' · ' + N + ' 题 · 约 ' + Math.max(5, N) + ' 分钟</div>'
+    + (t.done
+      ? '<div class="tc-done">这一关已经拿下啦，剩下的时间交给错题清零和休息 🌙</div>'
+        + '<div class="row2 mt10"><button class="btn ghost" onclick="startTodayTask()">再刷一轮同考点</button>'
+        + '<button class="btn ghost" onclick="regenTodayTask()">再练一个别的模块</button></div>'
+      : '<button class="btn gold mt10" style="width:100%" onclick="startTodayTask()">▶ 开始（管家已排好）</button>'
+        + '<div class="tc-foot">不用挑科目、不用选模块，点一下就行 · <span class="tc-swap" onclick="regenTodayTask()">今天不想做这个？换一个</span></div>')
+    + '</div>'
+    + reportHTML();
+}
 
 /* ---------- 每日诊断报告 ---------- */
 function renderDiag(){
