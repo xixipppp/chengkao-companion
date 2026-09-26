@@ -168,7 +168,25 @@
   .resumebar .rb-s{font-size:11.5px;color:var(--sub);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .resumebar .rb-b{flex:none;font-size:12px;font-weight:900;color:var(--acc)}
   .taskbar .tbsep{opacity:.45;margin:0 4px}
+  .taskbar .tbkill{position:relative;height:16px;border-radius:999px;margin-top:8px;overflow:hidden;
+    background:rgba(255,255,255,.12)}
+  .taskbar .tbkill i{position:absolute;left:0;top:0;bottom:0;display:block;
+    background:linear-gradient(90deg,var(--green),#5ee0f0);transition:width .35s}
+  .taskbar .tbkill span{position:relative;z-index:1;display:block;text-align:center;
+    font-size:10px;font-weight:900;line-height:16px;color:#1a0a1e;text-shadow:0 1px 0 rgba(255,255,255,.4)}
   .redotag{color:var(--red);font-weight:800}
+  .slot.sleep{background:linear-gradient(135deg,rgba(94,224,240,.10),rgba(127,92,255,.10));
+    border:1px dashed rgba(94,224,240,.45)}
+  .slot.sleep .en{color:#8fe8b8}
+  .restcard{border-color:rgba(94,224,240,.42);
+    background:linear-gradient(135deg,rgba(94,224,240,.10),rgba(127,92,255,.08))}
+  .restcard .rc-t{font-size:13px;font-weight:900;margin-bottom:8px;color:#bfe9ff}
+  .restcard .rc-b{font-size:12.5px;line-height:1.85;color:var(--sub)}
+  .restcard .rc-b b{color:#bfe9ff}
+  .rest-acts{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 6px}
+  .rest-acts span{font-size:12px;font-weight:800;padding:6px 11px;border-radius:999px;
+    background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.18);color:var(--txt)}
+  .restcard .rc-foot{font-size:11.5px;color:var(--sub);margin-top:6px;line-height:1.6}
   /* ---- 通关思维导图 · 记忆口诀 ---- */
   .mindroot{display:inline-block;padding:8px 14px;border-radius:12px;font-weight:900;font-size:13px;
     background:linear-gradient(135deg,var(--magenta),var(--purple));color:#1a0a1e}
@@ -685,7 +703,7 @@
       <div style="font-size:13px;line-height:1.7;color:#f6e3b0" id="homePlan">🎯 战略：背公式 + 套题型 + 刷真题。保底 100 分稳过线，冲刺 130+。</div>
     </div>
 
-    <div class="sec-title"><span class="bar"></span>新功能<small>管家陪你冲刺满分</small></div>
+    <div class="sec-title"><span class="bar"></span>新功能<small>管家陪你冲刺过线</small></div>
     <div class="card" style="border-color:rgba(94,224,240,.4);cursor:pointer" onclick="go('s-butler')">
       <div style="display:flex;align-items:center;gap:12px">
         <div style="font-size:30px">🤖</div>
@@ -901,11 +919,11 @@
   <!-- ============ PLAN ============ -->
   <section class="screen" id="s-plan">
     <div class="back" onclick="go('s-home')">← 返回</div>
-    <div class="sec-title"><span class="bar"></span>10 天冲刺计划<small>按弱项自动排兵 · 点任务打卡</small></div>
+    <div class="sec-title"><span class="bar"></span>15 天冲刺计划<small>按弱项自动排兵 · 点任务打卡</small></div>
     <div class="card" style="border-color:rgba(255,209,102,.4)">
       <div style="font-size:13px;line-height:1.7;color:#f6e3b0">
         🎯 <b>战略定调：</b>基础差 + 懒 + 游戏宅，就别想着「学懂」——我们要的是 <span class="hl">背核心 + 套题型 + 刷真题</span>。
-        三科各自保底过线，能抢的分一分不丢；满分当最终 Boss 来打。
+        三科各自保底过线，能抢的分一分不丢；能抢的分当 Boss 来打，过线才是底线。
       </div>
     </div>
     <div id="sprintWrap"></div>
@@ -2645,6 +2663,7 @@ function resumeBanner(){
 const DRILL_MODE_NAME = {normal:'标准任务', solid:'巩固模式', quiz:'摸底自测'};
 function startDrill(mod, mode){
   mode = mode || 'normal';
+  restGuard();
   let full = shuffle(pool(mod));
   if(mode === 'quiz'){
     // 摸底自测：跨知识点混合抽题，检验是否真的学会
@@ -2673,13 +2692,17 @@ function startDrill(mod, mode){
 function drillStatusBar(d){
   const mastered = Object.keys(d.cleared || {}).length;
   const pend = d.pendingWrong || 0;
+  const killed = d.totalWrong || 0;
+  const totalW = killed + pend;
+  const killPct = totalW ? Math.round(killed / totalW * 100) : 100;
   const el = document.createElement('div');
   el.className = 'taskbar' + (pend ? ' has-wrong' : '');
   const modeTag = d.mode && d.mode !== 'normal' ? ('<span class="tbmode">' + DRILL_MODE_NAME[d.mode] + '</span>') : '';
   el.innerHTML = '<div class="tbtitle">当前任务：' + escapeHtml(d.label || '') + modeTag + '</div>'
-    + '<div class="tbstat">✅ 已掌握 <b>' + mastered + '</b> 题'
-    + (pend ? ' <span class="tbsep">·</span> 🔁 待清零错题 <b class="hl">' + pend + '</b> 题' : ' <span class="tbsep">·</span> 🎉 错题已清零')
-    + '</div>';
+    + '<div class="tbstat">🗡️ 已消灭错题 <b>' + killed + '</b> 道'
+    + (pend ? ' <span class="tbsep">·</span> ⚔️ 复仇战中 · 残血 Boss 还差 <b class="hl">' + pend + '</b> 题' : ' <span class="tbsep">·</span> 🎉 错题已清零，Boss 已斩落')
+    + '</div>'
+    + '<div class="tbkill"><i style="width:' + killPct + '%"></i><span>' + killPct + '% 已肃清</span></div>';
   return el;
 }
 /* 巩固模式：错一道 → 换一道同考点的题接着考，杜绝死记答案 */
@@ -2783,7 +2806,7 @@ function renderDrill(){
   if(d.cleared) body.appendChild(drillStatusBar(d));
   const head = document.createElement('div'); head.className = 'qbar';
   const againN = (d.wrongN || {})[q.id] || 0;
-  const againTag = againN ? ' <span class="redotag">🔁 第' + (againN + 1) + '次重刷</span>' : '';
+  const againTag = againN ? ' <span class="redotag">⚔️ 复仇战 · 第' + (againN + 1) + '次</span>' : '';
   head.innerHTML = `<span>${d.weakPaper ? '🎯特训卷' : (d.isWrong ? '🔁错题' : (d.label || (mo ? mo.name : '')))}${againTag}</span><div class="prog"><i style="width:${Math.round(d.i / d.list.length * 100)}%"></i></div><span>${d.i+1}/${d.list.length}</span>`;
   body.appendChild(head);
   const chat = document.createElement('div'); chat.className = 'chat';
@@ -4451,7 +4474,12 @@ function renderDash(){
   document.getElementById('butlerBody').innerHTML =
     '<div class="card"><div class="donut-wrap">'+donutSVG(segs,50)+'<div class="donut-leg">'+leg+'</div></div></div>'+
     '<div class="kpi"><div class="k"><b>'+doneQ+'</b><span>已练题/'+ALLQ.length+'</span></div><div class="k"><b>'+(st.total||0)+'</b><span>总作答</span></div><div class="k"><b>'+(st.srsGrad||0)+'</b><span>毕业错题</span></div></div>'+
-    '<div class="sec-title"><span class="bar"></span>各模块掌握度</div>'+
+    '<div class="card restcard"><div class="rc-t">🌙 强制休息 · 不内疚回血</div>'
+    + '<div class="rc-b">高强度 15 天 ≠ 熬命。每日固定 <b>2 小时强制休闲</b>（离开屏幕：散步 / 听歌 / 拉伸）+ <b>夜间 7 小时睡眠</b>，记忆才会在离线时固化。<br>'
+    + '🚫 反模式：不在深夜推送、不因「没学满 12h」自责、不让休息变内疚。</div>'
+    + '<div class="rest-acts"><span>🚶 散步 15 分</span><span>🎧 听一首歌</span><span>🧘 拉伸放松</span><span>🍵 喝口水发呆</span></div>'
+    + '<div class="rc-foot">⏰ 23:00–06:00 进入强制休息模式，开题会先温柔提醒你下线，而不是塞更多题。</div></div>'
+    + '<div class="sec-title"><span class="bar"></span>各模块掌握度</div>'+
     '<div class="card">'+(bars || '<div style="color:var(--sub);font-size:12px">还没有练习记录，去刷几题吧～</div>')+'</div>';
 }
 
@@ -4475,9 +4503,10 @@ function genDailyPlan(){
   WIN.forEach(win=>{ let t=win.start; ['math','pol','eng'].forEach(s=>{ if(win.subj && win.subj!==s) return; let need=remain[s]; if(need<=0) return; const cap=win.end-t; if(cap<=0) return; const use=Math.min(need, cap); if(use<=0) return; blocks.push({start:pad(Math.floor(t/60))+':'+pad(t%60), dur:use, subj:s, type:'study', label: win.subj?win.label:('🔁 '+subjectName(s)+' · 补漏/变式')}); remain[s]-=use; t+=use; }); });
   // 极端权重下仍有溢出：在 22:00 后追加补漏块，保证 12h 学习时长不缩水
   ['math','pol','eng'].forEach(s=>{ if(remain[s]>0){ blocks.push({start:'22:00', dur:remain[s], subj:s, type:'study', label:'🔁 '+subjectName(s)+' · 溢出补漏'}); remain[s]=0; } });
-  blocks.push({start:'12:00', dur:120, type:'relax', label:'😌 午餐 + 休闲回血（固定 2 小时，防脑力透支）'});
+  blocks.push({start:'12:00', dur:120, type:'relax', label:'😌 强制休闲回血（固定 2 小时，离开屏幕：散步 / 音乐 / 拉伸，防脑力透支）'});
   blocks.push({start:'18:30', dur:30, type:'meal', label:'🍱 晚餐'});
   blocks.push({start:'21:00', dur:60, subj:'all', type:'study', label:'🔁 错题循环清零 · 同考点变式补强'});
+  blocks.push({start:'23:00', dur:420, type:'sleep', label:'🌙 夜间睡眠固化（强制下线 7 小时，记忆在睡梦中定型）'});
   blocks.sort((a,b)=> toMin(a.start)-toMin(b.start));
   return blocks;
 }
@@ -4488,8 +4517,9 @@ function renderPlan(){
     return '<div class="wslider"><label>'+nm+'</label><input type="range" min="1" max="5" value="'+w[s]+'" oninput="setWeight(\''+s+'\',this.value)"><b id="wv-'+s+'">'+w[s]+'</b></div>';
   }).join('');
   const blocks = genDailyPlan().map(b=>{
-    if(b.type==='relax') return '<div class="slot relax"><span class="tm">'+b.start+'</span><span class="sb">'+b.label+'</span><span class="en">休闲回血</span></div>';
+    if(b.type==='relax') return '<div class="slot relax"><span class="tm">'+b.start+'</span><span class="sb">'+b.label+'</span><span class="en">强制回血</span></div>';
     if(b.type==='meal') return '<div class="slot"><span class="tm">'+b.start+'</span><span class="sb">'+b.label+'</span><span class="en">用餐</span></div>';
+    if(b.type==='sleep') return '<div class="slot sleep"><span class="tm">'+b.start+'</span><span class="sb">'+b.label+'</span><span class="en">强制下线</span></div>';
     return '<div class="slot"><span class="tm">'+b.start+'</span><span class="sb">'+b.label+'</span><span class="tp">'+b.dur+' 分钟</span></div>';
   }).join('');
   document.getElementById('butlerBody').innerHTML =
@@ -4523,6 +4553,13 @@ function diagSummary(n,c,weak,unl){
   return s;
 }
 function weakDrill(){ const weak=weakModules(); if(!weak.length){ toast('当前没有薄弱模块，去自由练习吧～'); return; } const m=weak[0].m; startDrill(m.id); toast('🎯 已开薄弱专项：'+m.name); }
+// 强制休息提醒：深夜开题先温柔提醒下线，而非塞更多题（反内疚，不阻断练习）
+function restGuard(){
+  const h = new Date().getHours();
+  if(h >= 23 || h < 6){
+    toast('🌙 夜深了，记忆在睡眠里才固化——今天已经很棒，去睡吧 💤（想继续也随你）');
+  }
+}
 
 /* ---------- 15 天冲刺 ---------- */
 function buildSprint(){
@@ -4544,7 +4581,7 @@ function renderSprint(){
     return '<div class="sprint-day '+(done?'done':'')+'"><div class="sdh"><span>Day '+(i+1)+' · '+d.date+'</span><span>'+(done?'✅':'⏳')+'</span></div><div class="sprint-phase">'+d.phase+'</div><div style="font-size:12.5px;margin-top:4px;line-height:1.6">'+d.focus+'</div>'+(d.mock?'<div style="margin-top:4px;font-size:11px;color:var(--gold)">📝 阶段性模考日</div>':'')+'</div>';
   }).join('');
   document.getElementById('butlerBody').innerHTML =
-    '<div class="card" style="border-color:rgba(255,209,102,.4)"><div style="font-size:12.5px;line-height:1.7;color:#f6e3b0">🚀 <b>15 天满分冲刺</b>：AI 按精力曲线排课，高 ROI 考点优先攻坚，效率在现有基础上再翻倍。每天 12h 学习 + 2h 休闲回血，每 3 天一次阶段性模考动态修正。</div><button class="btn gold mt10" onclick="activateSprint()">🔥 激活我的 15 天冲刺计划</button></div>'+
+    '<div class="card" style="border-color:rgba(255,209,102,.4)"><div style="font-size:12.5px;line-height:1.7;color:#f6e3b0">🚀 <b>15 天冲刺过线</b>：AI 按精力曲线排课，高 ROI 考点优先攻坚，有效学习密度稳步提升。每天 12h 学习 + 2h 强制休闲回血 + 夜间 7h 睡眠固化，每 3 天一次阶段性模考动态修正。保过线、能抢则抢，不空喊满分。</div><button class="btn gold mt10" onclick="activateSprint()">🔥 激活我的 15 天冲刺计划</button></div>'+
     '<div id="sprintDays">'+days+'</div>';
 }
 function activateSprint(){ st.sprint = buildSprint(); save(); toast('🔥 15 天冲刺已激活！去「每日规划」看今天的课表'); renderSprint(); }
