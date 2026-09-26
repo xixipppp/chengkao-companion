@@ -1,0 +1,174 @@
+# 心动成考 · 乙女陪练
+
+> 成人高考（专升本）备考陪练单页应用 —— 用乙女向角色陪伴 + AI 靶向提分，把「刷题、错题、复盘」变成有人陪你打完的一场恋爱式闯关。
+
+[![线上体验](https://img.shields.io/badge/在线体验-chengkao.xixipp.cloud-ff8ad1)](https://chengkao.xixipp.cloud)
+[![Release](https://img.shields.io/badge/release-v2.1.0-ffd166)](https://github.com/xixipppp/chengkao-companion/releases)
+![纯静态](https://img.shields.io/badge/build-none%20(static)-7ed957)
+
+---
+
+## 一、项目简介
+
+「心动成考·乙女陪练」是一个**纯前端、离线可用**的单页应用，面向成考专升本考生（政治 / 高数二 / 英语三科）。核心思路：
+
+- **情感驱动坚持**：6 位乙女角色担任不同科目的陪伴者，用好感度、立绘、语音、剧情对话把「学习」包装成「陪伴」。
+- **AI 靶向提分**：知识世界树 + 提分雷达 + 薄弱点定向出题，把时间花在最能提分的模块上。
+- **任务级错题强制清零**：不做到零错题就不算通关，用「变式题」杜绝死记答案。
+- **科学节奏管理**：AI 学习管家按精力曲线排课，配合强制休息机制，防止透支。
+
+> 定位务实：**保过线 + 最大化得分**，而非承诺「满分」。AI 生成内容仅供参考，不替代系统复习。
+
+## 二、在线体验
+
+| 入口 | 地址 |
+| --- | --- |
+| 线上站点 | https://chengkao.xixipp.cloud |
+| 源码仓库 | https://github.com/xixipppp/chengkao-companion |
+| 版本发布 | https://github.com/xixipppp/chengkao-companion/releases |
+
+> GitHub Pages 托管，自定义域名 `chengkao.xixipp.cloud`（`CNAME` 绑定 + `.nojekyll`）。移动端优先，建议用手机浏览器打开。
+
+## 三、功能模块
+
+### 1. 题库与做题
+- **2327 道**真题/模拟题（政治、高数二、英语三科）。
+- 选择题 / 填空客观题自动判分，详解与解题步骤。
+- **英语题目语音朗读**（Web Speech API，支持慢速，题干预选项均可朗读）。
+- **数学分步讲题**：每一步都配一道 ABCD 检测，答对才放行下一步，把「看懂」变成「会做」。
+
+### 2. 2026 黄金考点汇编
+- 解析《黄金考点汇编》PDF，结构化沉淀 **388 个考点**（政治 294 · 高数二 68 · 英语 26）。
+- 每个考点可「**考考我**」——AI 依据该考点现场出新题，学完立刻检验。
+
+### 3. AI 智能靶向提分系统
+- **知识世界树**：16 个模块节点 + 三科分支，点亮率可视化掌握度。
+- **提分雷达**：按 ROI 权重排序，优先攻克「易提分」模块。
+- **薄弱点定向出题**：一键把薄弱模块组装成专项任务。
+- **AI 自定义知识点生成题**：输入任意知识点，AI 现场出题。
+
+### 4. 任务级错题强制清零机制
+- 错题**排尾重刷**，重刷包装为「⚔️ 复仇战」。
+- **零错题才通关**；进度条以「🗡️ 已消灭 X 道」正向视角呈现。
+- **巩固模式**：错了不重考原题，换一道**同考点新题**，杜绝死记答案。
+- **摸底自测**：跨知识点混合抽题，检验是否真的学会。
+- 通关自动生成**思维导图 + 记忆口诀**。
+
+### 5. AI 学习管家（5 大能力）
+| 能力 | 说明 |
+| --- | --- |
+| 📊 全局进度仪表盘 | 三科覆盖率 / 正确率 / 各模块掌握度环形图 |
+| 🗓️ 每日智能规划 | 每日 12h 排课，权重可调，贴合精力曲线（含夜间睡眠固化块） |
+| 🩺 每日诊断报告 | 薄弱考点挖掘 + 一键薄弱专项 |
+| 🚀 15 天冲刺计划 | 5 阶段推进 + 每 3 天一次阶段性模考 |
+| 💾 答题存档 | 完整答题聚合 + 每日日志，支持 JSON 导出/导入备份 |
+| 🤖 AI 节能面板 | 变式题缓存命中率、API 调用节省比例可视化 |
+
+### 6. 英语阅读 2D 动画小课堂
+- 用 SVG 2D 动画拆解**解题思路 / 长难句 / 答题技巧**。
+- 支持**倍速回放**，课后配套练习自动入错题池。
+
+### 7. 十个小游戏（知识点游戏化）
+| ID | 名称 | 玩法 |
+| --- | --- | --- |
+| `lim` | 极限秒答 | 快速判定极限 |
+| `harvest` | 核心收割机 | 限时收割正确选项 |
+| `match` | 公式连连看 | 左右配对公式/含义 |
+| `flip` | 词汇翻牌 | 翻牌记单词 |
+| `order` | 步骤接龙 | 还原解题步骤顺序 |
+| `pic` | 速记图猜考点 | 看图猜考点 |
+| `rush` | 限时 Boss 快攻 | 限时连击闯关 |
+| `chat` | 对话情景卡 | 情景对话选答 |
+| `mine` | 陷阱扫雷 | 避开错误陷阱 |
+| `gacha` | 学习扭蛋 | 金币抽取学习奖励 |
+
+### 8. 科学节奏 · 强制休息机制
+- 排课内置「夜间 7h 睡眠强制下线」块，休闲块强化为「强制回血」。
+- 仪表盘「🌙 强制休息卡」反内疚引导，深夜开题温柔提醒下线（不阻断练习）。
+
+## 四、技术架构
+
+- **形态**：单文件 HTML 应用（`index.html`，全部 HTML/CSS/JS 内联），**无构建步骤**。
+- **状态管理**：运行时状态 `S` + localStorage 存档 `st`（默认结构 `blank()`，键 `ckmath_v3`）。
+- **题库**：`data/*.js` 以全局变量注入（`window.SUBJ_BANK` / `window.MATH_BANK` / `window.SUBJ_PASSAGES` / `window.GOLD_POINTS`）。
+- **AI 能力**：通过 `sfChat()` 调用在线大模型（siliconflow），返回 JSON 经 `extractJSON()` 解析；**未联网/限流时自动降级**为本地逻辑。
+- **语音**：Web Speech API（`speechSynthesis`）。
+- **3D**：`vendor/model-viewer.min.js` + `models/`（draco + webp 压缩，约 13MB）。
+- **动画**：原生 SVG + CSS 动画/过渡，无第三方动画库。
+
+## 五、目录结构
+
+```
+chengkao-companion/
+├── index.html                 # 主应用（单页，全部内联，约 348KB）
+├── data/
+│   ├── subjectbank.js         # 三科题库（≈1MB）→ window.SUBJ_BANK / SUBJ_PASSAGES
+│   ├── mathbank.js            # 高数二题库 → window.MATH_BANK
+│   ├── kaodian.js             # 考点速记资料库（42 份 PDF）
+│   └── goldpoints.js          # 2026 黄金考点 388 → window.GOLD_POINTS
+├── assets/                    # 角色立绘 / 考点配图（webp/jpg）
+├── vendor/                    # model-viewer + draco 解码器（3D 离线渲染）
+├── models/                    # 3D 模型（draco + webp 压缩）
+├── tests/                     # Playwright 回归测试套件
+├── tools/                     # PDF 解析、冒烟脚本等构建辅助
+├── .github/workflows/ci.yml   # CI：10 套回归测试（双端口静态服务器）
+├── CNAME                      # chengkao.xixipp.cloud
+├── .nojekyll                  # 关闭 GitHub Pages Jekyll 处理
+└── 专家研讨纪要-15天备考效率.md  # 产品/学习科学研讨纪要
+```
+
+## 六、本地运行
+
+无需安装依赖、无需构建，任意静态服务器即可：
+
+```bash
+# 方式一：Python
+python -m http.server 8900
+# 然后访问 http://127.0.0.1:8900/index.html
+
+# 方式二：Node
+npx serve .
+```
+
+> 建议使用现代浏览器（Chrome / Edge / Safari）。语音朗读需浏览器支持 Web Speech API。
+
+## 七、部署
+
+1. 推到 `main` 分支（GitHub Pages 自动重新部署）。
+2. 自定义域名由 `CNAME`（`chengkao.xixipp.cloud`）绑定，DNS 指向 GitHub Pages。
+3. `.nojekyll` 确保 `data/`、`vendor/` 等下划线/大文件目录不被 Jekyll 忽略。
+
+## 八、测试与质量保障
+
+### CI 回归（GitHub Actions）
+`.github/workflows/ci.yml` 在每次 push / PR 启动双端口静态服务器，串行执行 **10 套 Playwright 回归**：
+
+`offline_test`（离线能力）· `audit_fix_test` · `conv_test` · `games_test`（10 小游戏）·
+`gap2_test` · `legacy_fix_test` · `perf_test` · `phase1_visual_test` · `tree_test`（知识世界树）· `notes_test`（自动笔记）
+
+### 线上全模块回归（UAT）
+`tests/online_regression.js` 直接访问**线上生产环境**，逐条核对全部模块与需求项（加载、导航、版本号、世界树、错题清零、AI 讲师回溯、切页保存、语音、10 小游戏、动画课堂、学习管家、变式封顶缓存、文案治理、黄金考点、运行期错误）：
+
+```bash
+TEST_URL=https://chengkao.xixipp.cloud/index.html node tests/online_regression.js
+```
+
+## 九、数据与隐私
+
+- 所有学习数据（进度、错题、存档、AI 统计）**仅存于本机浏览器 localStorage**，不上传服务器。
+- 提供 JSON 导出/导入，方便换设备或备份。
+- 清除浏览器数据即清空本地记录。
+
+## 十、版本历史
+
+| 版本 | 主要变化 |
+| --- | --- |
+| **v2.1.0** | 变式题单考点封顶 5 道 + 按题目缓存（命中免 API）；AI 节能面板；主页版本号显示 |
+| **v2.0.0** | AI 学习管家（仪表盘/排课/诊断/15 天冲刺/存档）；英语阅读 2D 动画小课堂；缺陷修复（AI 讲师返回原题、切页状态保存）；专家议案优化（文案去夸张、错题「已消灭」视角 + 复仇战、强制休息机制） |
+| v1.x | 黄金考点 388 导入；错题强制清零机制；数学分步 ABCD；英语语音；小游戏配色修复 |
+
+## 十一、免责声明
+
+- 本项目为个人学习工具，题目与解析部分来自公开备考资料，仅供学习参考。
+- AI 生成内容（变式题、讲解、口诀、诊断）可能存在偏差，**请以教材与官方考纲为准**。
+- 不承诺任何提分或过线结果。
