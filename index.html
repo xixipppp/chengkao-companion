@@ -159,6 +159,14 @@
   .taskbar .tbstat{font-size:12px;margin-top:4px;color:var(--sub)}
   .taskbar .tbstat b{color:var(--green);font-size:14px}
   .taskbar.has-wrong .tbstat b{color:var(--red)}
+  .resumebar{display:flex;align-items:center;gap:10px;margin-top:12px;padding:11px 13px;border-radius:14px;cursor:pointer;
+    background:linear-gradient(135deg,rgba(127,92,255,.18),rgba(255,138,209,.10));
+    border:1px solid rgba(127,92,255,.40);transition:transform .15s}
+  .resumebar:active{transform:scale(.98)}
+  .resumebar .rb-l{flex:1;min-width:0}
+  .resumebar .rb-t{font-size:13px;font-weight:900}
+  .resumebar .rb-s{font-size:11.5px;color:var(--sub);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .resumebar .rb-b{flex:none;font-size:12px;font-weight:900;color:var(--acc)}
   .taskbar .tbsep{opacity:.45;margin:0 4px}
   .redotag{color:var(--red);font-weight:800}
   /* ---- 通关思维导图 · 记忆口诀 ---- */
@@ -543,6 +551,64 @@
 .tag.fml{background:rgba(94,224,240,.13);color:#5ee0f0;border:1px solid rgba(94,224,240,.34)}
 .tag.lit{background:rgba(143,232,184,.13);color:#8fe8b8;border:1px solid rgba(143,232,184,.34)}
 .tag.due{background:rgba(255,138,209,.16);color:#ff8ad1;border:1px solid rgba(255,138,209,.4)}
+
+/* =================== AI 学习管家 =================== */
+.btabs{display:flex;gap:6px;overflow-x:auto;padding:4px 0 8px;margin-top:6px}
+.btabs button{flex:0 0 auto;border:0;background:var(--panel2);color:var(--sub);padding:8px 12px;border-radius:11px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+.btabs button.on{background:linear-gradient(135deg,#ff8ac2,#e8536f);color:#fff}
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+.donut-wrap{display:flex;align-items:center;gap:14px}
+.donut-leg div{font-size:12px;margin:3px 0;display:flex;align-items:center;gap:6px}
+.donut-leg i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.mbar{margin:9px 0}
+.mbar .ml{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}
+.mbar .mt{height:9px;border-radius:6px;background:var(--panel2);overflow:hidden}
+.mbar .mf{height:100%;border-radius:6px;background:linear-gradient(90deg,#ff8ac2,#e8536f)}
+.mbar .mf.mid{background:linear-gradient(90deg,#ffd166,#e0a93c)}
+.mbar .mf.low{background:linear-gradient(90deg,#ff7a7a,#e8536f)}
+.kpi{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:10px 0}
+.kpi .k{background:var(--panel2);border-radius:12px;padding:10px;text-align:center}
+.kpi .k b{font-size:20px;display:block;color:var(--txt)}
+.kpi .k span{font-size:10.5px;color:var(--sub)}
+.wslider{display:flex;align-items:center;gap:10px;margin:10px 0}
+.wslider label{font-size:13px;width:64px;font-weight:700}
+.wslider input{flex:1}
+.plan-block{background:var(--panel2);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.plan-block .ph{font-size:13px;font-weight:800;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.slot{display:flex;align-items:center;gap:8px;font-size:12px;padding:5px 0;border-bottom:1px dashed rgba(255,255,255,.06)}
+.slot .tm{font-weight:800;color:var(--gold);width:42px;flex:0 0 auto}
+.slot .sb{flex:1}
+.slot .tp{font-size:10.5px;color:var(--sub)}
+.slot .en{font-size:10px;color:#5ee0f0}
+.slot.relax{background:rgba(143,232,184,.1);border-radius:8px;padding:6px 8px;border:0}
+.diag-warn{background:rgba(255,217,138,.12);border:1px solid rgba(255,217,138,.35);border-radius:12px;padding:10px 12px;margin:8px 0;font-size:12.5px;line-height:1.7}
+.diag-ok{background:rgba(143,232,184,.12);border:1px solid rgba(143,232,184,.35);border-radius:12px;padding:10px 12px;margin:8px 0;font-size:12.5px;line-height:1.7}
+.sprint-day{background:var(--panel2);border-radius:12px;padding:10px 12px;margin-bottom:8px;border-left:4px solid var(--pink)}
+.sprint-day.done{border-left-color:var(--green);opacity:.8}
+.sprint-day .sdh{font-size:13px;font-weight:800;display:flex;justify-content:space-between}
+.sprint-phase{font-size:11px;color:var(--gold);font-weight:700}
+
+/* =================== 阅读 2D 动画小课堂 =================== */
+.anime-stage{position:relative;background:#0e0a1c;border-radius:16px;overflow:hidden;min-height:300px;border:1px solid rgba(255,138,209,.25)}
+.anime-stage svg{display:block;width:100%;height:auto}
+.anime-speak{position:absolute;left:12px;right:12px;bottom:14px;display:flex;gap:10px;align-items:flex-end}
+.anime-speak .av{width:46px;height:46px;border-radius:12px;flex:0 0 auto;background:#2a1c3a;object-fit:cover;border:1px solid rgba(255,255,255,.15)}
+.anime-speak .bub{background:rgba(20,12,32,.92);border:1px solid rgba(255,138,209,.4);border-radius:14px;padding:10px 13px;font-size:13px;line-height:1.65;color:#fff;flex:1}
+.anime-board{position:absolute;inset:14px;background:rgba(18,12,30,.94);border:1px solid rgba(94,224,240,.3);border-radius:14px;padding:16px;overflow:auto}
+.anime-board .bh{font-size:15px;font-weight:800;color:#5ee0f0;margin-bottom:8px}
+.anime-board .bb{font-size:13.5px;line-height:1.9;color:#eee}
+.anime-ctrl{display:flex;align-items:center;gap:8px;margin:10px 0;flex-wrap:wrap}
+.anime-ctrl .sp{margin-left:auto;display:flex;gap:4px}
+.anime-ctrl .sp button{font-size:11px;padding:5px 9px;border-radius:9px;border:1px solid rgba(255,255,255,.15);background:var(--panel2);color:var(--txt);cursor:pointer}
+.anime-ctrl .sp button.on{background:var(--gold);color:#2a1c10;border:0}
+.anime-prog{height:5px;border-radius:4px;background:var(--panel2);overflow:hidden;margin:6px 0}
+.anime-prog i{display:block;height:100%;background:linear-gradient(90deg,#ff8ac2,#e8536f);transition:width .25s}
+.syl-hi{stroke:#ffd166;stroke-width:3;stroke-dasharray:6 4;animation:dashmove 1.4s linear infinite}
+@keyframes dashmove{to{stroke-dashoffset:-20}}
+.syl-fade{animation:fadein .5s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.syl-pop{animation:spop .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes spop{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
 </style>
 </head>
 <body>
@@ -580,6 +646,8 @@
       </div>
     </div>
 
+    <div id="homeResume"></div>
+
     <div class="card" style="margin-top:12px">
       <div class="xpwrap">
         <div class="xpbar"><i id="xpFill"></i></div>
@@ -615,6 +683,28 @@
     <div class="sec-title"><span class="bar"></span>3 天倒计时<small>点任务打卡</small></div>
     <div class="card" style="border-color:rgba(255,209,102,.35);padding:12px 14px;cursor:pointer" onclick="go('s-plan')">
       <div style="font-size:13px;line-height:1.7;color:#f6e3b0" id="homePlan">🎯 战略：背公式 + 套题型 + 刷真题。保底 100 分稳过线，冲刺 130+。</div>
+    </div>
+
+    <div class="sec-title"><span class="bar"></span>新功能<small>管家陪你冲刺满分</small></div>
+    <div class="card" style="border-color:rgba(94,224,240,.4);cursor:pointer" onclick="go('s-butler')">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="font-size:30px">🤖</div>
+        <div style="flex:1">
+          <div style="font-weight:800;font-size:14px">AI 学习管家</div>
+          <div style="font-size:12px;color:var(--sub);margin-top:2px">永久留存答题记录 · 进度仪表盘 · 每日12h智能排课 · 诊断报告 · 15天冲刺</div>
+        </div>
+        <div style="font-size:12px;color:var(--gold)">进入 ›</div>
+      </div>
+    </div>
+    <div class="card" style="border-color:rgba(255,138,209,.4);cursor:pointer" onclick="go('s-readanime')">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="font-size:30px">📖</div>
+        <div style="flex:1">
+          <div style="font-weight:800;font-size:14px">英语阅读 · 2D 动画小课堂</div>
+          <div style="font-size:12px;color:var(--sub);margin-top:2px">动画拆解长难句与解题技巧 · 倍速回放 · 课后配套练习自动入错题</div>
+        </div>
+        <div style="font-size:12px;color:var(--gold)">进入 ›</div>
+      </div>
     </div>
   </section>
 
@@ -677,7 +767,7 @@
 
   <!-- ============ CHAT ============ -->
   <section class="screen" id="s-chat">
-    <div class="back" onclick="go('s-msg')">← 返回消息</div>
+    <div class="back" id="chatBack" onclick="chatBack()">← 返回消息</div>
     <div class="chatwrap">
       <div class="msglist" id="msgListBox"></div>
       <div class="chatopts" id="chatOpts"></div>
@@ -831,6 +921,26 @@
         ⚡ <b>App 内已内置 66 题高频题库 + 政治 705 + 英语 1195 + 高数 353 题 + 全真模拟卷 + 错题重做</b>，通勤、睡前都能刷。真题 + App 题双轨并行，覆盖度拉满。
       </div>
     </div>
+  </section>
+
+  <!-- ============ AI 学习管家 ============ -->
+  <section class="screen" id="s-butler">
+    <div class="back" onclick="go('s-home')">← 返回首页</div>
+    <div class="sec-title"><span class="bar"></span>🤖 AI 学习管家<small>数据存档 · 进度仪表盘 · 智能排课 · 诊断报告</small></div>
+    <div class="btabs" id="btabs">
+      <button data-bt="dash" class="on" onclick="butlerTab('dash')">📊 仪表盘</button>
+      <button data-bt="plan" onclick="butlerTab('plan')">🗓️ 每日规划</button>
+      <button data-bt="diag" onclick="butlerTab('diag')">🩺 诊断</button>
+      <button data-bt="sprint" onclick="butlerTab('sprint')">🚀 15天冲刺</button>
+      <button data-bt="arc" onclick="butlerTab('arc')">💾 存档</button>
+    </div>
+    <div id="butlerBody"></div>
+  </section>
+
+  <!-- ============ 阅读 2D 动画小课堂 ============ -->
+  <section class="screen" id="s-readanime">
+    <div class="back" onclick="go('s-study')">← 返回自习室</div>
+    <div id="readAnimeBody"></div>
   </section>
 
   <!-- ============ DRILL ============ -->
@@ -1589,7 +1699,8 @@ const KEY = 'ckmath_v3';
 function blank(){ return {name:'女主', xp:0, correct:0, total:0,
   aff:{xue:0, luo:0, cheng:0, qing:0, ziyuan:0, ye:0},
   wrong:[], mod:{}, plan:{}, mockBest:0, bossBest:0, combo:0, bestCombo:0, srsGrad:0,
-  dq:null, streak:0, lastDay:'', examDate:'', p10:null}; }
+  dq:null, streak:0, lastDay:'', examDate:'', p10:null,
+  records:{}, sessions:[], butler:{weights:{math:1,pol:1,eng:1}, wDone:{}}, sprint:null}; }
 function load(){
   try{
     const s = JSON.parse(localStorage.getItem(KEY) || 'null');
@@ -2038,6 +2149,9 @@ function mateLine(mateId, ok){ const m = getMate(mateId); return pick(ok ? m.lin
 
 /* =================== 导航 =================== */
 function go(t){
+  // 离开答题页时把进度落盘（含已选答案），切回来能原样还原
+  const cur = document.querySelector('.screen.active');
+  if(cur && cur.id === 's-drill' && t !== 's-drill') saveDrillProgress();
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   const sec = document.getElementById(t); if(sec) sec.classList.add('active');
   document.querySelectorAll('.nav button').forEach(b => b.classList.toggle('on', b.dataset.t === t));
@@ -2058,6 +2172,8 @@ function go(t){
   else if(t === 's-mock') renderMock();
   else if(t === 's-games') renderGames();
   else if(t === 's-sprint') renderSprint();
+  else if(t === 's-butler') renderButler();
+  else if(t === 's-readanime') renderReadAnime();
 }
 function enterStudy(){ go('s-study'); }
 
@@ -2086,6 +2202,8 @@ function renderHome(){
   let sum = 0; for(const k in st.aff) sum += st.aff[k];
   document.getElementById('stAff').textContent = sum;
   document.getElementById('stBoss').textContent = st.bossBest ? st.bossBest + '连破' : '--';
+  const hr = document.getElementById('homeResume');
+  if(hr) hr.innerHTML = resumeBanner();
   setAccent();
   renderRankCard();
   renderInvite();
@@ -2156,7 +2274,45 @@ function renderMsg(){
     box.appendChild(el);
   });
 }
-function openChat(id){ S.chat = {id, idx: 0}; go('s-chat'); renderChat(); }
+function openChat(id){ S.chat = {id, idx: 0}; S.chatFrom = null; go('s-chat'); renderChat(); }
+
+/* ============ 路由回溯：从答题页进 AI 讲师，返回要精准回到那一道题 ============ */
+/* 进入 s-chat 前调用，记录来源页与题目 id */
+function markChatFrom(q){
+  const cur = document.querySelector('.screen.active');
+  const from = cur ? cur.id : 's-msg';
+  let label = '返回';
+  if(q){
+    if(from === 's-drill') label = '← 回到这题作答';
+    else if(from === 's-boss') label = '← 回到 Boss 战';
+    else if(from === 's-mock') label = '← 回到模拟卷';
+    else label = '← 回到原题';
+  } else label = '← 返回消息';
+  S.chatFrom = { screen: from, qid: q && q.id ? q.id : null, label };
+  const bb = document.getElementById('chatBack');
+  if(bb) bb.textContent = label;
+}
+/* 从 s-chat 返回：优先回到来源页并还原到刚才那道题 */
+function chatBack(){
+  const f = S.chatFrom;
+  S.chatFrom = null;
+  const bb = document.getElementById('chatBack'); if(bb) bb.textContent = '← 返回消息';
+  if(!f || !f.screen || f.screen === 's-chat' || f.screen === 's-msg'){ go('s-msg'); return; }
+  // 答题类页面：把指针拨回刚才那道题，再渲染
+  if(f.screen === 's-drill' && S.drill && S.drill.list){
+    const idx = f.qid ? S.drill.list.findIndex(x => x.id === f.qid) : -1;
+    if(idx >= 0) S.drill.i = idx;
+    go('s-drill'); renderDrill();
+    toast('已回到刚才那道题 ✨');
+    return;
+  }
+  if((f.screen === 's-boss' || f.screen === 's-mock') && S[f.screen.slice(2)]){
+    go(f.screen);
+    return;
+  }
+  if(f.screen === 's-detail' && S.detail){ go('s-detail'); return; }
+  go(f.screen);
+}
 function renderChat(){
   const m = getMate(S.chat.id);
   const box = document.getElementById('msgListBox'), opts = document.getElementById('chatOpts');
@@ -2265,6 +2421,7 @@ function aiTutor(q){
   const id = MOD2MATE[q.m];
   const m = getMate(id);
   S.chat = { id, idx: 99 };
+  markChatFrom(q);
   go('s-chat');
   const box = document.getElementById('msgListBox'), opts = document.getElementById('chatOpts');
   box.innerHTML = ''; opts.innerHTML = '';
@@ -2353,6 +2510,13 @@ function dateClose(){ const ov = document.getElementById('dateOv'); if(ov) ov.re
 /* =================== 自习室 =================== */
 function renderStudy(){
   const box = document.getElementById('studyList'); box.innerHTML = '';
+  // —— 中断中的任务：一键回到原题继续 ——
+  if(st.drillSav){
+    const rb = document.createElement('div'); rb.className = 'resumebar';
+    rb.onclick = resumeDrill;
+    rb.innerHTML = `<div class="rb-l"><div class="rb-t">📎 继续上次任务</div><div class="rb-s">${escapeHtml(st.drillSav.label || '刷题')} · ${DRILL_MODE_NAME[st.drillSav.mode] || '标准任务'} · 第 ${st.drillSav.i + 1}/${st.drillSav.ids.length} 题</div></div><div class="rb-b">回到原题 ▶</div>`;
+    box.appendChild(rb);
+  }
   const dueN = st.wrong.filter(w => w.srs && w.srs.due && w.srs.due <= Date.now()).length;
   if(dueN){
     const dc = document.createElement('div'); dc.className = 'card';
@@ -2421,19 +2585,61 @@ function saveDrillProgress(){
   const d = S.drill;
   if(!d || !d.list || !d.list.length){ return; }
   if(d.i >= d.list.length){ clearDrillProgress(); return; }
-  st.drillSav = {ids: d.list.map(q => q.id), i: d.i, right: d.right, isWrong: !!d.isWrong,
-    weakPaper: !!d.weakPaper, label: d.label || '', mod: d.mod || '', used5050: !!d.used5050};
+  // 记录每题的作答痕迹（切页回来能还原已选答案与对错）
+  const ansLog = {};
+  Object.keys(d.ansLog || {}).forEach(k => {
+    const a = d.ansLog[k];
+    ansLog[k] = {k: a.k, ok: !!a.ok, fill: a.fill || ''};
+  });
+  // 巩固模式会往队尾追加变式题，__clearFor 需要一起存，否则恢复后归不到原考点
+  const cf = {};
+  d.list.forEach(q => { if(q.__clearFor) cf[q.id] = q.__clearFor; });
+  st.drillSav = {
+    ids: d.list.map(q => q.id), i: d.i, right: d.right, isWrong: !!d.isWrong,
+    weakPaper: !!d.weakPaper, label: d.label || '', mod: d.mod || '', used5050: !!d.used5050,
+    mode: d.mode || '', cleared: d.cleared || null, wrongN: d.wrongN || null,
+    pendingWrong: d.pendingWrong || 0, totalWrong: d.totalWrong || 0,
+    clearedAgain: d.clearedAgain || 0, ansLog, cf, lastAns: d.lastAns || '',
+    ts: Date.now()
+  };
   save();
 }
 function clearDrillProgress(){ if(st.drillSav){ delete st.drillSav; save(); } }
-function restoreDrill(){
+function restoreDrill(silent){
   const sv = st.drillSav;
-  if(!sv || !sv.ids || sv.i >= sv.ids.length) return;
+  if(!sv || !sv.ids || sv.i >= sv.ids.length) return false;
   const list = sv.ids.map(id => ALLQ.find(q => q.id === id)).filter(Boolean);
-  if(list.length !== sv.ids.length){ delete st.drillSav; save(); return; }
+  if(list.length !== sv.ids.length){ delete st.drillSav; save(); return false; }
+  // 还原巩固模式追加的变式题归属关系
+  const cf = sv.cf || {};
+  list.forEach(q => { if(cf[q.id]) q.__clearFor = cf[q.id]; });
   S.drill = {mod: sv.mod, list, i: sv.i, right: sv.right, isWrong: sv.isWrong,
-    weakPaper: sv.weakPaper, label: sv.label, used5050: sv.used5050};
-  setTimeout(() => toast('📎 上次刷到第 ' + (sv.i + 1) + ' 题，进度已帮你记着啦'), 900);
+    weakPaper: sv.weakPaper, label: sv.label, used5050: sv.used5050,
+    mode: sv.mode || 'normal', cleared: sv.cleared || null,
+    wrongN: sv.wrongN || {}, pendingWrong: sv.pendingWrong || 0,
+    totalWrong: sv.totalWrong || 0, clearedAgain: sv.clearedAgain || 0,
+    ansLog: sv.ansLog || {}, lastAns: sv.lastAns || '', restored: true};
+  if(!silent) setTimeout(() => toast('📎 上次刷到第 ' + (sv.i + 1) + ' 题，进度已帮你记着啦'), 900);
+  return true;
+}
+/* 中途切走又回来：恢复进度并回到原题（已作答的题会还原已选答案） */
+function resumeDrill(){
+  if(!st.drillSav){ toast('没有中断中的任务～'); return; }
+  if(!restoreDrill(true)){ toast('上次任务已失效，重新开一个吧～'); return; }
+  go('s-drill'); renderDrill();
+  toast('📎 已回到第 ' + (S.drill.i + 1) + ' 题，接着来～');
+}
+/* 首页/自习室展示的「继续上次」横幅 */
+function resumeBanner(){
+  const sv = st.drillSav;
+  if(!sv || !sv.ids || sv.i >= sv.ids.length) return '';
+  const n = sv.ids.length, done = sv.i;
+  const modeName = DRILL_MODE_NAME[sv.mode] || '标准任务';
+  const mins = Math.max(1, Math.round(n * 0.6));
+  return `<div class="resumebar" onclick="resumeDrill()">
+    <div class="rb-l"><div class="rb-t">📎 继续上次任务</div>
+      <div class="rb-s">${escapeHtml(sv.label || '刷题')} · ${modeName} · 第 ${done + 1}/${n} 题 · 约剩 ${Math.max(1, mins - done)} 分钟</div></div>
+    <div class="rb-b">继续 ▶</div></div>`;
 }
 /* 任务模式：normal 普通 / solid 巩固（同考点换花样）/ quiz 摸底自测（混合多考点） */
 const DRILL_MODE_NAME = {normal:'标准任务', solid:'巩固模式', quiz:'摸底自测'};
@@ -2644,6 +2850,42 @@ function renderDrill(){
   const coach = document.createElement('div'); coach.className = 'coachline';
   coach.innerHTML = `<img src="${mate.img}" onerror="this.style.display='none'"><div class="cl"><span class="cn">${mate.name}</span> ${pick(mate.lines.greet)}${q.hint ? `<span class="tip"><b>${pick(mate.lines.tip)}</b>${q.hint}</span>` : ''}</div>`;
   body.appendChild(coach);
+  // ② 中途切页回来：这题已经答过了 → 还原当时选的答案与解析，不重复计分
+  replayAnswered(q);
+}
+/* 重放已作答的题：还原选项状态与解析，不发奖励、不重复计入统计 */
+function replayAnswered(q){
+  const d = S.drill; if(!d || !d.ansLog) return;
+  const log = d.ansLog[q.id]; if(!log) return;
+  const body = document.getElementById('drillBody'); if(!body) return;
+  const opts = body.querySelectorAll('.opt');
+  opts.forEach((o, k) => {
+    o.classList.add('dis'); o.dataset.done = 1;
+    if(k === log.k) o.classList.add(log.ok ? 'ok' : 'no');
+    else if(!log.ok && k === q.a) o.classList.add('ok');
+  });
+  const fw = document.getElementById('fillInput');
+  if(fw){ fw.disabled = true; fw.value = log.fill || ''; fw.style.borderColor = log.ok ? 'var(--green)' : 'var(--red)'; }
+  const hb = document.getElementById('helpBtn'); if(hb) hb.remove();
+  const sb = document.getElementById('stepBtn'); if(sb) sb.remove();
+  const mate = getMate(MOD2MATE[q.m]);
+  const sol = document.createElement('div'); sol.className = 'sol show ' + (log.ok ? 'good' : 'bad');
+  sol.innerHTML = `<div class="h">${log.ok ? '✅ 这题你答对了 · 已保存' : '❌ 这题你答错过 · 正确答案：' + ansText(q)}</div>${q.sol}`;
+  body.appendChild(sol);
+  const row = document.createElement('div'); row.className = 'row2 mt10';
+  const ask = document.createElement('button'); ask.className = 'btn ghost'; ask.textContent = '💬 让 TA 讲讲这题';
+  ask.onclick = () => aiTutor(q);
+  row.appendChild(ask);
+  if(!log.ok){
+    const dg = document.createElement('button'); dg.className = 'btn ghost'; dg.textContent = '🩺 诊断错因';
+    dg.onclick = () => diagnoseErr(q);
+    row.appendChild(dg);
+  }
+  body.appendChild(row);
+  const nb = document.createElement('button'); nb.className = 'btn ghost mt10'; nb.textContent = '下一题 ▶';
+  nb.onclick = () => { S.drill.i++; renderDrill(); };
+  body.appendChild(nb);
+  if(d.restored){ d.restored = false; toast('📎 已还原上次的作答记录，接着往下走～'); }
 }
 function askHelp(q){
   const d = S.drill; if(!d || !q) return;
@@ -2876,6 +3118,8 @@ function submitDrill(k, el){
   opts.forEach(o => o.classList.add('dis'));
   const ok = k === q.a;
   d.lastAns = q.o[k];
+  d.ansLog = d.ansLog || {};
+  d.ansLog[q.id] = {k, ok};        // 记下这一题的作答痕迹，切页回来可还原
   if(ok){ el.classList.add('ok'); d.right++; }
   else{ el.classList.add('no'); opts[q.a].classList.add('ok'); }
   drillVerdict(q, ok);
@@ -2894,12 +3138,15 @@ function submitDrill(k, el){
   if(ok && affLv(st.aff[MOD2MATE[q.m]] || 0) >= 2) addXp(4);
   save();
   recordAnswer(q, ok, (d.help || 0) >= 3);
+  saveDrillProgress();
   drillFeedback(q, ok);
 }
 function submitFill(v){
   const d = S.drill, q = d.list[d.i];
   const ok = q.ans.some(a => a.toLowerCase() === v.toLowerCase());
   d.lastAns = v;
+  d.ansLog = d.ansLog || {};
+  d.ansLog[q.id] = {k: -1, ok, fill: v};
   const fw = document.getElementById('fillInput');
   fw.disabled = true; fw.style.borderColor = ok ? 'var(--green)' : 'var(--red)';
   if(ok){
@@ -2920,12 +3167,23 @@ function submitFill(v){
   drillVerdict(q, ok);
   save();
   recordAnswer(q, ok, (d.help || 0) >= 3);
+  saveDrillProgress();
   drillFeedback(q, ok);
 }
 function recordAnswer(q, ok, tutor){
   st.total++; if(ok) st.correct++;
   if(!st.mod[q.m]) st.mod[q.m] = {c: 0, t: 0};
   st.mod[q.m].t++; if(ok) st.mod[q.m].c++;
+  // —— 学习管家：永久留存每题对错记录 + 每日学习日志 ——
+  st.records = st.records || {};
+  const rid = q.id;
+  const r = st.records[rid] || {n:0, c:0, last:0, ok:0, subj:q.subj, m:q.m};
+  r.n++; if(ok) r.c++; r.last = Date.now(); r.ok = ok ? 1 : 0; r.subj = q.subj; r.m = q.m;
+  st.records[rid] = r;
+  const ds = todayStr(0);
+  let sess = st.sessions.find(x => x.d === ds);
+  if(!sess){ sess = {d:ds, n:0, c:0}; st.sessions.push(sess); if(st.sessions.length > 120) st.sessions.shift(); }
+  sess.n++; if(ok) sess.c++;
   const w = st.wrong.find(x => x.id === q.id);
   if(!ok){
     if(w) w.srs = {stage: 0, due: Date.now() + 864e5};   // 复习又错：重新回到 1 天后
@@ -3069,6 +3327,7 @@ function variantResult(v, ok, box){
 function diagnoseErr(q){
   const id = MOD2MATE[q.m], m = getMate(id);
   S.chat = { id, idx: 99 };
+  markChatFrom(q);
   go('s-chat');
   const box = document.getElementById('msgListBox'), opts = document.getElementById('chatOpts');
   box.innerHTML = ''; opts.innerHTML = '';
@@ -4143,6 +4402,261 @@ function closeMV(){
   const el = document.getElementById('mvEl');
   el.removeAttribute('src');
 }
+
+/* =================== AI 学习管家 + 阅读动画小课堂 =================== */
+
+/* ---------- 掌握度计算 ---------- */
+function modStats(mid){
+  const all = ALLQ.filter(q => q.m === mid);
+  const rec = st.records || {};
+  let att = 0, cor = 0, done = 0;
+  all.forEach(q => { const r = rec[q.id]; if(r){ att += r.n; cor += r.c; done++; } });
+  return {total: all.length, done, cov: all.length ? Math.round(done/all.length*100) : 0,
+    acc: att ? Math.round(cor/att*100) : 0, att};
+}
+function subjectStats(sid){
+  const subj = SUBJECTS.find(s => s.id === sid); if(!subj) return null;
+  let total=0, done=0, att=0, cor=0;
+  subj.mods.forEach(m => { const s = modStats(m.id); total+=s.total; done+=s.done; att+=s.att; cor+= Math.round(s.acc/100*s.att); });
+  return {name: subj.name, ico: subj.ico, total, done, cov: total?Math.round(done/total*100):0, acc: att?Math.round(cor/att*100):0};
+}
+function weakModules(){
+  const out = [];
+  ALL_MODS.forEach(m => { const s = modStats(m.id); if(s.total && s.cov>0 && s.acc < 65) out.push({m, s}); });
+  out.sort((a,b)=> a.s.acc - b.s.acc);
+  return out;
+}
+function unlearnedModules(){ return ALL_MODS.filter(m => { const s = modStats(m.id); return s.total>0 && s.cov===0; }); }
+function subjectName(s){ return {math:'高数二', pol:'政治', eng:'英语'}[s] || s; }
+function pad(n){ return n<10 ? '0'+n : ''+n; }
+function dayAfter(n){ const t = new Date(Date.now()+n*864e5); return t.getFullYear()+'-'+pad(t.getMonth()+1)+'-'+pad(t.getDate()); }
+function toMin(s){ const p = s.split(':'); return (+p[0])*60+(+p[1]); }
+
+/* ---------- 仪表盘 ---------- */
+function donutSVG(segs, R){
+  const total = segs.reduce((a,b)=>a+b.v,0) || 1;
+  const C = 2*Math.PI*R; let off = 0, p = '';
+  segs.forEach(s=>{ const len = C*s.v/total; if(len>0.5){ p += '<circle cx="60" cy="60" r="'+R+'" fill="none" stroke="'+s.c+'" stroke-width="16" stroke-dasharray="'+len.toFixed(1)+' '+(C-len).toFixed(1)+'" stroke-dashoffset="'+(-off).toFixed(1)+'" transform="rotate(-90 60 60)"/>'; off+=len; } });
+  return '<svg viewBox="0 0 120 120" width="124" height="124"><circle cx="60" cy="60" r="'+(R-8)+'" fill="#150d24"/>'+p+'<text x="60" y="58" text-anchor="middle" font-size="15" fill="#fff" font-weight="800">'+(segs.reduce((a,b)=>a+b.v,0))+'%</text><text x="60" y="74" text-anchor="middle" font-size="9" fill="#b6a6e0">总覆盖</text></svg>';
+}
+function renderDash(){
+  const subs = SUBJECTS.map(s=>subjectStats(s.id));
+  const palette = ['#5ee0f0','#ffd166','#ff8ad1'];
+  const segs = subs.map((s,i)=>({v: s.cov, c: palette[i]}));
+  const leg = subs.map((s,i)=>'<div><i style="background:'+palette[i]+'"></i>'+s.ico+' '+s.name+'：覆盖 '+s.cov+'% · 正确率 '+s.acc+'%</div>').join('');
+  let bars='';
+  ALL_MODS.forEach(m=>{ const s=modStats(m.id); if(!s.total) return; const cls = s.acc>=80?'':(s.acc>=65?'mid':'low');
+    bars += '<div class="mbar"><div class="ml"><span>'+m.ico+' '+m.name+'</span><span>'+s.cov+'% 覆盖 · '+s.acc+'% 正确</span></div><div class="mt"><i class="mf '+cls+'" style="width:'+s.cov+'%"></i></div></div>'; });
+  const doneQ = Object.keys(st.records||{}).length;
+  document.getElementById('butlerBody').innerHTML =
+    '<div class="card"><div class="donut-wrap">'+donutSVG(segs,50)+'<div class="donut-leg">'+leg+'</div></div></div>'+
+    '<div class="kpi"><div class="k"><b>'+doneQ+'</b><span>已练题/'+ALLQ.length+'</span></div><div class="k"><b>'+(st.total||0)+'</b><span>总作答</span></div><div class="k"><b>'+(st.srsGrad||0)+'</b><span>毕业错题</span></div></div>'+
+    '<div class="sec-title"><span class="bar"></span>各模块掌握度</div>'+
+    '<div class="card">'+(bars || '<div style="color:var(--sub);font-size:12px">还没有练习记录，去刷几题吧～</div>')+'</div>';
+}
+
+/* ---------- 每日 12h 智能规划 ---------- */
+function genDailyPlan(){
+  const w = st.butler.weights;
+  const totalW = (w.math+w.pol+w.eng)||1;
+  const STUDY = 12*60;
+  const raw = {math: STUDY*w.math/totalW, pol: STUDY*w.pol/totalW, eng: STUDY*w.eng/totalW};
+  const k = 660/(raw.math+raw.pol+raw.eng);
+  const mins = {math: Math.round(raw.math*k/15)*15, pol: Math.round(raw.pol*k/15)*15, eng: Math.round(raw.eng*k/15)*15};
+  const diff = 660 - (mins.math+mins.pol+mins.eng);   // 取整后补差，使三科合计恰为 660（含固定 60 错题清零 = 720/日）
+  if(diff){ const mx = ['math','pol','eng'].reduce((a,b)=> mins[a]>mins[b]?a:b); mins[mx] += Math.round(diff/15)*15; }
+  const WIN = [
+    {start:480, end:690, subj:'math', label:'🧠 高数二 · 新授攻坚（脑力高峰）'},
+    {start:840, end:1020, subj:'pol', label:'📜 政治 · 精讲+背诵（下午黄金）'},
+    {start:1020, end:1110, subj:'eng', label:'📖 英语 · 阅读/完形（傍晚）'},
+    {start:1140, end:1320, subj:null, label:'🌙 夜间弹性 · 补漏/变式'}
+  ];
+  const blocks=[]; const remain = {math:mins.math, pol:mins.pol, eng:mins.eng};
+  WIN.forEach(win=>{ let t=win.start; ['math','pol','eng'].forEach(s=>{ if(win.subj && win.subj!==s) return; let need=remain[s]; if(need<=0) return; const cap=win.end-t; if(cap<=0) return; const use=Math.min(need, cap); if(use<=0) return; blocks.push({start:pad(Math.floor(t/60))+':'+pad(t%60), dur:use, subj:s, type:'study', label: win.subj?win.label:('🔁 '+subjectName(s)+' · 补漏/变式')}); remain[s]-=use; t+=use; }); });
+  // 极端权重下仍有溢出：在 22:00 后追加补漏块，保证 12h 学习时长不缩水
+  ['math','pol','eng'].forEach(s=>{ if(remain[s]>0){ blocks.push({start:'22:00', dur:remain[s], subj:s, type:'study', label:'🔁 '+subjectName(s)+' · 溢出补漏'}); remain[s]=0; } });
+  blocks.push({start:'12:00', dur:120, type:'relax', label:'😌 午餐 + 休闲回血（固定 2 小时，防脑力透支）'});
+  blocks.push({start:'18:30', dur:30, type:'meal', label:'🍱 晚餐'});
+  blocks.push({start:'21:00', dur:60, subj:'all', type:'study', label:'🔁 错题循环清零 · 同考点变式补强'});
+  blocks.sort((a,b)=> toMin(a.start)-toMin(b.start));
+  return blocks;
+}
+function renderPlan(){
+  const w = st.butler.weights;
+  const sliders = ['math','pol','eng'].map(s=>{
+    const nm = {math:'∫ 高数二', pol:'★ 政治', eng:'A 英语'}[s];
+    return '<div class="wslider"><label>'+nm+'</label><input type="range" min="1" max="5" value="'+w[s]+'" oninput="setWeight(\''+s+'\',this.value)"><b id="wv-'+s+'">'+w[s]+'</b></div>';
+  }).join('');
+  const blocks = genDailyPlan().map(b=>{
+    if(b.type==='relax') return '<div class="slot relax"><span class="tm">'+b.start+'</span><span class="sb">'+b.label+'</span><span class="en">休闲回血</span></div>';
+    if(b.type==='meal') return '<div class="slot"><span class="tm">'+b.start+'</span><span class="sb">'+b.label+'</span><span class="en">用餐</span></div>';
+    return '<div class="slot"><span class="tm">'+b.start+'</span><span class="sb">'+b.label+'</span><span class="tp">'+b.dur+' 分钟</span></div>';
+  }).join('');
+  document.getElementById('butlerBody').innerHTML =
+    '<div class="card"><div style="font-size:12.5px;color:var(--sub);margin-bottom:6px">拖动滑块调整科目权重，AI 按精力曲线重排 12 小时课表：脑力高峰排高数，下午排政治，傍晚排英语，晚间错题清零。每日固定 2 小时休闲回血。</div>'+sliders+
+    '<button class="btn magenta mt10" onclick="renderPlan()">🔄 按当前权重重排课表</button></div>'+
+    '<div class="sec-title"><span class="bar"></span>今日 12 小时课表</div>'+
+    '<div class="card">'+blocks+'</div>';
+}
+function setWeight(s,v){ st.butler.weights[s]=+v; save(); const e=document.getElementById('wv-'+s); if(e) e.textContent=v; }
+
+/* ---------- 每日诊断报告 ---------- */
+function renderDiag(){
+  const today = (st.sessions||[]).find(s=>s.d===todayStr(0));
+  const doneN = today?today.n:0, doneC = today?today.c:0;
+  const weak = weakModules(); const unl = unlearnedModules();
+  const wTxt = weak.length ? weak.slice(0,6).map(x=>x.m.ico+' '+x.m.name+'（正确率 '+x.s.acc+'%）').join('、') : '暂无显著薄弱点，保持！';
+  const uTxt = unl.length ? unl.map(x=>x.ico+' '+x.name).join('、') : '全部模块已开练 ✅';
+  document.getElementById('butlerBody').innerHTML =
+    '<div class="card"><div class="kpi"><div class="k"><b>'+doneN+'</b><span>今日已练</span></div><div class="k"><b>'+(doneN?Math.round(doneC/doneN*100):0)+'%</b><span>今日正确率</span></div><div class="k"><b>'+(st.wrong?st.wrong.length:0)+'</b><span>在册错题</span></div></div></div>'+
+    '<div class="diag-ok">✅ <b>今日已完成进度</b><br>已作答 '+doneN+' 题，正确 '+doneC+' 题（'+(doneN?Math.round(doneC/doneN*100):0)+'%）。</div>'+
+    '<div class="diag-warn">📭 <b>尚未学习的模块清单</b><br>'+uTxt+'</div>'+
+    '<div class="diag-warn">⚠️ <b>自动挖掘的薄弱考点</b><br>'+wTxt+'<br><button class="btn gold mt10" onclick="weakDrill()">🎯 一键推送薄弱专项（错题清零）</button></div>'+
+    '<div class="card"><div style="font-size:12.5px;line-height:1.8;color:var(--sub)">📝 <b>当日学习总结复盘</b><br>'+diagSummary(doneN,doneC,weak,unl)+'</div></div>';
+}
+function diagSummary(n,c,weak,unl){
+  if(!n) return '今天还没动笔。打开自习室，先做 20 题摸底，管家才能给你精准画像。';
+  let s = '今日效率不错，练了 '+n+' 题。';
+  if(weak.length) s += ' 薄弱环节集中在 '+weak[0].m.name+' 等，建议明早优先安排。';
+  if(unl.length) s += ' 还有 '+unl.length+' 个模块完全没碰，别拖到考前。';
+  s += ' 错题已自动入池，按清零机制循环重刷即可。';
+  return s;
+}
+function weakDrill(){ const weak=weakModules(); if(!weak.length){ toast('当前没有薄弱模块，去自由练习吧～'); return; } const m=weak[0].m; startDrill(m.id); toast('🎯 已开薄弱专项：'+m.name); }
+
+/* ---------- 15 天冲刺 ---------- */
+function buildSprint(){
+  const phases = [
+    {n:3, name:'基础夯实', foc:'过一遍核心公式与高频考点，建立知识框架'},
+    {n:3, name:'模块攻坚', foc:'按 ROI 雷达优先刷高分值薄弱模块，错题清零'},
+    {n:3, name:'真题+清零', foc:'刷近 3 年真题，错题进循环池直到零错题'},
+    {n:3, name:'弱项定点', foc:'针对模考暴露的弱点专项补强'},
+    {n:3, name:'全真模考', foc:'全真模考 + 口诀复盘，调整临场状态'}
+  ];
+  const days=[]; let i=0;
+  phases.forEach(p=>{ for(let k=0;k<p.n;k++){ i++; days.push({date: dayAfter(i-1), phase:p.name, focus:p.foc, mock: i%3===0}); } });
+  return {start: todayStr(0), days};
+}
+function renderSprint(){
+  let sp = st.sprint; if(!sp) sp = buildSprint();
+  const days = sp.days.map((d,i)=>{
+    const done = d.date < todayStr(0);
+    return '<div class="sprint-day '+(done?'done':'')+'"><div class="sdh"><span>Day '+(i+1)+' · '+d.date+'</span><span>'+(done?'✅':'⏳')+'</span></div><div class="sprint-phase">'+d.phase+'</div><div style="font-size:12.5px;margin-top:4px;line-height:1.6">'+d.focus+'</div>'+(d.mock?'<div style="margin-top:4px;font-size:11px;color:var(--gold)">📝 阶段性模考日</div>':'')+'</div>';
+  }).join('');
+  document.getElementById('butlerBody').innerHTML =
+    '<div class="card" style="border-color:rgba(255,209,102,.4)"><div style="font-size:12.5px;line-height:1.7;color:#f6e3b0">🚀 <b>15 天满分冲刺</b>：AI 按精力曲线排课，高 ROI 考点优先攻坚，效率在现有基础上再翻倍。每天 12h 学习 + 2h 休闲回血，每 3 天一次阶段性模考动态修正。</div><button class="btn gold mt10" onclick="activateSprint()">🔥 激活我的 15 天冲刺计划</button></div>'+
+    '<div id="sprintDays">'+days+'</div>';
+}
+function activateSprint(){ st.sprint = buildSprint(); save(); toast('🔥 15 天冲刺已激活！去「每日规划」看今天的课表'); renderSprint(); }
+
+/* ---------- 数据存档 ---------- */
+function renderArc(){
+  const recN = Object.keys(st.records||{}).length;
+  const sessN = (st.sessions||[]).length;
+  const bytes = JSON.stringify(st).length;
+  document.getElementById('butlerBody').innerHTML =
+    '<div class="card"><div class="kpi"><div class="k"><b>'+recN+'</b><span>已存档题</span></div><div class="k"><b>'+sessN+'</b><span>日志天数</span></div><div class="k"><b>'+(bytes/1024).toFixed(0)+'KB</b><span>本地占用</span></div></div>'+
+    '<div style="font-size:12px;color:var(--sub);line-height:1.7;margin-top:6px">全部答题记录、每题对错、每日日志永久保存在本机浏览器（localStorage）。换设备或清缓存会丢失，建议定期导出备份。</div>'+
+    '<div class="row2 mt10"><button class="btn magenta" onclick="exportArchive()">📤 导出备份(JSON)</button><button class="btn ghost" onclick="document.getElementById(\'arcFile\').click()">📥 导入恢复</button></div>'+
+    '<input id="arcFile" type="file" accept="application/json" style="display:none" onchange="importArchive(this)"></div>';
+}
+function exportArchive(){ const blob=new Blob([JSON.stringify(st)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='chengkao-archive-'+todayStr(0)+'.json'; a.click(); toast('已导出备份 ✅'); }
+function importArchive(inp){ const f=inp.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{ Object.assign(st, JSON.parse(r.result)); save(); toast('已恢复存档 ✅ 刷新后生效'); }catch(e){ toast('文件格式不对'); } }; r.readAsText(f); }
+
+/* ---------- 管家入口 ---------- */
+function renderButler(){ butlerTab('dash'); }
+function butlerTab(t){
+  document.querySelectorAll('#btabs button').forEach(b=>b.classList.toggle('on', b.dataset.bt===t));
+  if(t==='dash') renderDash();
+  else if(t==='plan') renderPlan();
+  else if(t==='diag') renderDiag();
+  else if(t==='sprint') renderSprint();
+  else if(t==='arc') renderArc();
+}
+
+/* ---------- 英语阅读 2D 动画小课堂 ---------- */
+function longSentenceSVG(){
+  const segs = [
+    {t:'Although', c:'#ff8ad1', y:55}, {t:'the task', c:'#5ee0f0', y:55}, {t:'was hard,', c:'#ff8ad1', y:55},
+    {t:'the students', c:'#5ee0f0', y:105}, {t:'who prepared well', c:'#ffd166', y:105}, {t:'finished', c:'#8fe8b8', y:105}, {t:'on time.', c:'#8fe8b8', y:105}
+  ];
+  let x=16, boxes='';
+  segs.forEach((s,i)=>{ const w=Math.max(42, s.t.length*8+14); boxes += '<g class="syl-pop" style="animation-delay:'+(i*0.3)+'s"><rect x="'+x+'" y="'+s.y+'" width="'+w+'" height="34" rx="8" fill="'+s.c+'22" stroke="'+s.c+'" stroke-width="1.5"/><text x="'+(x+w/2)+'" y="'+(s.y+22)+'" text-anchor="middle" font-size="12" fill="#fff">'+s.t+'</text></g>'; x+=w+8; });
+  return '<svg viewBox="0 0 372 150" width="100%"><rect width="372" height="150" fill="#0e0a1c"/>'+boxes+
+    '<text x="16" y="138" font-size="10" fill="#5ee0f0">■ 主干</text><text x="92" y="138" font-size="10" fill="#ffd166">■ 定语从句</text><text x="200" y="138" font-size="10" fill="#8fe8b8">■ 谓语</text><text x="270" y="138" font-size="10" fill="#ff8ad1">■ 连词/状语</text></svg>';
+}
+function flowSVG(steps, colors){
+  const n=steps.length, u=360/n; let s='';
+  steps.forEach((t,i)=>{ const x=i*u+16; s+='<g class="syl-pop" style="animation-delay:'+(i*0.25)+'s"><rect x="'+x+'" y="58" width="'+(u-28)+'" height="46" rx="10" fill="'+colors[i%colors.length]+'22" stroke="'+colors[i%colors.length]+'" stroke-width="1.5"/><text x="'+(x+(u-28)/2)+'" y="85" text-anchor="middle" font-size="11" fill="#fff">'+t+'</text></g>'; if(i<n-1) s+='<text x="'+(x+u-28+3)+'" y="84" font-size="15" fill="#888">→</text>'; });
+  return '<svg viewBox="0 0 360 150" width="100%"><rect width="360" height="150" fill="#0e0a1c"/>'+s+'</svg>';
+}
+const READ_LESSONS = [
+  {id:'strategy', ico:'🧭', title:'阅读解题思路', sub:'5 步定位法，细节题不再瞎找', frames:[
+    {type:'speak', who:'ziyuan', text:'阅读理解 20 分，占英语半壁江山！今天我带你用「5 步定位法」，细节题闭眼拿分～'},
+    {type:'board', title:'第 1 步 · 速读题干', body:'先读题目、<b>不看选项</b>，圈出关键词：人名、数字、专有名词、否定词（not / except）。带着问题回原文，效率翻倍。'},
+    {type:'diagram', caption:'题干关键词 → 原文锚点 → 比对选项', svg: flowSVG(['题干圈词','原文定位','同义比对','排除绝对'],['#5ee0f0','#ff8ad1','#ffd166','#8fe8b8'])},
+    {type:'board', title:'第 2 步 · 回原文定位', body:'细节题答案 90% 在关键词出现的那一句或相邻句。<b>不要脑补</b>，原文说啥就是啥。'},
+    {type:'board', title:'第 3 步 · 比对选项', body:'正确选项往往是原文的<b>同义改写</b>，不是原词照抄。看到和原文一模一样的词，反而要警惕偷换概念。'},
+    {type:'tip', title:'秒杀技巧', body:'含 always / never / all / must 的<b>绝对化选项</b>，成考里大概率是错项，优先排除。'},
+    {type:'speak', who:'ziyuan', text:'口诀：题干圈词→原文定位→同义比对→排除绝对。来，动画结束我出几道题考你～'}
+  ]},
+  {id:'longsentence', ico:'🧩', title:'长难句拆解', sub:'找准主干，修饰成分一眼看穿', frames:[
+    {type:'speak', who:'ziyuan', text:'长难句吓退一堆人。其实只要拆出主干，剩下的都是纸老虎。'},
+    {type:'board', title:'拆句三斧', body:'① 找<b>连词</b>切分句子（although / because / who…）；② 找<b>主干</b>：主谓宾；③ 剩下的从句、介词短语都是<b>修饰</b>，先跳过。'},
+    {type:'diagram', caption:'先看主干（蓝），再看修饰（黄/绿），连词（粉）切分', svg: longSentenceSVG()},
+    {type:'board', title:'实战：先抓主干', body:'遇到长句，先在心里把「谁 + 做了什么」拎出来。主干读懂，题目 80% 能解，修饰只影响细节题。'},
+    {type:'tip', title:'避坑', body:'定语从句（who / which / that）紧跟的名词<b>不是主语</b>，别把修饰对象当主语，这是成考高频陷阱。'},
+    {type:'speak', who:'ziyuan', text:'拆多了就有手感，去练几道长句题巩固一下～'}
+  ]},
+  {id:'skill', ico:'🎯', title:'答题技巧与陷阱', sub:'主旨题、词义题、推断题套路', frames:[
+    {type:'speak', who:'ziyuan', text:'最后讲三类常考题型的标准打法，照着做不丢分。'},
+    {type:'board', title:'主旨题', body:'看<b>首段 + 尾段 + 各段首句</b>。正确选项概括全文，片面选项（只讲某一段）是错项。'},
+    {type:'board', title:'词义题', body:'画线词不认识？看<b>上下文逻辑</b>：并列=近义，转折=反义，举例=具体。绝不脱离语境瞎猜。'},
+    {type:'board', title:'推断题', body:'答案一定是<b>原文能推出来的</b>，不能过度引申。出现 in my opinion / I think 的主观项通常是错项。'},
+    {type:'tip', title:'时间管理', body:'阅读 4~5 篇控制在 <b>35 分钟内</b>，一道题超 2 分钟就先跳过，最后回头蒙。'},
+    {type:'speak', who:'ziyuan', text:'套路记住了，做几道配套练习验收一下吧！'}
+  ]}
+];
+let ANIME = null;
+function renderReadAnime(){
+  document.getElementById('readAnimeBody').innerHTML =
+    '<div class="sec-title"><span class="bar"></span>2D 动画小课堂<small>看完立刻配套练习</small></div>'+
+    READ_LESSONS.map(l=>'<div class="card" style="cursor:pointer" onclick="openLesson(\''+l.id+'\')"><div style="display:flex;align-items:center;gap:12px"><div style="font-size:30px">'+l.ico+'</div><div style="flex:1"><div style="font-weight:800;font-size:14px">'+l.title+'</div><div style="font-size:12px;color:var(--sub);margin-top:2px">'+l.sub+'</div></div><div style="font-size:12px;color:var(--gold)">开始 ▶</div></div></div>').join('');
+}
+function openLesson(id){
+  const l = READ_LESSONS.find(x=>x.id===id); if(!l) return;
+  ANIME = {lesson:l, i:0, speed:1, timer:null, playing:true};
+  document.getElementById('readAnimeBody').innerHTML =
+    '<div class="anime-stage" id="animeStage"></div>'+
+    '<div class="anime-prog"><i id="animeProgI" style="width:0%"></i></div>'+
+    '<div class="anime-ctrl"><button class="btn ghost sm" id="animePlay" onclick="animeToggle()">⏸ 暂停</button><button class="btn ghost sm" onclick="openLesson(\''+id+'\')">🔁 重播</button>'+
+    '<div class="sp"><button data-s="0.5" onclick="animeSpeed(0.5)">0.5×</button><button data-s="1" class="on" onclick="animeSpeed(1)">1×</button><button data-s="1.5" onclick="animeSpeed(1.5)">1.5×</button><button data-s="2" onclick="animeSpeed(2)">2×</button></div></div>'+
+    '<div id="animeQuizSlot"></div>';
+  animeStep();
+}
+function animeStep(){
+  const a = ANIME; if(!a) return;
+  const f = a.lesson.frames[a.i]; const stage = document.getElementById('animeStage'); if(!stage) return;
+  let html='';
+  if(f.type==='speak'){ const m=getMate(f.who); html='<div class="anime-speak syl-fade"><img class="av" src="'+m.img+'" onerror="this.style.display=\'none\'"><div class="bub">'+escapeHtml(f.text)+'</div></div>'; }
+  else if(f.type==='board'){ html='<div class="anime-board syl-fade"><div class="bh">'+f.title+'</div><div class="bb">'+f.body+'</div></div>'; }
+  else if(f.type==='diagram'){ html='<div class="syl-fade">'+f.svg+'</div><div class="anime-speak"><img class="av" src="assets/ziyuan.jpg" onerror="this.style.display=\'none\'"><div class="bub">'+escapeHtml(f.caption||'')+'</div></div>'; }
+  else if(f.type==='tip'){ html='<div class="anime-board syl-fade" style="border-color:rgba(255,209,102,.5)"><div class="bh" style="color:#ffd166">💡 '+f.title+'</div><div class="bb">'+f.body+'</div></div>'; }
+  stage.innerHTML = html;
+  const prog=document.getElementById('animeProgI'); if(prog) prog.style.width=Math.round((a.i+1)/a.lesson.frames.length*100)+'%';
+  clearTimeout(a.timer);
+  const dur=(f.dur||4)/a.speed*1000;
+  if(a.i>=a.lesson.frames.length-1) a.timer=setTimeout(animeFinish, dur);
+  else if(a.playing) a.timer=setTimeout(()=>{ a.i++; animeStep(); }, dur);
+}
+function animeToggle(){ const a=ANIME; if(!a) return; a.playing=!a.playing; const b=document.getElementById('animePlay'); if(b) b.textContent=a.playing?'⏸ 暂停':'▶ 继续'; if(a.playing) animeStep(); else clearTimeout(a.timer); }
+function animeSpeed(s){ const a=ANIME; if(!a) return; a.speed=s; document.querySelectorAll('.anime-ctrl .sp button').forEach(b=>b.classList.toggle('on', +b.dataset.s===s)); animeStep(); }
+function animeFinish(){
+  const slot=document.getElementById('animeQuizSlot'); if(!slot) return;
+  slot.innerHTML='<div class="card" style="border-color:rgba(143,232,184,.4);margin-top:10px"><div style="font-size:13.5px;font-weight:800">📖 配套练习来了！</div><div style="font-size:12.5px;color:var(--sub);margin-top:4px;line-height:1.7">用刚学的思路做几道阅读真题，<b>错题会自动加入错题循环池</b>，按清零机制反复巩固直到做对。</div><button class="btn gold mt10" onclick="startReadQuiz()">🚀 开始配套练习</button></div>';
+  toast('动画结束，来几道配套练习巩固一下～');
+}
+function startReadQuiz(){ const r=ALLQ.filter(q=>q.m==='e4' && q.t==='choice'); if(!r.length){ toast('没有阅读题可练'); return; } const list=shuffle(r).slice(0,6); S.drill={mod:'e4', list, i:0, right:0, total:r.length, label:'📖 阅读配套练习', mode:'readanime', isWrong:false}; go('s-drill'); renderDrill(); toast('📖 配套练习：错题自动进错题本'); }
 
 /* =================== 启动 =================== */
 restoreDrill();          // 恢复上次中断的刷题进度（如有）
