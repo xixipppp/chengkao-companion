@@ -75,7 +75,7 @@ const URL = process.env.TEST_URL || 'https://chengkao.xixipp.cloud/index.html';
     };
   });
   T('B1', '导航入口≥30', b.nav >= 30, 'nav=' + b.nav);
-  T('B2', '版本号显示 v2.2.0', b.ver.trim() === 'v2.2.0', JSON.stringify(b.ver));
+  T('B2', '版本号显示 v2.3.0', b.ver.trim() === 'v2.3.0', JSON.stringify(b.ver));
   T('B3', '主页内容渲染正常', b.hero);
   T('B4', '主页含英语动画课堂入口', b.hasAnimeEntry);
   T('B5', '主页含AI学习管家入口', b.hasButlerEntry);
@@ -540,6 +540,81 @@ const URL = process.env.TEST_URL || 'https://chengkao.xixipp.cloud/index.html';
   });
   T('Q11', '通关自动打卡（fromPlan 任务标记完成）', q5.done === true, 'done=' + q5.done);
   T('Q12', '通关写入战报（消灭数/模块/科目/用时）', q5.killed === 2 && q5.mod === 'm1' && q5.subj === 'math' && q5.min >= 1, 'killed=' + q5.killed + ' mod=' + q5.mod + ' subj=' + q5.subj + ' min=' + q5.min);
+
+  /* ---------- R. P1 模块联动：弱点注入游戏池 + 课堂回流排课 ---------- */
+  sect('R. P1 模块联动（玩游戏=刷薄弱考点 / 课堂→诊断→排课回流）');
+  const r1 = await page.evaluate(() => {
+    const fns = ['weakFocusMods', 'weakInjectPool', 'injectIntoQS', 'todayLessonFeeds', 'boostOf', 'ensureLessonBoost',
+      'butlerOnLessonResult', 'lessonFeedFromDrill', 'revokePlanBoost', 'weakDrillMod', 'genDailyPlan'];
+    return { miss: fns.filter(f => typeof window[f] !== 'function'), ratio: WEAK_INJECT_RATIO, boostMin: LESSON_BOOST_MIN };
+  });
+  T('R1', 'P1 联动函数齐备（11 个）', r1.miss.length === 0, r1.miss.join(',') || 'ok');
+  T('R2', '注入比例红线 ≤40% / 巩固块 10 分钟', r1.ratio === 0.4 && r1.boostMin === 10, 'ratio=' + r1.ratio + ' boost=' + r1.boostMin);
+
+  const r2 = await page.evaluate(() => {
+    st.records = {}; st.mod = {};
+    const mark = q => { st.records[q.id] = { n: 1, c: 0, last: Date.now(), ok: 0, subj: q.subj, m: q.m }; };
+    const m2 = ALLQ.filter(q => q.m === 'm2'); m2.slice(0, 6).forEach(mark);
+    const p2 = ALLQ.filter(q => q.m === 'p2'); p2.slice(0, 5).forEach(mark);
+    save();
+    const focus = weakFocusMods();
+    const pool = weakInjectPool(3, q => q.t === 'choice');
+    const base = ALLQ.filter(q => q.subj === 'math' && q.t === 'choice').slice(0, 20);
+    GAME_INJECT = { n: 0 };
+    const merged = injectIntoQS(base, q => q.subj === 'math' && q.t === 'choice');
+    const injected = merged.filter(q => !base.some(x => x.id === q.id));
+    return { focusTop: focus.slice(0, 4), hasM2: focus.indexOf('m2') >= 0,
+      poolN: pool.length, poolMods: pool.map(q => q.m),
+      baseLen: base.length, mergedLen: merged.length, injN: injected.length, ctr: GAME_INJECT.n,
+      wrongIds: m2.slice(0, 6).map(q => q.id), injIds: injected.map(q => q.id),
+      freshAvail: ALLQ.filter(q => q.m === 'm2' && q.t === 'choice' && !st.records[q.id]).length };
+  });
+  T('R3', '薄弱模块识别（错得多的优先）', r2.hasM2 && r2.focusTop.length > 0, 'top=' + JSON.stringify(r2.focusTop));
+  T('R4', '注入池只取薄弱考点的题', r2.poolN > 0 && r2.poolMods.every(m => ['m2', 'p2'].indexOf(m) >= 0), 'mods=' + JSON.stringify(r2.poolMods));
+  T('R5', '注入 ≤40% 且只替换不加长', r2.injN >= 1 && r2.injN <= Math.floor(r2.baseLen * 0.4) && r2.mergedLen === r2.baseLen, 'inj=' + r2.injN + '/' + r2.baseLen + ' merged=' + r2.mergedLen + ' ctr=' + r2.ctr);
+  T('R6', '换情境不复刻原题（优先未错过的同考点新题）', r2.freshAvail < 2 || r2.injIds.every(id => r2.wrongIds.indexOf(id) < 0), 'fresh=' + r2.freshAvail + ' inj=' + JSON.stringify(r2.injIds));
+
+  const r3 = await page.evaluate(() => {
+    st.records = {}; st.mod = {}; st.lessonFeed = []; st.planExtra = []; save();
+    const base = ALLQ.filter(q => q.subj === 'math' && q.t === 'choice').slice(0, 20);
+    GAME_INJECT = { n: 0 };
+    const merged = injectIntoQS(base, q => q.subj === 'math' && q.t === 'choice');
+    go('s-games'); renderGames();
+    const hint0 = document.querySelectorAll('#gameList .injecthint').length;
+    ALLQ.filter(q => q.m === 'm2').slice(0, 5).forEach(q => { st.records[q.id] = { n: 1, c: 0, last: Date.now(), ok: 0, subj: q.subj, m: q.m }; });
+    save(); renderGames();
+    const hint1 = document.querySelectorAll('#gameList .injecthint').length;
+    return { noInject: GAME_INJECT.n, same: merged.length === base.length, hint0, hint1 };
+  });
+  T('R7', '无薄弱记录时零注入（不打扰）', r3.noInject === 0 && r3.same === true, 'n=' + r3.noInject);
+  T('R8', '游戏中心亮明「管家已联动小游戏」', r3.hint0 === 0 && r3.hint1 === 1, 'hint0=' + r3.hint0 + ' hint1=' + r3.hint1);
+
+  const r4 = await page.evaluate(() => {
+    st.lessonFeed = []; st.planExtra = []; st.records = {}; save();
+    const nowMin = (new Date()).getHours() * 60 + (new Date()).getMinutes();
+    const futureN = genDailyPlan(true).filter(b => b.type === 'study' && toMin(b.start) > nowMin).length;
+    const ids = ALLQ.filter(q => q.m === 'e4').slice(0, 3).map(q => q.id);
+    butlerOnLessonResult('e4', ids);
+    const feed = todayLessonFeeds();
+    const ex = boostOf('e4');
+    const boost = genDailyPlan().filter(b => b.type === 'boost');
+    go('s-butler'); butlerTab('diag');
+    const first = document.querySelector('#butlerBody > *');
+    const diagTxt = document.getElementById('butlerBody').innerText.replace(/\n/g, ' ');
+    const key = ex ? (ex.d + '|' + ex.mod) : '';
+    if (key) revokePlanBoost(key);
+    const boostAfter = genDailyPlan().filter(b => b.type === 'boost').length;
+    return { futureN, feedN: feed.length, feedMod: feed[0] && feed[0].mod, feedWrong: feed[0] ? feed[0].wrongIds.length : 0,
+      hasEx: !!ex, exDur: ex && ex.dur, exStart: ex && ex.start,
+      boostN: boost.length, boostDur: boost[0] && boost[0].dur,
+      firstIsLesson: /动画课堂暴露的弱点/.test(first ? first.innerText : ''),
+      diagHasBtn: /立刻针对巩固/.test(diagTxt),
+      boostAfter, hasRevoked: !!(st.planExtra || []).find(x => x.revoked) };
+  });
+  T('R9', '课堂弱点回流进管家（模块+错题数）', r4.feedN === 1 && r4.feedMod === 'e4' && r4.feedWrong === 3, 'feed=' + r4.feedN + ' mod=' + r4.feedMod + ' wrong=' + r4.feedWrong);
+  T('R10', '自动插入 10 分钟巩固块（只补未到时段）', r4.futureN === 0 || (r4.hasEx && r4.boostN === 1 && r4.boostDur === 10), 'future=' + r4.futureN + ' drop=' + r4.boostN + ' dur=' + r4.boostDur + ' at=' + r4.exStart);
+  T('R11', '今日诊断置顶课堂弱点卡 + 一键巩固', r4.firstIsLesson && r4.diagHasBtn, 'top=' + r4.firstIsLesson + ' btn=' + r4.diagHasBtn);
+  T('R12', '巩固块可一键撤销（课表恢复原样）', (r4.futureN === 0 || r4.hasRevoked) && r4.boostAfter === 0, 'revoked=' + r4.hasRevoked + ' after=' + r4.boostAfter);
 
   /* ---------- N. 运行期 JS 错误 & 资源 ---------- */
   sect('N. 运行期 JS 错误 & 资源完整性');
