@@ -1,0 +1,13 @@
+# v3.4.1 换行符治理：防止 Windows autocrlf 造成整文件假 diff（历史上曾发生 4 文件 CRLF/LF 漂移）
+# 生成物 data/*.js 与工具脚本固定 LF；index.html 维持仓库现状 CRLF；二进制不做文本转换
+* text=auto
+*.js text eol=lf
+*.html text eol=crlf
+*.md text eol=lf
+*.yml text eol=lf
+*.json text eol=lf
+*.glb binary
+*.jpg binary
+*.png binary
+*.webp binary
+*.wasm binary

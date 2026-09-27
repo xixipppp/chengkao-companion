@@ -6,6 +6,18 @@ tests/_*.html
 _push*.js
 _release*.js
 
+# v3.4.1 安全：本地凭据与密钥配置，严禁入库（ai-config.js 用于注入 window.CK_AI_KEY）
+ai-config.js
+.env
+.env.*
+*.token
+token*.txt
+
+# 依赖与日志
+node_modules/
+*.log
+package-lock.json
+
 # 操作系统
 .DS_Store
 Thumbs.db

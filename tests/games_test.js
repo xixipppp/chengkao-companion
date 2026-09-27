@@ -164,5 +164,21 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   console.log(JSON.stringify(R, null, 1));
   console.log('pageerrors:', errs.length ? errs : 'NONE');
   await browser.close();
-  console.log('DONE');
+
+  // v3.4.1 修复假测试：结果必须汇总断言并以退出码反映，否则 CI 永远绿
+  let fail = 0;
+  const T = (n, ok, extra) => { console.log((ok ? '✅' : '❌') + ' ' + n + (extra !== undefined ? '  → ' + JSON.stringify(extra) : '')); if (!ok) fail++; };
+  T('游戏中心卡片 ≥ 10', !!(R.center && R.center.cards >= 10), R.center && R.center.cards);
+  ['lim', 'match', 'rush', 'flip', 'pic', 'chat', 'mine', 'order', 'harvest'].forEach(k => {
+    if (k in R) T('小游戏 ' + k + ' 完成结算', R[k] === true || (R[k] !== false && R[k] != null), R[k]);
+    else T('小游戏 ' + k + ' 有结果记录', false, 'missing key');
+  });
+  // 免费抽门禁：需「今日任务完成」才解锁（index.html:7275 freeAvail 依赖 taskDoneToday）；
+  // 本测试在 localStorage 清空的新态下运行 → 正确行为是「无免费抽」，断言门禁生效
+  T('抽卡门禁正确：未完成今日任务时无免费抽', !!(R.gacha && R.gacha.free === false), R.gacha && R.gacha.free);
+  T('抽卡后持有卡片 ≥ 1', !!(R.gacha && R.gacha.owned >= 1), R.gacha && R.gacha.owned);
+  T('结算面板数据完整', !!(R.settleCheck && R.settleCheck.coins && R.settleCheck.wrongPool && R.settleCheck.best), R.settleCheck);
+  T('无页面运行期错误', errs.length === 0, errs.length);
+  console.log(fail ? ('FAIL ' + fail + ' 条断言未通过') : 'PASS 全部通过');
+  process.exit(fail ? 1 : 0);
 })();

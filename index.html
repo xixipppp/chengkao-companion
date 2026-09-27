@@ -1702,6 +1702,7 @@ const QUESTIONS = [
 ];
 
 /* ============ 题库聚合：原创精选 66 题 + 高数真题/押题（mathbank.js） + 政治/英语客观题（subjectbank.js） ============ */
+/* v3.4.1：mathbank 已在数据层固化 subj/mod（议案 A），运行时补丁退役，仅保留防御性 filter */
 const EXTRA = (window.MATH_BANK || []).filter(q => q && q.m && q.t).map(q => (q.subj ? q : Object.assign({}, q, {subj: 'math'})));
 const SUBJ_BANK = (window.SUBJ_BANK || []).filter(q => q && q.m && q.t);
 const ALLQ = QUESTIONS.map(q => (q.subj ? q : Object.assign({}, q, {subj: 'math'}))).concat(EXTRA, SUBJ_BANK);
@@ -1722,9 +1723,16 @@ function dupReal(){
   const norm = s => (s || '').replace(/\s+/g, '').replace(/[，。、,.;；:：？?！!]/g, '');
   const keyOf = q => (q.subj || '') + '|' + norm(q.q) + '|' + (q.o ? norm(q.o.join('#')) : (q.ans ? norm(q.ans.join('#')) : norm(q.answer || '')));
   const isMock = q => /模拟|押题|揭秘|考前/.test(q.paper || '');
+  const yearOf = q => (String((q && q.paper) || '').match(/\d{4}/) || [''])[0];
   const seen = {}, dup = {};
-  ALLQ.forEach(q => { if(!isMock(q) && !seen[keyOf(q)]) seen[keyOf(q)] = (String(q.paper || '').match(/\d{4}/) || [''])[0]; });
-  ALLQ.forEach(q => { if(isMock(q)){ const y = seen[keyOf(q)]; if(y) dup[q.id] = y; } });
+  ALLQ.forEach(q => { if(!isMock(q) && !seen[keyOf(q)]) seen[keyOf(q)] = yearOf(q); });
+  ALLQ.forEach(q => {
+    if(!isMock(q)) return;
+    /* v3.4.1 议案 B：数据层 ref 标注优先（annotate_dups 已固化 42 组），归一化推测仅作兜底 */
+    const t = q.ref ? qById(q.ref) : null;
+    const y = (t && !isMock(t)) ? yearOf(t) : seen[keyOf(q)];
+    if(y) dup[q.id] = y;
+  });
   __dupCache = dup;
   return dup;
 }
@@ -2007,7 +2015,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.4.0';   // 同步 GitHub Release 标签（v3.2.0 = P1 收尾 + P2 纵深；v3.3.0 = P3 应用效率；v3.4.0 = Agent 会用工具 + 首屏减负）
+const APP_VER = 'v3.4.1';   // 同步 GitHub Release 标签（v3.2.0 = P1 收尾 + P2 纵深；v3.3.0 = P3 应用效率；v3.4.0 = Agent 会用工具 + 首屏减负；v3.4.1 = 质量地基：假测试修复 + 数据校验门禁 + SW 加固 + XSS 闭环）
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
@@ -4053,7 +4061,8 @@ async function openSteps(q, btn){
     }
     const s = steps[idx];
     const it = document.createElement('div'); it.className = 'stepitem lit';
-    it.innerHTML = '<div class="sk">' + escapeHtml(s.k) + '</div><div>' + s.x + '</div>';
+    /* v3.4.1 安全修复：AI 路径的 s.x 可能含模型返回的任意 HTML，必须与 s.k 一样转义（存储型 XSS 闭环） */
+    it.innerHTML = '<div class="sk">' + escapeHtml(s.k) + '</div><div>' + escapeHtml(s.x) + '</div>';
     listBox.appendChild(it);
     const sp = panel.querySelectorAll('.spd i');
     if(sp[idx]) sp[idx].classList.add('on');

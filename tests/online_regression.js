@@ -8,9 +8,12 @@ const { chromium } = require('playwright');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 const URL = process.env.TEST_URL || 'https://chengkao.xixipp.cloud/index.html';
+/* v3.4.1：浏览器 channel 可配——CI（ubuntu 无 Edge）用已安装的 chromium；
+   本地有 Edge 时可用 TEST_CHANNEL=msedge 保留原行为 */
+const CHANNEL = process.env.TEST_CHANNEL || (process.env.CI ? undefined : 'msedge');
 
 (async () => {
-  const browser = await chromium.launch({ channel: 'msedge',
+  const browser = await chromium.launch({ channel: CHANNEL,
     args: ['--no-sandbox', '--no-first-run', '--no-proxy-server'] });
   const page = await browser.newPage({ viewport: { width: 390, height: 900 } });
   const errs = [], net404 = [];

@@ -24,29 +24,59 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Static checks (内联脚本语法 + 重名/悬空自检)
+      # v3.4.1：静态门禁扩到四件套——新增版本号一致性（ver_check）与题库数据契约（data_check）
+      - name: Static checks (内联脚本语法 + 重名/悬空自检 + 版本一致性 + 题库数据契约)
         run: |
           node tools/syntax_check.js
           node tools/dup_check.js
+          node tools/ver_check.js
+          node tools/data_check.js
+
+      # v3.4.1：playwright 版本锁定（package.json）+ 浏览器缓存，告别每次全量下载 170MB
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package.json') }}
 
       - name: Install Playwright (chromium)
         run: |
-          npm install playwright
+          npm install
           npx playwright install --with-deps chromium
 
       - name: Start static servers + run regression tests
         run: |
           python3 -m http.server 8900 >/dev/null 2>&1 &
           python3 -m http.server 8899 >/dev/null 2>&1 &
-          sleep 3
-          curl -s -o /dev/null -w "server 8900: %{http_code}\n" http://127.0.0.1:8900/index.html
-          curl -s -o /dev/null -w "server 8899: %{http_code}\n" http://127.0.0.1:8899/index.html
+          # 服务就绪轮询（替代裸 sleep，慢 runner 防 race）
+          for i in $(seq 1 20); do
+            curl -sf -o /dev/null http://127.0.0.1:8900/index.html && curl -sf -o /dev/null http://127.0.0.1:8899/index.html && break
+            sleep 1
+          done
+          # 校验返回体确为本应用（防端口被占误连他人服务）
+          curl -s http://127.0.0.1:8900/index.html | grep -q "心动成考" || { echo "8900 端口内容不符"; exit 1; }
 
           fail=0
           for t in offline_test audit_fix_test conv_test games_test gap2_test legacy_fix_test perf_test phase1_visual_test tree_test notes_test; do
             echo "=== $t ==="
-            node "tests/$t.js" && echo "$t PASS ✅" || { echo "$t FAIL ❌"; fail=1; }
+            timeout 300 node "tests/$t.js" && echo "$t PASS ✅" || { echo "$t FAIL ❌"; fail=1; }
           done
 
-          kill %1 %2 2>/dev/null
+          # v3.4.1：online_regression（207 条断言，约占全库九成）纳入流水线
+          # CI 环境下 TEST_CHANNEL 为空 → 使用已安装的 chromium；TEST_URL 指向本地服务
+          echo "=== online_regression（本地服务版） ==="
+          TEST_URL=http://127.0.0.1:8900/index.html timeout 600 node tests/online_regression.js \
+            && echo "online_regression PASS ✅" || { echo "online_regression FAIL ❌"; fail=1; }
+
           exit $fail
+
+      # v3.4.1：失败留证——上传测试截图/产物
+      - name: Upload failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-artifacts
+          path: |
+            tests/_*.png
+            tests/_*.html
+          if-no-files-found: ignore

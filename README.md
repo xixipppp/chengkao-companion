@@ -3,7 +3,7 @@
 > 成人高考（专升本）备考陪练单页应用 —— 用乙女向角色陪伴 + AI 靶向提分，把「刷题、错题、复盘」变成有人陪你打完的一场恋爱式闯关。
 
 [![线上体验](https://img.shields.io/badge/在线体验-chengkao.xixipp.cloud-ff8ad1)](https://chengkao.xixipp.cloud)
-[![Release](https://img.shields.io/badge/release-v3.4.0-ffd166)](https://github.com/xixipppp/chengkao-companion/releases)
+[![Release](https://img.shields.io/badge/release-v3.4.1-ffd166)](https://github.com/xixipppp/chengkao-companion/releases)
 ![纯静态](https://img.shields.io/badge/build-none%20(static)-7ed957)
 
 ---
@@ -32,7 +32,7 @@
 ## 三、功能模块
 
 ### 1. 题库与做题
-- **2327 道**真题/模拟题（政治、高数二、英语三科）。
+- **2327 道**真题/模拟题（政治、高数二、英语三科；含模拟卷复用真题 84 题，数据层已标注 src/ref，见《题库质量专家会议案》）。
 - 选择题 / 填空客观题自动判分，详解与解题步骤。
 - **英语题目语音朗读**（Web Speech API，支持慢速，题干预选项均可朗读）。
 - **数学分步讲题**：每一步都配一道 ABCD 检测，答对才放行下一步，把「看懂」变成「会做」。
@@ -123,7 +123,7 @@
 
 ```
 chengkao-companion/
-├── index.html                 # 主应用（单页，全部内联，约 366KB）
+├── index.html                 # 主应用（单页，全部内联，约 483KB）
 ├── data/
 │   ├── subjectbank.js         # 三科题库（≈1MB）→ window.SUBJ_BANK / SUBJ_PASSAGES
 │   ├── mathbank.js            # 高数二题库 → window.MATH_BANK
@@ -182,7 +182,8 @@ TEST_URL=https://chengkao.xixipp.cloud/index.html node tests/online_regression.j
 
 ## 九、数据与隐私
 
-- 所有学习数据（进度、错题、存档、AI 统计）**仅存于本机浏览器 localStorage**，不上传服务器。
+- 所有学习数据（进度、错题、存档、AI 统计）**仅存于本机浏览器 localStorage**，不上传自建服务器。
+- **第三方 AI 数据传输告知**：使用 AI 功能（讲题/闲聊/分步讲解等）时，你的聊天内容与题目上下文会发送至硅基流动（api.siliconflow.cn）处理；BYOK Key 仅存于本机 localStorage（ck_sfkey），请避免在共享设备上保存。
 - 提供 JSON 导出/导入，方便换设备或备份。
 - 清除浏览器数据即清空本地记录。
 

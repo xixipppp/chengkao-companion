@@ -2,7 +2,9 @@
 window.MATH_BANK = [
  {
   "id": "mat26qz1_001",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "lim(x→0) x/cosx =",
   "o": [
@@ -21,7 +23,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz1_002",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "下列极限等于 1 的是",
   "o": [
@@ -40,7 +44,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz1_003",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "当 x→0 时，无穷小量 x+sinx 是比 x 的",
   "o": [
@@ -59,7 +65,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz1_004",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "曲线 y=x³+2x 在点 (1,3) 处的法线方程是",
   "o": [
@@ -78,7 +86,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz1_005",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "f(x)=1/∛(x²) − 1/(x√x)，则 f′(1) =",
   "o": [
@@ -97,7 +107,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz1_006",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "d/dx ∫₀ˣ 1/(1+t²) dt =",
   "o": [
@@ -116,7 +128,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz1_007",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "∫₀¹ (2x+1)³ dx =",
   "o": [
@@ -135,7 +149,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz1_008",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "下列反常积分收敛的是",
   "o": [
@@ -154,7 +170,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz1_009",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "∫₀¹ (5x⁴+2) dx =",
   "o": [
@@ -173,7 +191,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz1_010",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "choice",
   "q": "对于函数 z=xy，原点 (0,0)",
   "o": [
@@ -192,7 +212,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz1_011",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "choice",
   "q": "设函数 z=lnxy + e^(xy)，则 ∂z/∂y |₍₁,₂₎ =",
   "o": [
@@ -211,7 +233,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz1_012",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "choice",
   "q": "设 z=x³e^(y²)，则 dz 等于",
   "o": [
@@ -230,7 +254,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz3_001",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "设函数 f(x) = { ke^(2x), x<0 ; 1+cosx, x≥0 } 在 x=0 处连续，则常数 k =",
   "o": [
@@ -249,7 +275,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz3_002",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "lim(x→0) x/cosx = ",
   "o": [
@@ -268,7 +296,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz3_003",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "下列变量在给定的变化过程中是无穷小量的是",
   "o": [
@@ -287,7 +317,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz3_004",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "若 y = 1+cosx，则 dy =",
   "o": [
@@ -306,7 +338,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz3_005",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "设 ∫f(x)dx = x² + C，则 ∫₀^(π/2) f(−sinx)cosx dx = ",
   "o": [
@@ -325,7 +359,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz3_006",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "曲线 y = x³ + 2x 在点(1,3)处的法线方程是",
   "o": [
@@ -344,7 +380,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz3_007",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "设 F(x) 是 f(x) 的一个原函数，则 ∫ cosx·f(sinx) dx =",
   "o": [
@@ -363,7 +401,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz3_008",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "设区域 D = {(x,y) | 0 ≤ y ≤ x², 0 ≤ x ≤ 1}，则 D 绕 x 轴旋转一周所得旋转体的体积为",
   "o": [
@@ -382,7 +422,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz3_009",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "设函数 y = x⁴ + 2x² + 3，则 y' =",
   "o": [
@@ -401,7 +443,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz3_010",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "∫₁^e x lnx dx =",
   "o": [
@@ -420,7 +464,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz3_011",
+  "subj": "math",
   "m": "m5",
+  "mod": "概率论初步",
   "t": "choice",
   "q": "有两箱同种零件，第一箱内装50件，其中一等品10件；第二箱内装30件，其中一等品18件；随机地从两箱中挑出一箱，再从这箱中随机取出一件零件，则取出的零件是一等品的概率为",
   "o": [
@@ -439,7 +485,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz3_012",
+  "subj": "math",
   "m": "m5",
+  "mod": "概率论初步",
   "t": "choice",
   "q": "设 A,B 为两个随机事件，且相互独立，P(A)=0.6，P(B)=0.4，则 P(A−B) =",
   "o": [
@@ -458,7 +506,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz2_001",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "若 lim(x→0) sinax/x = 2，则 a =",
   "o": [
@@ -477,7 +527,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz2_002",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "设函数 y=arcsinx，则 y′ =",
   "o": [
@@ -496,7 +548,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz2_003",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "函数 y=ax²+c 在 (0,+∞) 上单调增加，则 a、c 应满足",
   "o": [
@@ -515,7 +569,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz2_004",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "设在 (a,b) 内有 ∫f′(x)dx = ∫g′(x)dx，则在 (a,b) 内必定有",
   "o": [
@@ -534,7 +590,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz2_005",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "曲线 y=x⁴−3 在点 (1,−2) 处的切线方程为",
   "o": [
@@ -553,7 +611,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz2_006",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "∫cos2x dx =",
   "o": [
@@ -572,7 +632,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz2_007",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "下列反常积分发散的是",
   "o": [
@@ -591,7 +653,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz2_008",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "choice",
   "q": "设函数 z=(x−y)¹⁰，则 ∂z/∂x =",
   "o": [
@@ -610,7 +674,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz2_009",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "choice",
   "q": "设函数 z=2(x−y)−x²−y²，则其极值点为",
   "o": [
@@ -629,7 +695,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz2_010",
+  "subj": "math",
   "m": "m5",
+  "mod": "概率论初步",
   "t": "choice",
   "q": "设离散型随机变量 X 的概率分布为 X:−1,0,1,2；P:2a,a,3a,4a，则 a =",
   "o": [
@@ -648,7 +716,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz2_011",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "积分 ∫₋π/2^(π/2) sinx/(1+cosx) dx 等于",
   "o": [
@@ -667,7 +737,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz2_012",
+  "subj": "math",
   "m": "m5",
+  "mod": "概率论初步",
   "t": "choice",
   "q": "甲、乙二人参加知识竞赛，共有 6 个选择题、8 个判断题，甲、乙二人依次各抽一题，则甲抽到选择题、乙抽到判断题的概率为",
   "o": [
@@ -686,7 +758,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz5_001",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "当 x→0 时，sin3x 是 2x 的",
   "o": [
@@ -705,7 +779,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz5_002",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "函数 y=x+cosx 在 (0,2π) 内",
   "o": [
@@ -724,7 +800,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz5_003",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "∫sin2x dx =",
   "o": [
@@ -743,7 +821,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz5_004",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "设函数 y=2+sinx，则 y′ =",
   "o": [
@@ -762,7 +842,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz5_005",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "函数 f(x)=x⁴−24x²+6x 在定义域内的凸区间是",
   "o": [
@@ -781,7 +863,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz5_006",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "如果在区间 (a,b) 内，函数 f(x) 满足 f′(x)>0、f″(x)<0，则函数在此区间是",
   "o": [
@@ -800,7 +884,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz5_007",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "设 f(x) 在 [a,b] 上连续，且 a≠−b，则下列各式不成立的是",
   "o": [
@@ -819,7 +905,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz5_008",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "lim(x→0) (eˣ − e⁻ˣ − 2x)/(x − sinx) =",
   "o": [
@@ -838,7 +926,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz5_009",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "∫₀^∞ e⁻ˣ dx =",
   "o": [
@@ -857,7 +947,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz5_010",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "曲线 y = 2 + (x−4)^(1/3) 的拐点为",
   "o": [
@@ -876,7 +968,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz5_011",
+  "subj": "math",
   "m": "m5",
+  "mod": "概率论初步",
   "t": "choice",
   "q": "事件 A、B 满足 AB=A，则 A 与 B 的关系为",
   "o": [
@@ -895,7 +989,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz5_012",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "choice",
   "q": "设函数 z=x²+y，则 dz =",
   "o": [
@@ -914,7 +1010,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz6_001",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "函数 y=|x|+1 在 x=0 处",
   "o": [
@@ -933,7 +1031,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz6_002",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "lim(x→1) (x³−5x+2)/(x²−2) =",
   "o": [
@@ -952,7 +1052,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz6_003",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "若 f(u) 可导，且 y=f(eˣ)，则 dy =",
   "o": [
@@ -971,7 +1073,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz6_004",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "设 f′(cos²x)=sin²x，且 f(0)=0，则 f(x) 等于",
   "o": [
@@ -990,7 +1094,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz6_005",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "函数 y=ln(1+x²) 的单调增加区间是",
   "o": [
@@ -1009,7 +1115,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz6_006",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "不定积分 ∫(1/sin²x + 1) dsinx 等于",
   "o": [
@@ -1028,7 +1136,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz6_007",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "d/dx ∫₀^(x²) sin t² dt =",
   "o": [
@@ -1047,7 +1157,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz6_008",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "函数 f(x)=(x²−1)³+1，在 x=1 处",
   "o": [
@@ -1066,7 +1178,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz6_009",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "∫₁^∞ 1/x² dx =",
   "o": [
@@ -1085,7 +1199,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz6_010",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "曲线 y=x⁴−24x²+6x 的凸区间为",
   "o": [
@@ -1104,7 +1220,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz6_011",
+  "subj": "math",
   "m": "m5",
+  "mod": "概率论初步",
   "t": "choice",
   "q": "甲、乙两人独立地对同一目标射击一次，其命中率分别为 0.6 和 0.5，现已知目标被命中，是甲射中的概率为",
   "o": [
@@ -1123,7 +1241,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz6_012",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "曲线 y=eˣ 和直线 y=1、x=1 围成的图形面积等于",
   "o": [
@@ -1142,7 +1262,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz4_001",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "设函数 f(x) = { sin2x/x (x≠0); a (x=0) } 在 x=0 处连续，则 a =",
   "o": [
@@ -1161,7 +1283,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz4_002",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "若函数 f(x)=5ˣ，则 f′(x) =",
   "o": [
@@ -1180,7 +1304,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz4_003",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "设 lim(x→0) sin(ax)/x = 3，则 a 的值是",
   "o": [
@@ -1199,7 +1325,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz4_004",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "∫ 1/(2−x) dx =",
   "o": [
@@ -1218,7 +1346,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz4_005",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "设函数 f(x)=e^(1−2x)，则 f(x) 在 x=0 处的导数 f′(0) =",
   "o": [
@@ -1237,7 +1367,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz4_006",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "已知函数 y=f(x) 在点 x₀ 处可导，且 lim(h→0) h/[f(x₀−2h)−f(x₀)] = 1/4，则 f′(x₀) 等于",
   "o": [
@@ -1256,7 +1388,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz4_007",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "∫f′(2x) dx =",
   "o": [
@@ -1275,7 +1409,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz4_008",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "∫₀^(π/2) (1+cosx) dx =",
   "o": [
@@ -1294,7 +1430,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz4_009",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "若 f(x) 为连续的奇函数，则 ∫₋₁¹ f(x) dx =",
   "o": [
@@ -1313,7 +1451,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz4_010",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "choice",
   "q": "若二元函数 z=x²y+3x+2y，则 ∂z/∂x =",
   "o": [
@@ -1332,7 +1472,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz4_011",
+  "subj": "math",
   "m": "m5",
+  "mod": "概率论初步",
   "t": "choice",
   "q": "已知离散型随机变量 X 的概率分布为 X:0,1；P:0.5,0.5，则 E(X) =",
   "o": [
@@ -1351,7 +1493,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz4_012",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "曲线 y=3x²−x³ 的凸区间为",
   "o": [
@@ -1370,7 +1514,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26jm_001",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "lim(x→-3) (x²-9)/(x+3) = （ ）",
   "o": [
@@ -1389,7 +1535,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26jm_002",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "设函数 f(x)=x⁴+3x-1，则 f'(1) = （ ）",
   "o": [
@@ -1408,7 +1556,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26jm_003",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "如果 f'(3)=3，则 lim(x→0) [f(3+x)-f(3-x)]/(2x) = （ ）",
   "o": [
@@ -1427,7 +1577,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26jm_004",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "函数 y = 2xeˣ，则 y″ = （ ）",
   "o": [
@@ -1446,7 +1598,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26jm_005",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "∫cosx dx = （ ）",
   "o": [
@@ -1465,7 +1619,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26jm_006",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "若函数 f(x)=∫₀ˣ sin(2t)dt，则 （ ）",
   "o": [
@@ -1484,7 +1640,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26jm_007",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "∫₁² (1/x) dx = （ ）",
   "o": [
@@ -1503,7 +1661,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26jm_008",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "choice",
   "q": "设函数 z = x³y - xy³，则 ∂²z/∂x∂y = （ ）",
   "o": [
@@ -1522,7 +1682,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26jm_009",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "choice",
   "q": "设函数 z = 2(x+y) - x² + y²，则其驻点是（ ）",
   "o": [
@@ -1541,7 +1703,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26jm_010",
+  "subj": "math",
   "m": "m5",
+  "mod": "概率论初步",
   "t": "choice",
   "q": "设A与B相互独立，P(A)=0.5，P(B)=0.6，则 P(A∪B) = （ ）",
   "o": [
@@ -1560,7 +1724,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26mn_001",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "设函数 f(x) = { sin2x/x, x≠0 ; a, x=0 } 在 x=0 处连续，则 a = （ ）",
   "o": [
@@ -1579,7 +1745,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26mn_002",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "函数 y = x + cosx 在 (0, 2π) 内（ ）",
   "o": [
@@ -1598,7 +1766,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26mn_003",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "设 ∫f(x)dx = x² + C，则 ∫₀^(π/2) f(−sinx)cosx dx = （ ）",
   "o": [
@@ -1617,7 +1787,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26mn_004",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "设在 (a,b) 内有 ∫f′(x)dx = ∫g′(x)dx，则在 (a,b) 内必有（ ）",
   "o": [
@@ -1636,7 +1808,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26mn_005",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "设 f(x) 是可导函数，且 lim(h→0) [f(x₀+2h) − f(x₀)]/h = 1，则 f′(x₀) = （ ）",
   "o": [
@@ -1655,7 +1829,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26mn_006",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "d/dx ∫₀^(x²) sin t² dt = （ ）",
   "o": [
@@ -1674,7 +1850,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26mn_007",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "当 x→1 时，(1−x)/(1+x) 是 1−√x 的（ ）",
   "o": [
@@ -1693,7 +1871,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26mn_008",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "曲线 yeˣ + lny = 1 在点 (0,1) 处的切线方程为（ ）",
   "o": [
@@ -1712,7 +1892,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26mn_009",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "曲线 y = 3x² − x³ 的凸区间为（ ）",
   "o": [
@@ -1731,7 +1913,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26mn_010",
+  "subj": "math",
   "m": "m5",
+  "mod": "概率论初步",
   "t": "choice",
   "q": "事件 A、B 满足 AB = A，则 A 与 B 的关系为（ ）",
   "o": [
@@ -1750,7 +1934,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat25_001",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "当 x→0 时，3 − 3cosx 与 ax^α 为同阶无穷小量，则 α = （ ）",
   "o": [
@@ -1769,7 +1955,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat25_002",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "lim(x→0) sin2x/(x+1) = （ ）",
   "o": [
@@ -1788,7 +1976,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat25_003",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "设函数 f(x) = ln(x + √(x²+5))，则 f′(0) = （ ）",
   "o": [
@@ -1807,7 +1997,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat25_004",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "设函数 f(x) = { (√(7x+4) − 2)/x, x≠0 ; k, x=0 } 在 x=0 处连续，则 k = （ ）",
   "o": [
@@ -1826,7 +2018,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat25_005",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "设函数 f(x) = x/√(1+x²)，则 f″(0) = （ ）",
   "o": [
@@ -1845,7 +2039,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat25_006",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "∫ sin(x+1)dx = （ ）",
   "o": [
@@ -1864,7 +2060,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat25_007",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "∫_e^(e²) 1/(x·lnx) dx = （ ）",
   "o": [
@@ -1883,7 +2081,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat25_008",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "∫₀^(+∞) 1/√(eˣ) dx = （ ）",
   "o": [
@@ -1902,7 +2102,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat25_009",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "lim(x→0) (1/x²)∫₀^(x²) cos t² dt = （ ）",
   "o": [
@@ -1921,7 +2123,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat25_010",
+  "subj": "math",
   "m": "m5",
+  "mod": "概率论初步",
   "t": "choice",
   "q": "设随机变量 X 的概率分布为 X:−1,0,1 / P:a,3a,a，则 a = （ ）",
   "o": [
@@ -1940,7 +2144,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat25_011",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "曲线 y = 3arctanx 的渐近线方程为（ ）",
   "o": [
@@ -1959,7 +2165,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat25_012",
+  "subj": "math",
   "m": "m5",
+  "mod": "概率论初步",
   "t": "choice",
   "q": "甲、乙、丙、丁 4 名同学排成一列，且甲、乙不相邻，则不同的排法共有（ ）",
   "o": [
@@ -1978,7 +2186,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat24_001",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "设 lim(x→0) sin(mx)/x = 2，则 m = （ ）",
   "o": [
@@ -1997,7 +2207,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat24_002",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "设 y = lnx + x²，则 y′ = （ ）",
   "o": [
@@ -2016,7 +2228,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat24_003",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "设 y = xe^(2x)，则 y′ = （ ）",
   "o": [
@@ -2035,7 +2249,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat24_004",
+  "subj": "math",
   "m": "m5",
+  "mod": "概率论初步",
   "t": "choice",
   "q": "设随机变量 X 的概率分布为 X:3,4,5 / P:0.1,a,0.6，则 a = （ ）",
   "o": [
@@ -2054,7 +2270,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat24_005",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "曲线 y = xe^(−x) 的拐点坐标为（ ）",
   "o": [
@@ -2073,7 +2291,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat24_006",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "设 f(x) 的一个原函数为 e^(x²)，则 f(x) = （ ）",
   "o": [
@@ -2092,7 +2312,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat24_007",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "∫₋₁¹(arctanx + x²)dx = （ ）",
   "o": [
@@ -2111,7 +2333,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat24_008",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "∫₀^(π²) cos√x dx = （ ）",
   "o": [
@@ -2130,7 +2354,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat24_009",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "∫ (x+1)²/x dx = （ ）",
   "o": [
@@ -2149,7 +2375,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat24_010",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "choice",
   "q": "设 z = 2xy + x/y，则 ∂z/∂y = （ ）",
   "o": [
@@ -2168,7 +2396,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat24_011",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "choice",
   "q": "设 z = xf(y)，其中 f 可导，则 ∂²z/∂x∂y = （ ）",
   "o": [
@@ -2187,7 +2417,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat24_012",
+  "subj": "math",
   "m": "m5",
+  "mod": "概率论初步",
   "t": "choice",
   "q": "设 A、B 为随机事件，则 P(A−B) = P(A) − P(B) 的充要条件是（ ）",
   "o": [
@@ -2206,7 +2438,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat23_001",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "lim(x→∞) (x²+1)/(x²+x) = （ ）",
   "o": [
@@ -2225,7 +2459,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat23_002",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "设函数 f(x) = x³ + 5sinx，则 f′(0) = （ ）",
   "o": [
@@ -2244,7 +2480,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat23_003",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "设函数 f(x) = lnx − x，则 f′(x) = （ ）",
   "o": [
@@ -2263,7 +2501,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat23_004",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "函数 f(x) = 2x³ − 9x² + 3 的单调递减区间是（ ）",
   "o": [
@@ -2282,7 +2522,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat23_005",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "∫ x^(2/3) dx = （ ）",
   "o": [
@@ -2301,7 +2543,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat23_006",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "设函数 f(x) = |x|，则 ∫₋₁¹ f(x)dx = （ ）",
   "o": [
@@ -2320,7 +2564,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat23_007",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "设 f(x) 为连续函数，且满足 ∫₀ˣ f(t)dt = eˣ − 1，则 f(x) = （ ）",
   "o": [
@@ -2339,7 +2585,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat23_008",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "choice",
   "q": "设 z = e^(xy)，则 dz = （ ）",
   "o": [
@@ -2358,7 +2606,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat23_009",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "choice",
   "q": "设 z = (1/4)(x² + y²)，则 ∂²z/∂x∂y = （ ）",
   "o": [
@@ -2377,7 +2627,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat23_010",
+  "subj": "math",
   "m": "m5",
+  "mod": "概率论初步",
   "t": "choice",
   "q": "投掷一枚均匀硬币 5 次，其中恰有 3 次正面朝上的概率是（ ）",
   "o": [
@@ -2396,7 +2648,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat22_001",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "设函数 f(x) = sinx，g(x) = x²，则 f(g(x))（ ）",
   "o": [
@@ -2415,7 +2669,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat22_002",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "若 lim(x→0) [(1+ax)² − 1]/x = 2，则 a = （ ）",
   "o": [
@@ -2434,7 +2690,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat22_003",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "设函数 f(x) 在 x=0 处连续，g(x) 在 x=0 处不连续，则在 x=0 处（ ）",
   "o": [
@@ -2453,7 +2711,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat22_004",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "设 y = arccosx，则 y′ = （ ）",
   "o": [
@@ -2472,7 +2732,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat22_005",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "设 y = ln(x + e^(−x))，则 y′ = （ ）",
   "o": [
@@ -2491,7 +2753,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat22_006",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "设 y^(n−2) = x² + sinx，则 y^(n) = （ ）",
   "o": [
@@ -2510,7 +2774,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat22_007",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "若函数 f(x) 的导数 f′(x) = −x + 1，则（ ）",
   "o": [
@@ -2529,7 +2795,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat22_008",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "曲线 y = 2x/(x−1) 的水平渐近线方程为（ ）",
   "o": [
@@ -2548,7 +2816,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat22_009",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "设函数 f(x) = arctanx，则 ∫f′(x)dx = （ ）",
   "o": [
@@ -2567,7 +2837,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat22_010",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "choice",
   "q": "设 z = e^(x+y)，则 dz|_(1,1) = （ ）",
   "o": [
@@ -2586,7 +2858,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat21_001",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "设 lim(x→0) tan(mx)/x = 2，则 m = （ ）",
   "o": [
@@ -2605,7 +2879,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat21_002",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "设 y = eˣ + cosx，则 y′ = （ ）",
   "o": [
@@ -2624,7 +2900,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat21_003",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "设 y = x tanx，则 y′ = （ ）",
   "o": [
@@ -2643,7 +2921,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat21_004",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "设 y = 1/(1+x)，则 y″ = （ ）",
   "o": [
@@ -2662,7 +2942,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat21_005",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "曲线 y = x³ + 1 的拐点为（ ）",
   "o": [
@@ -2681,7 +2963,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat21_006",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "设 f(x) 的一个原函数为 cos2x，则 f(x) = （ ）",
   "o": [
@@ -2700,7 +2984,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat21_007",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "设 ∫₋ₐᵃ(x² + x³)dx = 2/3，则 a = （ ）",
   "o": [
@@ -2719,7 +3005,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat21_008",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "choice",
   "q": "设 z = sin(x − 3y²)，则 ∂z/∂y = （ ）",
   "o": [
@@ -2738,7 +3026,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat21_009",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "choice",
   "q": "设 z = f(x² + y)，其中 f 具有二阶导数，则 ∂²z/∂x∂y = （ ）",
   "o": [
@@ -2757,7 +3047,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat21_010",
+  "subj": "math",
   "m": "m5",
+  "mod": "概率论初步",
   "t": "choice",
   "q": "已知事件 A 与 B 互斥，且 P(A) = 0.5，P(B) = 0.4，则 P(A+B) = （ ）",
   "o": [
@@ -2776,7 +3068,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat20_001",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "lim(x→0) (1+2x)^(1/(3x)) = （ ）",
   "o": [
@@ -2795,7 +3089,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat20_002",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "设函数 y = x + 2sinx，则 dy = （ ）",
   "o": [
@@ -2814,7 +3110,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat20_003",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "lim(x→1) (x³+x+1)/(x²−x+2) = （ ）",
   "o": [
@@ -2833,7 +3131,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat20_004",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "设函数 f(x) = 3 + x⁵，则 f′(x) = （ ）",
   "o": [
@@ -2852,7 +3152,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat20_005",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "设函数 f(x) = 2lnx，则 f″(x) = （ ）",
   "o": [
@@ -2871,7 +3173,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat20_006",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "∫₋₂²(1+x)dx = （ ）",
   "o": [
@@ -2890,7 +3194,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat20_007",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "∫ 3/x⁵ dx = （ ）",
   "o": [
@@ -2909,7 +3215,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat20_008",
+  "subj": "math",
   "m": "m5",
+  "mod": "概率论初步",
   "t": "choice",
   "q": "把 3 本不同的语文书和 2 本不同的英语书排成一排，则 2 本英语书恰好相邻的概率为（ ）",
   "o": [
@@ -2928,7 +3236,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat20_009",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "choice",
   "q": "设函数 z = x² − 4y²，则 dz = （ ）",
   "o": [
@@ -2947,7 +3257,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat20_010",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "choice",
   "q": "设函数 z = x³ + xy² + 3，则 ∂z/∂y = （ ）",
   "o": [
@@ -2966,7 +3278,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat19_001",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "lim(x→∞) (1 + 2/x)^x = （ ）",
   "o": [
@@ -2985,7 +3299,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat19_002",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "设函数 y = arcsin x，则 y′ = （ ）",
   "o": [
@@ -3004,7 +3320,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat19_003",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "设函数 f(x) 在 [a,b] 上连续，在 (a,b) 可导，f′(x)>0，f(a)f(b)<0，则 f(x) 在 (a,b) 零点的个数为（ ）",
   "o": [
@@ -3023,7 +3341,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat19_004",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "设函数 y = x³ + eˣ，则 y⁗ = （ ）",
   "o": [
@@ -3042,7 +3362,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat19_005",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "d/dx [∫₁ˣ 1/(1+t²)dt] = （ ）",
   "o": [
@@ -3061,7 +3383,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat19_006",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "∫ cos 2x dx = （ ）",
   "o": [
@@ -3080,7 +3404,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat19_007",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "∫₀¹ (2x+1)³dx = （ ）",
   "o": [
@@ -3099,7 +3425,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat19_008",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "choice",
   "q": "设函数 z = (x−y)^10，则 ∂z/∂x = （ ）",
   "o": [
@@ -3118,7 +3446,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat19_009",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "choice",
   "q": "设函数 z = 2(x−y) − x² − y²，则其极值点为（ ）",
   "o": [
@@ -3137,7 +3467,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat19_010",
+  "subj": "math",
   "m": "m5",
+  "mod": "概率论初步",
   "t": "choice",
   "q": "设离散型随机变量 X 的概率分布为 X:−1,0,1,2 / P:2a,a,3a,4a，则 a = （ ）",
   "o": [
@@ -3156,7 +3488,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat18_001",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "lim(x→0) x/cos x = （ ）",
   "o": [
@@ -3175,7 +3509,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat18_002",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "若 y = 1 + cos x，则 dy = （ ）",
   "o": [
@@ -3194,7 +3530,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat18_003",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "若函数 f(x) = 5ˣ，则 f′(x) = （ ）",
   "o": [
@@ -3213,7 +3551,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat18_004",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "曲线 y = x³ + 2x 在点 (1,3) 处的法线方程是（ ）",
   "o": [
@@ -3232,7 +3572,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat18_005",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "∫ 1/(2−x) dx = （ ）",
   "o": [
@@ -3251,7 +3593,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat18_006",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "∫f′(2x)dx = （ ）",
   "o": [
@@ -3270,7 +3614,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat18_007",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "若 f(x) 为连续的奇函数，则 ∫₋₁¹ f(x)dx = （ ）",
   "o": [
@@ -3289,7 +3635,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat18_008",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "choice",
   "q": "若二元函数 z = x²y + 3x + 2y，则 ∂z/∂x = （ ）",
   "o": [
@@ -3308,7 +3656,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat18_009",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "设区域 D = {(x,y) | 0≤y≤x², 0≤x≤1}，则 D 绕 x 轴旋转一周所得旋转体的体积为（ ）",
   "o": [
@@ -3327,7 +3677,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat18_010",
+  "subj": "math",
   "m": "m5",
+  "mod": "概率论初步",
   "t": "choice",
   "q": "设 A、B 为两个随机事件，且相互独立，P(A)=0.6，P(B)=0.4，则 P(A−B) = （ ）",
   "o": [
@@ -3346,7 +3698,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat17_001",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "当 x→0 时，下列各无穷小量与 x² 等价的是（ ）",
   "o": [
@@ -3365,7 +3719,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat17_002",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "下列各函数中，在 x=0 处不可导的是（ ）",
   "o": [
@@ -3384,7 +3740,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat17_003",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "函数 f(x)=ln(x²+2x+2) 的单调递减区间是（ ）",
   "o": [
@@ -3403,7 +3761,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat17_004",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "曲线 y=x³−3x²−1 的凸区间是（ ）",
   "o": [
@@ -3422,7 +3782,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat17_005",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "曲线 y=e^(2x)−4x 在点 (0,1) 处的切线方程是（ ）",
   "o": [
@@ -3441,7 +3803,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat17_006",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "∫ 1/√(x³) dx = （ ）",
   "o": [
@@ -3460,7 +3824,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat17_007",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "∫₀¹ 2ˣ dx = （ ）",
   "o": [
@@ -3479,7 +3845,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat17_008",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "choice",
   "q": "设二元函数 z = e^(x²+y)，则下列各式中正确的是（ ）",
   "o": [
@@ -3498,7 +3866,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat17_009",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "choice",
   "q": "二元函数 z = x²+y²−3x−2y 的驻点坐标是（ ）",
   "o": [
@@ -3517,7 +3887,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat17_010",
+  "subj": "math",
   "m": "m5",
+  "mod": "概率论初步",
   "t": "choice",
   "q": "甲、乙两人各自独立射击 1 次，甲射中目标的概率为 0.8，乙射中目标的概率为 0.9，则至少有一人射中目标的概率为（ ）",
   "o": [
@@ -3536,7 +3908,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat16_001",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "lim(x→1) (x²−5x+2)/(x²−2) = （ ）",
   "o": [
@@ -3555,7 +3929,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat16_002",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "设函数 f(x) = { eˣ, x<0 ; x+a, x≥0 } 在 x=0 处连续，则 a = （ ）",
   "o": [
@@ -3574,7 +3950,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat16_003",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "设函数 y = 2 + sin x，则 y′ = （ ）",
   "o": [
@@ -3593,7 +3971,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat16_004",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "设函数 y = e^(x−1) + 1，则 dy = （ ）",
   "o": [
@@ -3612,7 +3992,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat16_005",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "∫₀¹ (5x⁴+2)dx = （ ）",
   "o": [
@@ -3631,7 +4013,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat16_006",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "∫₀^(π/2) (1+cos x)dx = （ ）",
   "o": [
@@ -3650,7 +4034,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat16_007",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "设函数 y = x⁴ + 2x² + 3，则 d²y/dx² = （ ）",
   "o": [
@@ -3669,7 +4055,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat16_008",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "∫₁^(+∞) (1/x²)dx = （ ）",
   "o": [
@@ -3688,7 +4076,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat16_009",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "choice",
   "q": "设函数 z = x² + y，则 dz = （ ）",
   "o": [
@@ -3707,7 +4097,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat16_010",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "若 lim(x→0) sin(ax)/x = 2，则 a = （ ）",
   "o": [
@@ -3726,7 +4118,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat15_001",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "lim(x→−1) (x+1)/(x²+1) = （ ）",
   "o": [
@@ -3745,7 +4139,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat15_002",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "当 x→0 时，sin3x 是 2x 的（ ）",
   "o": [
@@ -3764,7 +4160,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat15_003",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "函数 f(x) = { x+1, x<0 ; x², x≥0 } 在 x=0 处（ ）",
   "o": [
@@ -3783,7 +4181,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat15_004",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "设函数 f(x) = x·e^(x/2)，则 f′(x) = （ ）",
   "o": [
@@ -3802,7 +4202,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat15_005",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "下列区间为函数 f(x) = x⁴ − 4x 的单调增区间的是（ ）",
   "o": [
@@ -3821,7 +4223,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat15_006",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "已知函数 f(x) 在区间 [−3,3] 上连续，则 ∫₋₁¹ f(3x)dx = （ ）",
   "o": [
@@ -3840,7 +4244,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat15_007",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "∫(x⁻² + sin x)dx = （ ）",
   "o": [
@@ -3859,7 +4265,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat15_008",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "设函数 f(x) = ∫₀ˣ (t−1)dt，则 f″(x) = （ ）",
   "o": [
@@ -3878,7 +4286,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat15_009",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "choice",
   "q": "设二元函数 z = xʸ，则 ∂z/∂x = （ ）",
   "o": [
@@ -3897,7 +4307,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat15_010",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "choice",
   "q": "设二元函数 z = cos(xy)，则 ∂²z/∂x² = （ ）",
   "o": [
@@ -3916,7 +4328,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat14_001",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "choice",
   "q": "lim(x→0) sin²x / x² = （ ）",
   "o": [
@@ -3935,7 +4349,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat14_002",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "设函数 f(x) 在 x=1 处可导，且 f′(1)=2，则 lim(x→0) [f(1−x)−f(1)]/x = （ ）",
   "o": [
@@ -3954,7 +4370,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat14_003",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "choice",
   "q": "d(sin2x) = （ ）",
   "o": [
@@ -3973,7 +4391,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat14_004",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "设函数 f(x) 在区间 [a,b] 连续且恒不为零，则下列各式中恒为常数的是（ ）",
   "o": [
@@ -3992,7 +4412,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat14_005",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "设 f(x) 为连续函数，且 ∫₀ˣ f(t)dt = x³ + ln(x+1)，则 f(x) = （ ）",
   "o": [
@@ -4011,7 +4433,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat14_006",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "设函数 f(x) 在 [a,b] 连续，且 I(u) = ∫ₐᵘ f(x)dx + ∫ᵤᵇ f(x)dx（a<u<b），则 I(u) （ ）",
   "o": [
@@ -4030,7 +4454,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat14_007",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "choice",
   "q": "设二元函数 z = xʸ，则 ∂z/∂y = （ ）",
   "o": [
@@ -4049,7 +4475,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat14_008",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "choice",
   "q": "设函数 f(x) 在区间 [a,b] 连续，则曲线 y=f(x) 与直线 x=a、x=b 及 x 轴所围成的平面图形的面积为（ ）",
   "o": [
@@ -4068,7 +4496,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat14_009",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "choice",
   "q": "设二元函数 z = x·cos y，则 ∂²z/∂x∂y = （ ）",
   "o": [
@@ -4087,7 +4517,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat14_010",
+  "subj": "math",
   "m": "m5",
+  "mod": "概率论初步",
   "t": "choice",
   "q": "设事件 A、B 相互独立，A、B 发生的概率分别为 0.6、0.9，则 A、B 都不发生的概率为（ ）",
   "o": [
@@ -4106,7 +4538,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz1_f13",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "设函数 y=lnsinx，则 dy = ______",
   "ans": [
@@ -4118,11 +4552,14 @@ window.MATH_BANK = [
   "paper": "高数2026全真模拟（一）",
   "no": 13,
   "score": 7,
-  "src": "library"
+  "src": "mock-copy",
+  "ref": "mat19_f15"
  },
  {
   "id": "mat26qz1_f14",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫₋₁¹ (xcos²x + 2) dx = ______",
   "ans": [
@@ -4138,7 +4575,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz1_f15",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "fill",
   "q": "若 z=ln(x+eʸ)，则 ∂²z/∂x∂y = ______",
   "ans": [
@@ -4154,7 +4593,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz3_f13",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "曲线 x² + y² = 2x 在点(1,1)处的切线方程为 ______",
   "ans": [
@@ -4170,7 +4611,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz3_f14",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "fill",
   "q": "设 z = √(x(x+y²))，则 ∂z/∂y = ______",
   "ans": [
@@ -4186,7 +4629,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz3_f15",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫₀^(+∞) e^(−x) dx = ______",
   "ans": [
@@ -4198,11 +4643,14 @@ window.MATH_BANK = [
   "paper": "高数2026全真模拟（三）",
   "no": 15,
   "score": 7,
-  "src": "library"
+  "src": "mock-copy",
+  "ref": "mat18_f19"
  },
  {
   "id": "mat26qz2_f13",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "fill",
   "q": "lim(x→∞) (1 − 2/x)^(3x) = ______",
   "ans": [
@@ -4218,7 +4666,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz2_f14",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫ cos√x/√x dx = ______",
   "ans": [
@@ -4234,7 +4684,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz2_f15",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "fill",
   "q": "设函数 z = eʸ/x，则 ∂²z/∂x∂y = ______",
   "ans": [
@@ -4246,11 +4698,14 @@ window.MATH_BANK = [
   "paper": "高数2026全真模拟（二）",
   "no": 15,
   "score": 7,
-  "src": "library"
+  "src": "mock-copy",
+  "ref": "mat19_f19"
  },
  {
   "id": "mat26qz5_f13",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "fill",
   "q": "lim(x→0) (x − 1)/(2x² + 3) = ______",
   "ans": [
@@ -4262,11 +4717,14 @@ window.MATH_BANK = [
   "paper": "高数2026全真模拟（五）",
   "no": 13,
   "score": 7,
-  "src": "library"
+  "src": "mock-copy",
+  "ref": "mat16_f11"
  },
  {
   "id": "mat26qz5_f14",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫ 1/(x²+2x+5) dx = ______",
   "ans": [
@@ -4282,7 +4740,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz5_f15",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "fill",
   "q": "设 z = e^(sinx·cosy)，则 ∂²z/∂y∂x = ______",
   "ans": [
@@ -4298,7 +4758,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz6_f13",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "fill",
   "q": "lim(x→√3) (x² − 2√3x + 3)/(x² − 3) = ______",
   "ans": [
@@ -4314,7 +4776,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz6_f14",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫₋₁¹ x²sinx/(1+x²) dx = ______",
   "ans": [
@@ -4330,7 +4794,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz6_f15",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫ x√(1−x²) dx = ______",
   "ans": [
@@ -4346,7 +4812,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz4_f13",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "fill",
   "q": "lim(x→0) (1 − 3x)^(1/x) = ______",
   "ans": [
@@ -4362,7 +4830,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz4_f14",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫₂^∞ 1/x³ dx = ______",
   "ans": [
@@ -4378,7 +4848,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26qz4_f15",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "fill",
   "q": "设 z=u²lnv，u=y/x，v=e^(xy)，则 dz = ______",
   "ans": [
@@ -4394,7 +4866,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26jm_f11",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "fill",
   "q": "lim(x→0) (x²-1)/(2x²+2-1) = ______",
   "ans": [
@@ -4410,7 +4884,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26jm_f12",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "fill",
   "q": "lim(x→∞) (x³+2x+3)/(4x³-5) = ______",
   "ans": [
@@ -4426,7 +4902,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26jm_f13",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "fill",
   "q": "设函数 f(x)={ (e^{-2x}-1)/x , x≠0 ; a , x=0 }，在 x=0 处连续，则 a = ______",
   "ans": [
@@ -4442,7 +4920,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26jm_f14",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "函数 y = (x-1)⁴ + 1 的拐点坐标是 ______",
   "ans": [
@@ -4458,7 +4938,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26jm_f15",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "曲线 y = -1/x 在点 (-1,1) 处的切线方程是 ______",
   "ans": [
@@ -4474,7 +4956,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26jm_f16",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "曲线 y = x/(x²-1) 的铅直渐近线方程是 ______",
   "ans": [
@@ -4490,7 +4974,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26jm_f17",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫ dx/((x+2)(x+3)) = ______",
   "ans": [
@@ -4506,7 +4992,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26jm_f18",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫_{-π/2}^{π/2} (x⁴sinx + cosx) dx = ______",
   "ans": [
@@ -4522,7 +5010,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26jm_f19",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫_{-1}^{+∞} 1/(1+x²) dx = ______",
   "ans": [
@@ -4538,7 +5028,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26jm_f20",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "设 y = y(x) 是由方程 y = ln(x+2y) 所确定的隐函数，则 y' = ______",
   "ans": [
@@ -4554,7 +5046,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26mn_f11",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "fill",
   "q": "lim(x→∞) ((x²+1)/(x²−1))^(x²) = ______",
   "ans": [
@@ -4570,7 +5064,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26mn_f12",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "fill",
   "q": "lim(t→1) (t − √t)/(√t − 1) = ______",
   "ans": [
@@ -4586,7 +5082,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26mn_f13",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "y = 1/(1+tanx)，则 y′ = ______",
   "ans": [
@@ -4602,7 +5100,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26mn_f14",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "设 y = sinx，则 y^(10) = ______",
   "ans": [
@@ -4618,7 +5118,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26mn_f15",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "y = y(x) 由方程 xy = e^(y−x) 确定，则 dy = ______",
   "ans": [
@@ -4634,7 +5136,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26mn_f16",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "已知 ∫ k·tan2x dx = (2/3)ln|cos2x| + C，则 k = ______",
   "ans": [
@@ -4650,7 +5154,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26mn_f17",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫₂^(+∞) 1/x³ dx = ______",
   "ans": [
@@ -4666,7 +5172,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26mn_f18",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "fill",
   "q": "设 z = arctan√(y/x)，则 ∂z/∂x = ______",
   "ans": [
@@ -4682,7 +5190,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26mn_f19",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "fill",
   "q": "设 z = e^(sinx)·cosy，则 ∂²z/∂y∂x = ______",
   "ans": [
@@ -4698,7 +5208,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat26mn_f20",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫_e^(e²) ln x dx = ______",
   "ans": [
@@ -4714,7 +5226,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat25_f13",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "曲线 y = −2eˣ + 1 在点 (0,−1) 处法线的方程为 ______",
   "ans": [
@@ -4730,7 +5244,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat25_f14",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "函数 f(x) = x² − ln√x 的单调递减区间是 ______",
   "ans": [
@@ -4746,7 +5262,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat25_f15",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "fill",
   "q": "设 z = 15 + x²y + cosy，则 dz = ______",
   "ans": [
@@ -4762,7 +5280,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat24_f13",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "fill",
   "q": "已知函数 f(x) = { 2/x, x≥1 ; a·cosπx, x<1 } 在 x = 1 处连续，则 a = ______",
   "ans": [
@@ -4778,7 +5298,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat24_f14",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "fill",
   "q": "若 lim(x→+∞) ((x+2a)/(x−a))ˣ = e⁶，则 a = ______",
   "ans": [
@@ -4794,7 +5316,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat24_f15",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "曲线 y = x³ 在点 (1,1) 处法线的方程为 ______",
   "ans": [
@@ -4810,7 +5334,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat23_f11",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "fill",
   "q": "lim(x→3) (√(1+x) − 2)/(x−3) = ______",
   "ans": [
@@ -4826,7 +5352,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat23_f12",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "fill",
   "q": "lim(x→∞) ((x+1)/(x−1))ˣ = ______",
   "ans": [
@@ -4842,7 +5370,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat23_f13",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "设函数 f(x) = e^(2x)，则 f^(n)(0) = ______",
   "ans": [
@@ -4858,7 +5388,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat23_f14",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "设函数 f(x) = x² − 2x + 4，曲线 y = f(x) 在 (x₀, f(x₀)) 处的切线与直线 y = x − 1 平行，则 x₀ = ______",
   "ans": [
@@ -4874,7 +5406,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat23_f15",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "曲线 y = xeˣ 的拐点坐标为 ______",
   "ans": [
@@ -4890,7 +5424,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat23_f16",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "曲线 y = 2x/(1+x²) 的渐近线方程为 ______",
   "ans": [
@@ -4906,7 +5442,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat23_f17",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫ x/(x²+4) dx = ______",
   "ans": [
@@ -4922,7 +5460,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat23_f18",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "由曲线 y = x²，x = y² 所围成的平面图形的面积为 ______",
   "ans": [
@@ -4938,7 +5478,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat23_f19",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫₀^(+∞) x·e^(−x²) dx = ______",
   "ans": [
@@ -4954,7 +5496,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat23_f20",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "fill",
   "q": "函数 z = x² + y² − x − y − xy 的驻点坐标为 ______",
   "ans": [
@@ -4970,7 +5514,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat22_f11",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "fill",
   "q": "lim(x→−∞) (eˣ + x)/(2eˣ − x) = ______",
   "ans": [
@@ -4986,7 +5532,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat22_f12",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "fill",
   "q": "当 x→0 时，函数 f(x) 是 x 的高阶无穷小量，则 lim(x→0) f(x)/x = ______",
   "ans": [
@@ -5002,7 +5550,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat22_f13",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "设 y = 3x² + ln3，则 y′ = ______",
   "ans": [
@@ -5018,7 +5568,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat22_f14",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "曲线 y = x + √x 在点 (1,2) 处的法线方程为 ______",
   "ans": [
@@ -5034,7 +5586,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat22_f15",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫₋π^π x·cosx/(1+x²) dx = ______",
   "ans": [
@@ -5050,7 +5604,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat22_f16",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫₀¹ x/√(x²+1) dx = ______",
   "ans": [
@@ -5066,7 +5622,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat22_f17",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "设函数 f(x) = ∫₀ˣ u·tanu du，则 f′(π/4) = ______",
   "ans": [
@@ -5082,7 +5640,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat22_f18",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "fill",
   "q": "设 z = x³y + xy³，则 ∂²z/∂x∂y = ______",
   "ans": [
@@ -5098,7 +5658,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat22_f19",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "fill",
   "q": "设函数 z = f(u,v) 具有连续偏导数，u = x+y，v = xy，则 ∂z/∂x = ______",
   "ans": [
@@ -5114,7 +5676,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat22_f20",
+  "subj": "math",
   "m": "m5",
+  "mod": "概率论初步",
   "t": "fill",
   "q": "设 A、B 为两个随机事件，且 P(A) = 0.5，P(AB) = 0.4，则 P(B|A) = ______",
   "ans": [
@@ -5130,7 +5694,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat21_f11",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "fill",
   "q": "lim(x→0) sin3x/(2x) = ______",
   "ans": [
@@ -5146,7 +5712,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat21_f12",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "fill",
   "q": "已知函数 f(x) = { (1+x)^(1/x), x≠0 ; a, x=0 } 在 x=0 处连续，则 a = ______",
   "ans": [
@@ -5162,7 +5730,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat21_f13",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "fill",
   "q": "lim(x→∞) (2x²−1)/(x²+x+2) = ______",
   "ans": [
@@ -5178,7 +5748,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat21_f14",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "设 y = cos(x + 1/x)，则 y′(1) = ______",
   "ans": [
@@ -5194,7 +5766,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat21_f15",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "设 f(1/x) = x² + 1/x + 1，则 f′(x) = ______",
   "ans": [
@@ -5210,7 +5784,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat21_f16",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "曲线 y = 2x³ + x − 1 在点 (0,−1) 处法线的斜率为 ______",
   "ans": [
@@ -5226,7 +5802,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat21_f17",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫ 1/(4+x²) dx = ______",
   "ans": [
@@ -5242,7 +5820,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat21_f18",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫ x(x²−1)dx = ______",
   "ans": [
@@ -5258,7 +5838,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat21_f19",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫₀¹(x + eˣ)dx = ______",
   "ans": [
@@ -5274,7 +5856,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat21_f20",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "fill",
   "q": "设函数 f(x,y) = x + y，则 f(x+y, x−y) = ______",
   "ans": [
@@ -5290,7 +5874,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat20_f11",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "设函数 y = e^(2x)，则 dy = ______",
   "ans": [
@@ -5306,7 +5892,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat20_f12",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "函数 f(x) = x³ − 6x 的单调递减区间为 ______",
   "ans": [
@@ -5322,7 +5910,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat20_f13",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "fill",
   "q": "若函数 f(x) = { x²−2, x≤0 ; a+sinx, x>0 } 在 x=0 处连续，则 a = ______",
   "ans": [
@@ -5338,7 +5928,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat20_f14",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "fill",
   "q": "lim(x→0) sin(x²)/x² = ______",
   "ans": [
@@ -5354,7 +5946,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat20_f15",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫(3x + 2sinx)dx = ______",
   "ans": [
@@ -5370,7 +5964,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat20_f16",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "曲线 y = arctan(3x+1) 在点 (0, π/4) 处切线的斜率为 ______",
   "ans": [
@@ -5386,7 +5982,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat20_f17",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "(∫₀^(2x) sin t² dt)′ = ______",
   "ans": [
@@ -5402,7 +6000,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat20_f18",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫₋∞¹ eˣ dx = ______",
   "ans": [
@@ -5418,7 +6018,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat20_f19",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "区域 D = {(x,y) | 1≤x≤2, 1≤y≤x²} 的面积为 ______",
   "ans": [
@@ -5434,7 +6036,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat20_f20",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "方程 y³ + lny − x² = 0 在点 (1,1) 的某邻域确定隐函数 y = y(x)，则 dy/dx|_{x=1} = ______",
   "ans": [
@@ -5450,7 +6054,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat19_f11",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "fill",
   "q": "当 x→0 时 f(x) 与 3x 是等价无穷小，则 lim(x→0) f(x)/x = ______",
   "ans": [
@@ -5466,7 +6072,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat19_f12",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "fill",
   "q": "lim(x→0) (e^(2x) − 1)/x = ______",
   "ans": [
@@ -5482,7 +6090,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat19_f13",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "设函数 f(x) = √(x+x²)，则 f′(1) = ______",
   "ans": [
@@ -5498,7 +6108,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat19_f14",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "设 x² 为 f(x) 的一个原函数，则 f(x) = ______",
   "ans": [
@@ -5514,7 +6126,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat19_f15",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "设函数 y = ln sin x，则 dy = ______",
   "ans": [
@@ -5530,7 +6144,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat19_f16",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫ (1/x²)dx = ______",
   "ans": [
@@ -5546,7 +6162,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat19_f17",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫ (cos√x)/√x dx = ______",
   "ans": [
@@ -5562,7 +6180,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat19_f18",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫₋₁¹ (x·cos x² + 2)dx = ______",
   "ans": [
@@ -5578,7 +6198,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat19_f19",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "fill",
   "q": "设函数 z = eʸ/x，则 ∂²z/∂x∂y = ______",
   "ans": [
@@ -5594,7 +6216,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat19_f20",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "fill",
   "q": "设函数 z = sin x·ln y，则 dz = ______",
   "ans": [
@@ -5610,7 +6234,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat18_f11",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "曲线 y = x³ − 6x² + 3x + 4 的拐点为 ______",
   "ans": [
@@ -5626,7 +6252,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat18_f12",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "fill",
   "q": "lim(x→0) (1−3x)^(1/x) = ______",
   "ans": [
@@ -5642,7 +6270,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat18_f13",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "若函数 f(x) = x − arctan x，则 f′(x) = ______",
   "ans": [
@@ -5658,7 +6288,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat18_f14",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "若 y = e^(2x)，则 dy = ______",
   "ans": [
@@ -5674,7 +6306,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat18_f15",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "设 f(x) = x^(2x)，则 f′(x) = ______",
   "ans": [
@@ -5690,7 +6324,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat18_f16",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫(2x+3)dx = ______",
   "ans": [
@@ -5706,7 +6342,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat18_f17",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫₋₁¹ (x⁵ + x²)dx = ______",
   "ans": [
@@ -5722,7 +6360,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat18_f18",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫₀^π sin(x/2)dx = ______",
   "ans": [
@@ -5738,7 +6378,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat18_f19",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫₀^(+∞) e^(−x)dx = ______",
   "ans": [
@@ -5754,7 +6396,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat18_f20",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "fill",
   "q": "若二元函数 z = x²y²，则 ∂²z/∂x∂y = ______",
   "ans": [
@@ -5770,7 +6414,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat17_f11",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "fill",
   "q": "lim(x→1) (3x⁴+x²−2)/(4x²+5x−8) = ______",
   "ans": [
@@ -5786,7 +6432,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat17_f12",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "fill",
   "q": "lim(x→0) x/ln(3x+1) = ______",
   "ans": [
@@ -5802,7 +6450,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat17_f13",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "fill",
   "q": "曲线 y = (x+1)/(x−1)² 的铅直渐近线方程是 ______",
   "ans": [
@@ -5818,7 +6468,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat17_f14",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "设函数 f(x) = sin(1−x)，则 f″(1) = ______",
   "ans": [
@@ -5834,7 +6486,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat17_f15",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫₀^(π/2) cos 3x dx = ______",
   "ans": [
@@ -5850,7 +6504,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat17_f16",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫₁^(+∞) (1/x²)dx = ______",
   "ans": [
@@ -5866,7 +6522,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat17_f17",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "若 tan x 是 f(x) 的一个原函数，则 ∫f(x)dx = ______",
   "ans": [
@@ -5882,7 +6540,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat17_f18",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "由曲线 y=x³、直线 x=1、x 轴围成的平面有界区域的面积为 ______",
   "ans": [
@@ -5898,7 +6558,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat17_f19",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "fill",
   "q": "设二元函数 z = x⁴·sin y，则 dz |₍₁,π/4₎ = ______",
   "ans": [
@@ -5914,7 +6576,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat17_f20",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "设 y=y(x) 是由方程 eʸ = x+y 所确定的隐函数，则 dy/dx = ______",
   "ans": [
@@ -5930,7 +6594,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat16_f11",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "fill",
   "q": "lim(x→0) (x−1)/(2x²+3) = ______",
   "ans": [
@@ -5946,7 +6612,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat16_f12",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "设函数 y = x² − eˣ，则 y′ = ______",
   "ans": [
@@ -5962,7 +6630,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat16_f13",
+  "subj": "math",
   "m": "m5",
+  "mod": "概率论初步",
   "t": "fill",
   "q": "设事件 A 发生的概率为 0.7，则 A 的对立事件 Ā 发生的概率为 ______",
   "ans": [
@@ -5978,7 +6648,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat16_f14",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "曲线 y = ln x 在点 (1,0) 处的切线方程为 ______",
   "ans": [
@@ -5994,7 +6666,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat16_f15",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫( 1/x + 1/(1+x²) )dx = ______",
   "ans": [
@@ -6010,7 +6684,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat16_f16",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫₋₁¹ (sin x + x)dx = ______",
   "ans": [
@@ -6026,7 +6702,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat16_f17",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "设函数 F(x) = ∫₀ˣ cos t dt，则 F′(x) = ______",
   "ans": [
@@ -6042,7 +6720,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat16_f18",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "fill",
   "q": "设函数 z = sin(x+2y)，则 ∂z/∂x = ______",
   "ans": [
@@ -6058,7 +6738,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat16_f19",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "已知点 (1,1) 是曲线 y = x² + a ln x 的拐点，则 a = ______",
   "ans": [
@@ -6074,7 +6756,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat16_f20",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "设 y=y(x) 是由方程 y = x − eʸ 所确定的隐函数，则 dy/dx = ______",
   "ans": [
@@ -6090,7 +6774,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat15_f11",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "fill",
   "q": "lim(x→0) x·sin(1/x) = ______",
   "ans": [
@@ -6106,7 +6792,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat15_f12",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "fill",
   "q": "lim(x→∞) (1 − 2/x)^(x/3) = ______",
   "ans": [
@@ -6122,7 +6810,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat15_f13",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "设函数 y = ln(4x − x²)，则 y′(1) = ______",
   "ans": [
@@ -6138,7 +6828,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat15_f14",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "设函数 y = x + sin x，则 dy = ______",
   "ans": [
@@ -6154,7 +6846,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat15_f15",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "设函数 y = x^(3/2) + e^(−x)，则 y″ = ______",
   "ans": [
@@ -6170,7 +6864,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat15_f16",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "若 ∫f(x)dx = cos(ln x) + C，则 f(x) = ______",
   "ans": [
@@ -6186,7 +6882,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat15_f17",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫₋₁¹ x·|x| dx = ______",
   "ans": [
@@ -6202,7 +6900,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat15_f18",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫ d(x ln x) = ______",
   "ans": [
@@ -6218,7 +6918,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat15_f19",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "由曲线 y = x²、直线 x = 1 及 x 轴所围成的平面有界图形的面积 S = ______",
   "ans": [
@@ -6234,7 +6936,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat15_f20",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "fill",
   "q": "设二元函数 z = e^(y/x)，则 ∂z/∂x |₍₁,₁₎ = ______",
   "ans": [
@@ -6250,7 +6954,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat14_f11",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "fill",
   "q": "函数 f(x) = 2/(x−1) 的间断点为 x = ______",
   "ans": [
@@ -6266,7 +6972,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat14_f12",
+  "subj": "math",
   "m": "m1",
+  "mod": "极限与连续",
   "t": "fill",
   "q": "设函数 f(x) = { eˣ−1, x≥0 ; a, x<0 }，在 x=0 处连续，则 a = ______",
   "ans": [
@@ -6282,7 +6990,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat14_f13",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "设 y = sin(2x+1)，则 y″ = ______",
   "ans": [
@@ -6298,7 +7008,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat14_f14",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "函数 f(x) = x + 1/x 的单调增区间为 ______",
   "ans": [
@@ -6314,7 +7026,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat14_f15",
+  "subj": "math",
   "m": "m2",
+  "mod": "一元函数微分学",
   "t": "fill",
   "q": "曲线 y = eˣ + x² 在点 (0,1) 处的切线斜率为 ______",
   "ans": [
@@ -6330,7 +7044,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat14_f16",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "设 f′(x) 为连续函数，则 ∫ f′(x)dx = ______",
   "ans": [
@@ -6346,7 +7062,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat14_f17",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫₋₁¹ (x³cos x + 1)dx = ______",
   "ans": [
@@ -6362,7 +7080,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat14_f18",
+  "subj": "math",
   "m": "m3",
+  "mod": "一元函数积分学",
   "t": "fill",
   "q": "∫₀¹ (2x−1)⁵ dx = ______",
   "ans": [
@@ -6378,7 +7098,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat14_f19",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "fill",
   "q": "设二元函数 z = e^(x/(x+y))，则 ∂z/∂y = ______",
   "ans": [
@@ -6394,7 +7116,9 @@ window.MATH_BANK = [
  },
  {
   "id": "mat14_f20",
+  "subj": "math",
   "m": "m4",
+  "mod": "多元函数微分学",
   "t": "fill",
   "q": "设二元函数 z = x³y²，则 ∂²z/∂x∂y = ______",
   "ans": [
@@ -6409,6 +7133,7 @@ window.MATH_BANK = [
   "src": "library"
  }
 ];
+
 window.MATH_BANK_META = {
  "total": 360,
  "choice": 216,

@@ -23,6 +23,15 @@
  *   - 新增 --files-from / --dry-run。
  *   - 新增对 5xx / 网络错误的自动重试（3 次，指数退避）。
  *
+ * v3.4.1 加固（盲审共识 C9）：
+ *   - pre-flight：推送前自动跑 syntax_check + dup_check + ver_check + data_check（--skip-checks 可跳过）；
+ *   - 脏工作区检查：git 模式下存在未提交/未跟踪改动时列出并告警（--include-dirty 显式放行）；
+ *   - 路径规范化：反斜杠统一转正斜杠，拒绝 .. 与绝对路径（防 tree 条目错乱）；
+ *   - 密钥扫描：待推文件内容命中 ghp_/github_pat_/sk- 模式即拒绝（--allow-secrets 显式放行）；
+ *   - 多 commit 压扁提示：本地领先 >1 个 commit 时明确告警；
+ *   - ref 更新 422（远端已前进）自动重取基线重放一次；
+ *   - 收尾提示由破坏性的 reset --hard 改为 fetch + 状态确认。
+ *
  * 说明：
  *   - 只提交「已跟踪」文件的内容快照，不做本地 git 操作（本地历史需另行 fetch+reset 对齐）。
  *   - 令牌建议用细粒度 PAT（Contents: read/write + Metadata: read），用完即吊销轮换。
@@ -115,6 +124,7 @@ function makeApi(TOKEN) {
 (async () => {
   const argv = process.argv.slice(2);
   let msg = null, tag = null, bodyFile = null, filesFrom = null, dryRun = false;
+  let skipChecks = false, includeDirty = false, allowSecrets = false;
   const paths = [];
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '-m' || argv[i] === '--msg') msg = argv[++i];
@@ -122,10 +132,28 @@ function makeApi(TOKEN) {
     else if (argv[i] === '--body') bodyFile = argv[++i];
     else if (argv[i] === '--files-from') filesFrom = argv[++i];
     else if (argv[i] === '--dry-run') dryRun = true;
+    else if (argv[i] === '--skip-checks') skipChecks = true;
+    else if (argv[i] === '--include-dirty') includeDirty = true;
+    else if (argv[i] === '--allow-secrets') allowSecrets = true;
     else paths.push(argv[i]);
   }
 
   const root = path.join(__dirname, '..');
+
+  /* ---------- 0. pre-flight 质量门禁（v3.4.1） ---------- */
+  if (!skipChecks && !dryRun) {
+    for (const t of ['syntax_check', 'dup_check', 'ver_check', 'data_check']) {
+      const tp = path.join(__dirname, t + '.js');
+      if (!fs.existsSync(tp)) continue;
+      const r = spawnSync(process.execPath, [tp], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+      if (r.status !== 0) {
+        console.error(String(r.stdout || '').slice(-2000));
+        console.error(String(r.stderr || '').slice(-1000));
+        fail('pre-flight 未通过：tools/' + t + '.js（--skip-checks 可强制跳过，但不推荐）');
+      }
+      info('pre-flight ✅ tools/' + t + '.js');
+    }
+  }
 
   /* ---------- 1. 解析待推送文件 ---------- */
   let files = paths.slice();
@@ -147,13 +175,41 @@ function makeApi(TOKEN) {
       fail('git 不可用且未指定文件。请显式传入路径，或用 --files-from <清单文件>。');
     }
     files = d.split('\n').filter(Boolean);
+
+    /* v3.4.1 脏工作区检查：commit 级 diff 不含未提交改动，静默漏推曾真实发生 */
+    const dirty = git(['status', '--porcelain']);
+    if (dirty) {
+      const lines = dirty.split('\n').filter(Boolean);
+      warn('工作区存在 ' + lines.length + ' 处未提交/未跟踪改动，本次推送**不包含**它们：');
+      lines.slice(0, 10).forEach(l => warn('  ' + l));
+      if (!includeDirty) fail('请先提交或 stash 这些改动，或加 --include-dirty 显式放行。');
+    }
+    /* v3.4.1 多 commit 压扁提示 */
+    const ahead = git(['rev-list', '--count', `origin/${BRANCH}..HEAD`]);
+    if (ahead && parseInt(ahead, 10) > 1) {
+      warn('本地领先 ' + ahead + ' 个 commit，将全部压扁为 1 个 API 提交（提交信息取最近一条）。');
+    }
   }
+
+  /* v3.4.1 路径规范化：反斜杠→正斜杠，拒绝 .. 与绝对路径（防 tree 条目错乱） */
+  files = files.map(f => String(f).replace(/\\/g, '/').replace(/^\/+/, ''));
+  const badPath = files.filter(f => !f || f.includes('..') || path.isAbsolute(f));
+  if (badPath.length) fail('非法路径（含 .. 或绝对路径）：' + badPath.join(', '));
 
   if (!files.length) fail('没有待推送的文件（本地与 origin/' + BRANCH + ' 无差异）');
 
   const missing = files.filter(f => !fs.existsSync(path.join(root, f)));
   if (missing.length) fail('以下文件在本地不存在：' + missing.join(', '));
   info('待推送文件(' + files.length + ')：' + files.join(', '));
+
+  /* v3.4.1 密钥扫描：疑似凭据内容直接拒推（历史上 Key 曾三次暴露） */
+  if (!allowSecrets) {
+    const SECRET_RE = /gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9]{20,}/;
+    const hit = files.filter(f => {
+      try { return SECRET_RE.test(fs.readFileSync(path.join(root, f), 'utf8')); } catch (_) { return false; }
+    });
+    if (hit.length) fail('疑似密钥内容，拒绝推送：' + hit.join(', ') + '（确认误报可加 --allow-secrets）');
+  }
 
   /* ---------- 2. 提交信息 ---------- */
   if (!msg) {
@@ -177,42 +233,54 @@ function makeApi(TOKEN) {
   }
   const api = makeApi(TOKEN);
 
-  /* ---------- 4. 原子提交 ---------- */
-  const ref = await api(`/git/ref/heads/${BRANCH}`);
-  const base = await api(`/git/commits/${ref.object.sha}`);
-  info('远端基线 commit: ' + ref.object.sha);
+  /* ---------- 4. 原子提交（v3.4.1：ref 更新 422 = 远端已前进，重取基线自动重放一次） ---------- */
+  let pushed = null;
+  for (let round = 1; round <= 2 && !pushed; round++) {
+    const ref = await api(`/git/ref/heads/${BRANCH}`);
+    const base = await api(`/git/commits/${ref.object.sha}`);
+    info('远端基线 commit: ' + ref.object.sha + (round > 1 ? '（第 ' + round + ' 次重放）' : ''));
 
-  if (!gitWorks()) {
-    warn('git 不可用：文件内容将取自「工作区」。');
-    warn('  若仓库 core.autocrlf=true，工作区可能是 CRLF 而 git 对象为 LF，');
-    warn('  这样推上去会造成换行符漂移（正常 git push 不会发生）。');
-    warn('  建议改为在有 git 的环境运行，或先确认待推文件的换行符。');
-  }
-
-  const tree = [];
-  for (const f of files) {
-    /* 权威内容取 git 已提交对象：autocrlf=true 时工作区会被 smudge 成 CRLF，
-       只有 git 对象里的才是仓库真正的内容。取不到（新文件/git 不可用）再退回工作区。 */
-    let content = null, src = 'git-object', mode = '100644';
-    if (gitWorks()) {
-      const sha = git(['rev-parse', 'HEAD:' + f]);
-      if (sha) {
-        content = gitBuf(['cat-file', 'blob', sha]);
-        const m = git(['ls-files', '--format=%(objectmode)', '--', f]);   // 需 git >= 2.38，失败则保持 100644
-        if (m) mode = String(m).split('\n')[0].trim() || '100644';
-      }
+    if (!gitWorks()) {
+      warn('git 不可用：文件内容将取自「工作区」。');
+      warn('  若仓库 core.autocrlf=true，工作区可能是 CRLF 而 git 对象为 LF，');
+      warn('  这样推上去会造成换行符漂移（正常 git push 不会发生）。');
+      warn('  建议改为在有 git 的环境运行，或先确认待推文件的换行符。');
     }
-    if (!content) { content = fs.readFileSync(path.join(root, f)); src = 'working-tree'; }
 
-    const blob = await api('/git/blobs', 'POST', { content: content.toString('base64'), encoding: 'base64' });
-    tree.push({ path: f, mode: mode, type: 'blob', sha: blob.sha });
-    info('  blob ' + f + ' -> ' + blob.sha.slice(0, 8) + '（' + content.length + ' B, ' + src + ', ' + mode + '）');
+    const tree = [];
+    for (const f of files) {
+      /* 权威内容取 git 已提交对象：autocrlf=true 时工作区会被 smudge 成 CRLF，
+         只有 git 对象里的才是仓库真正的内容。取不到（新文件/git 不可用）再退回工作区。 */
+      let content = null, src = 'git-object', mode = '100644';
+      if (gitWorks()) {
+        const sha = git(['rev-parse', 'HEAD:' + f]);
+        if (sha) {
+          content = gitBuf(['cat-file', 'blob', sha]);
+          const m = git(['ls-files', '--format=%(objectmode)', '--', f]);   // 需 git >= 2.38，失败则保持 100644
+          if (m) mode = String(m).split('\n')[0].trim() || '100644';
+        }
+      }
+      if (!content) { content = fs.readFileSync(path.join(root, f)); src = 'working-tree'; }
+
+      const blob = await api('/git/blobs', 'POST', { content: content.toString('base64'), encoding: 'base64' });
+      tree.push({ path: f, mode: mode, type: 'blob', sha: blob.sha });
+      info('  blob ' + f + ' -> ' + blob.sha.slice(0, 8) + '（' + content.length + ' B, ' + src + ', ' + mode + '）');
+    }
+
+    const newTree = await api('/git/trees', 'POST', { base_tree: base.tree.sha, tree });
+    const commit = await api('/git/commits', 'POST', { message: msg, tree: newTree.sha, parents: [ref.object.sha] });
+    try {
+      await api(`/git/refs/heads/${BRANCH}`, 'PATCH', { sha: commit.sha, force: false });
+      pushed = commit;
+    } catch (e) {
+      if (round < 2 && /422/.test(e.message)) {
+        warn('ref 更新被拒（远端已前进），重取基线后重放一次……');
+        continue;
+      }
+      throw e;
+    }
   }
-
-  const newTree = await api('/git/trees', 'POST', { base_tree: base.tree.sha, tree });
-  const commit = await api('/git/commits', 'POST', { message: msg, tree: newTree.sha, parents: [ref.object.sha] });
-  await api(`/git/refs/heads/${BRANCH}`, 'PATCH', { sha: commit.sha, force: false });
-  info('✅ 已推送 ' + OWNER + '/' + REPO + '@' + BRANCH + ' -> ' + commit.sha);
+  info('✅ 已推送 ' + OWNER + '/' + REPO + '@' + BRANCH + ' -> ' + pushed.sha);
 
   /* ---------- 5. Release ---------- */
   if (tag) {
@@ -222,5 +290,7 @@ function makeApi(TOKEN) {
     info('✅ Release 已发布：' + rel.html_url);
   }
 
-  info('\n提示：本地历史对齐请执行  git fetch origin ' + BRANCH + ' && git reset --hard origin/' + BRANCH);
+  /* v3.4.1：不再建议 reset --hard（会销毁本地未推 commit 与工作区改动） */
+  info('\n提示：本地历史对齐请先  git fetch origin ' + BRANCH + ' && git status 确认工作区干净，');
+  info('      再执行  git merge --ff-only origin/' + BRANCH + '（fast-forward，不会丢本地改动）。');
 })().catch(e => fail(e.message));

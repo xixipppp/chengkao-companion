@@ -38,7 +38,9 @@ const { chromium } = require('playwright');
     return out;
   });
 
-  const T = (n, ok, extra) => console.log((ok ? '✅' : '❌') + ' ' + n + (extra !== undefined ? '  → ' + extra : ''));
+  // v3.4.1 修复假测试：失败必须计入 fail 并以非 0 退出，否则 CI 永远绿
+  let fail = 0;
+  const T = (n, ok, extra) => { console.log((ok ? '✅' : '❌') + ' ' + n + (extra !== undefined ? '  → ' + extra : '')); if (!ok) fail++; };
   T('ALLQ = 2327', r.allq === 2327, r.allq);
   T('Q47 存在且答案=D', !!r.q47 && r.q47.a === 3, r.q47 && r.q47.ans);
   T('Q47 带 passage 字段', !!r.q47 && r.q47.hasPassage);
@@ -47,6 +49,8 @@ const { chromium } = require('playwright');
   T('阅读理解 drill 渲染出短文框', r.boxRendered === true, '文本长度=' + r.boxText);
 
   console.log('pageerrors:', errs.length ? errs : 'NONE');
+  T('无页面运行期错误', errs.length === 0, errs.length);
   await b.close();
-  process.exit(0);
+  console.log(fail ? ('FAIL ' + fail + ' 条断言未通过') : 'PASS 全部通过');
+  process.exit(fail ? 1 : 0);
 })();
