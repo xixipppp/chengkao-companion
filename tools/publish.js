@@ -29,7 +29,7 @@
  * ============================================================ */
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { spawnSync } = require('child_process');
 
 const OWNER = process.env.GH_OWNER || 'xixipppp';
 const REPO = process.env.GH_REPO || 'chengkao-companion';
@@ -50,15 +50,30 @@ function readToken() {
   return null;
 }
 
-/* git 可能不可用（部分沙箱 execSync 被拦截）——失败返回 null，不中断流程 */
-function git(args) {
+/* git 可能完全不可用（部分沙箱连 spawn 子进程都被拦截：spawnSync git EBUSY）。
+ * 所有 git 调用一律容错返回 null，不中断流程。
+ * 用 spawnSync(shell:false) + 参数数组，避免 cmd.exe 与命令行转义问题。 */
+function gitOut(args, binary) {
   try {
-    return execSync('git ' + args, {
-      encoding: 'utf8',
+    const r = spawnSync('git', args, {
+      encoding: binary ? 'buffer' : 'utf8',
+      shell: false,
+      windowsHide: true,
       cwd: path.join(__dirname, '..'),
+      maxBuffer: 256 * 1024 * 1024,
       stdio: ['ignore', 'pipe', 'ignore']
-    }).trim();
+    });
+    if (r.error || r.status !== 0 || !r.stdout) return null;
+    return r.stdout;
   } catch (_) { return null; }
+}
+function git(args) { const o = gitOut(args, false); return o === null ? null : String(o).trim(); }
+function gitBuf(args) { return gitOut(args, true); }
+
+let GIT_OK = null;
+function gitWorks() {
+  if (GIT_OK === null) GIT_OK = git(['rev-parse', '--is-inside-work-tree']) === 'true';
+  return GIT_OK;
 }
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -126,7 +141,8 @@ function makeApi(TOKEN) {
   }
 
   if (!files.length) {
-    const d = git(`diff --name-only origin/${BRANCH}..HEAD`);
+    /* -c core.quotepath=false：否则中文路径会被转义成 "\344\270\223..." */
+    const d = git(['-c', 'core.quotepath=false', 'diff', '--name-only', `origin/${BRANCH}..HEAD`]);
     if (d === null) {
       fail('git 不可用且未指定文件。请显式传入路径，或用 --files-from <清单文件>。');
     }
@@ -141,7 +157,7 @@ function makeApi(TOKEN) {
 
   /* ---------- 2. 提交信息 ---------- */
   if (!msg) {
-    msg = git('log -1 --pretty=%s') || 'chore: publish via API';
+    msg = git(['log', '-1', '--pretty=%s']) || 'chore: publish via API';
     if (msg === 'chore: publish via API') warn('git 不可用，使用默认提交信息。建议用 -m 显式指定。');
   }
 
@@ -166,12 +182,31 @@ function makeApi(TOKEN) {
   const base = await api(`/git/commits/${ref.object.sha}`);
   info('远端基线 commit: ' + ref.object.sha);
 
+  if (!gitWorks()) {
+    warn('git 不可用：文件内容将取自「工作区」。');
+    warn('  若仓库 core.autocrlf=true，工作区可能是 CRLF 而 git 对象为 LF，');
+    warn('  这样推上去会造成换行符漂移（正常 git push 不会发生）。');
+    warn('  建议改为在有 git 的环境运行，或先确认待推文件的换行符。');
+  }
+
   const tree = [];
   for (const f of files) {
-    const content = fs.readFileSync(path.join(root, f));
+    /* 权威内容取 git 已提交对象：autocrlf=true 时工作区会被 smudge 成 CRLF，
+       只有 git 对象里的才是仓库真正的内容。取不到（新文件/git 不可用）再退回工作区。 */
+    let content = null, src = 'git-object', mode = '100644';
+    if (gitWorks()) {
+      const sha = git(['rev-parse', 'HEAD:' + f]);
+      if (sha) {
+        content = gitBuf(['cat-file', 'blob', sha]);
+        const m = git(['ls-files', '--format=%(objectmode)', '--', f]);   // 需 git >= 2.38，失败则保持 100644
+        if (m) mode = String(m).split('\n')[0].trim() || '100644';
+      }
+    }
+    if (!content) { content = fs.readFileSync(path.join(root, f)); src = 'working-tree'; }
+
     const blob = await api('/git/blobs', 'POST', { content: content.toString('base64'), encoding: 'base64' });
-    tree.push({ path: f, mode: '100644', type: 'blob', sha: blob.sha });
-    info('  blob ' + f + ' -> ' + blob.sha.slice(0, 8) + '（' + content.length + ' B）');
+    tree.push({ path: f, mode: mode, type: 'blob', sha: blob.sha });
+    info('  blob ' + f + ' -> ' + blob.sha.slice(0, 8) + '（' + content.length + ' B, ' + src + ', ' + mode + '）');
   }
 
   const newTree = await api('/git/trees', 'POST', { base_tree: base.tree.sha, tree });
