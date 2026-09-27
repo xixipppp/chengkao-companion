@@ -1214,7 +1214,13 @@ function ensureBank(name){
     const s = document.createElement('script');
     s.src = BANK_SRC[name];
     s.async = true;
-    s.onload = () => resolve(bankReady(name));
+    s.onload = () => {
+      if(bankReady(name)){ resolve(true); return; }
+      /* v3.4.2：脚本 200 但全局未定义（缓存截断/内容错配）——清掉 promise 允许后续重试，不得毒化缓存 */
+      try{ s.remove(); }catch(e){}
+      delete __bankP[name];
+      resolve(false);
+    };
     s.onerror = () => { try{ s.remove(); }catch(e){} delete __bankP[name]; resolve(false); };   // 失败可重试
     document.head.appendChild(s);
   });
@@ -1240,6 +1246,8 @@ function prefetchBanks(){
   ensureBanks(['kaodian', 'goldpoints']).then(ok => {
     window.__ckBanksReady = !!ok;
     if(ok) afterBanksReady();
+    /* v3.4.2 预取失败退避重试一次（弱网首屏常见）；仍失败则由各视图按需 ensureBank 兜底 */
+    else if(!prefetchBanks._retried){ prefetchBanks._retried = true; setTimeout(prefetchBanks, 3000); }
   });
 }
 /* =================== 数据 =================== */
@@ -1703,9 +1711,13 @@ const QUESTIONS = [
 
 /* ============ 题库聚合：原创精选 66 题 + 高数真题/押题（mathbank.js） + 政治/英语客观题（subjectbank.js） ============ */
 /* v3.4.1：mathbank 已在数据层固化 subj/mod（议案 A），运行时补丁退役，仅保留防御性 filter */
+/* v3.4.2：diff 难度档契约（1 易 / 2 中 / 3 难）。数据层已全覆盖（data_check F10），
+   内置 66 题按同一规则在聚合时补齐（math 模块档 m1/m5=1、m2/m3=2、m4=3，fill=3）。 */
+const MATH_DIFF = {m1: 1, m2: 2, m3: 2, m4: 3, m5: 1};
+const withDiff = q => (q.diff ? q : Object.assign({}, q, {diff: q.t === 'fill' ? 3 : (MATH_DIFF[q.m] || 2)}));
 const EXTRA = (window.MATH_BANK || []).filter(q => q && q.m && q.t).map(q => (q.subj ? q : Object.assign({}, q, {subj: 'math'})));
 const SUBJ_BANK = (window.SUBJ_BANK || []).filter(q => q && q.m && q.t);
-const ALLQ = QUESTIONS.map(q => (q.subj ? q : Object.assign({}, q, {subj: 'math'}))).concat(EXTRA, SUBJ_BANK);
+const ALLQ = QUESTIONS.map(q => withDiff(q.subj ? q : Object.assign({}, q, {subj: 'math'}))).concat(EXTRA, SUBJ_BANK);
 
 /* 真题复用标记：《全真模拟》《押题》卷大量复用历年真题原题。
    构建一次「模拟卷题 id → 真题年份」映射，刷到这类题时显示 🔁 角标，提示先刷真题。 */
@@ -1994,6 +2006,26 @@ function save(){
     return false;
   }
 }
+/* v3.4.2 防抖落盘：答题热路径（addXp/addAff/dqOnAnswer/recordAnswer 链）单题可触发 3-4 次全量
+   JSON.stringify + setItem，低端机上造成主线程抖动。saveSoon 把 600ms 窗口内的多次写合并为
+   尾沿一次；页面隐藏/关闭前 saveFlush 强制落盘，保证不丢数据。结构性操作（删错题/导出/笔记）
+   仍走同步 save()。 */
+let _saveTimer = null, _saveDirty = false;
+function saveSoon(){
+  _saveDirty = true;
+  if(_saveTimer) return;
+  _saveTimer = setTimeout(() => {
+    _saveTimer = null;
+    if(_saveDirty){ _saveDirty = false; save(); }
+  }, 600);
+}
+function saveFlush(){
+  if(_saveTimer){ clearTimeout(_saveTimer); _saveTimer = null; }
+  if(_saveDirty){ _saveDirty = false; save(); }
+}
+window.addEventListener('pagehide', saveFlush);
+window.addEventListener('beforeunload', saveFlush);
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden') saveFlush(); });
 /* AI 缓存独立分区（上限 1.5MB，LRU，可牺牲，绝不挤占学习数据） */
 function aiCacheGet(k){
   try{ const o = JSON.parse(localStorage.getItem(KEY_AI) || '{}'); const v = o[k]; if(!v) return null; v._t = Date.now(); o[k] = v; localStorage.setItem(KEY_AI, JSON.stringify(o)); return v.v; }
@@ -2015,7 +2047,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.4.1';   // 同步 GitHub Release 标签（v3.2.0 = P1 收尾 + P2 纵深；v3.3.0 = P3 应用效率；v3.4.0 = Agent 会用工具 + 首屏减负；v3.4.1 = 质量地基：假测试修复 + 数据校验门禁 + SW 加固 + XSS 闭环）
+const APP_VER = 'v3.4.2';   // 同步 GitHub Release 标签（v3.4.1 = 质量地基；v3.4.2 = 效率与体验：save 防抖落盘 + 题库渲染全面转义 + diff/hint 规则回填 + 计时器时间戳化）
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
@@ -2040,7 +2072,7 @@ function levelInfo(){
   while(st.xp >= acc + span){ acc += span; span += 30; lv++; if(lv > 99) break; }
   return {lv, cur: st.xp - acc, span, left: span - (st.xp - acc), total: st.xp};
 }
-function addXp(n){ rankUpCheck(st.xp, st.xp + n); st.xp += n; save(); }
+function addXp(n){ rankUpCheck(st.xp, st.xp + n); st.xp += n; saveSoon(); }
 
 /* =================== 排位段位 =================== */
 const RANKS = [
@@ -2133,7 +2165,7 @@ function dqOnAnswer(ok, combo){
       rankUpCheck(st.xp - t.xp, st.xp);
     }
   });
-  save();
+  saveSoon();
 }
 function renderDQ(){
   const box = document.getElementById('dqWrap'); if(!box) return;
@@ -2456,7 +2488,7 @@ function addAff(id, n){
   st.aff[id] += n;
   const nv = affLv(st.aff[id]);
   if(nv > old){ showLup(id, nv); memScene(id, 'levelup', { lv:nv }); }   // 2.3 升级即名场面
-  save();
+  saveSoon();
 }
 /* 闭环④ 羁绊档案：好感之外，记录「我们一起做过什么」——角色×进度的凭证 */
 function bondOf(id){ st.bond = st.bond || {}; const b = st.bond[id] || (st.bond[id] = {q:0, clear:0, kill:0}); b.q = b.q||0; b.clear = b.clear||0; b.kill = b.kill||0; return b; }
@@ -2869,7 +2901,7 @@ function renderHome(){
 function pokeMate(){
   const m = getMate('xue');
   document.getElementById('heroLine').textContent = pick(m.lines.greet.concat(m.lines.idle, m.lines.correct));
-  st.aff.xue = (st.aff.xue || 0) + 1; save();
+  st.aff.xue = (st.aff.xue || 0) + 1; saveSoon();
   toast('雪见 好感 +1 💞');
 }
 
@@ -3866,7 +3898,7 @@ function renderDrill(){
     const replies = document.createElement('div'); replies.className = 'chat-replies';
     q.o.forEach((o, k) => {
       const op = document.createElement('div'); op.className = 'opt chat-opt';
-      op.innerHTML = `<div class="k">${String.fromCharCode(65 + k)}</div><div>${o}</div>`;
+      op.innerHTML = `<div class="k">${String.fromCharCode(65 + k)}</div><div>${escapeHtml(o)}</div>`;
       op.onclick = () => submitDrill(k, op);
       // 英语选项：右侧小喇叭，单读这一项
       if(voiceOn){
@@ -3904,7 +3936,7 @@ function renderDrill(){
   sb.onclick = () => openSteps(q, sb);
   body.appendChild(sb);
   const coach = document.createElement('div'); coach.className = 'coachline';
-  coach.innerHTML = `<img src="${mate.img}" onerror="this.style.display='none'"><div class="cl"><span class="cn">${mate.name}</span> ${pick(mate.lines.greet)}${q.hint ? `<span class="tip"><b>${pick(mate.lines.tip)}</b>${q.hint}</span>` : ''}</div>`;
+  coach.innerHTML = `<img src="${mate.img}" onerror="this.style.display='none'"><div class="cl"><span class="cn">${mate.name}</span> ${pick(mate.lines.greet)}${q.hint ? `<span class="tip"><b>${pick(mate.lines.tip)}</b>${escapeHtml(q.hint)}</span>` : ''}</div>`;
   body.appendChild(coach);
   // ② 中途切页回来：这题已经答过了 → 还原当时选的答案与解析，不重复计分
   replayAnswered(q);
@@ -3926,7 +3958,7 @@ function replayAnswered(q){
   const sb = document.getElementById('stepBtn'); if(sb) sb.remove();
   const mate = getMate(MOD2MATE[q.m]);
   const sol = document.createElement('div'); sol.className = 'sol show ' + (log.ok ? 'good' : 'bad');
-  sol.innerHTML = `<div class="h">${log.ok ? '✅ 这题你答对了 · 已保存' : '❌ 这题你答错过 · 正确答案：' + ansText(q)}</div>${q.sol}`;
+  sol.innerHTML = `<div class="h">${log.ok ? '✅ 这题你答对了 · 已保存' : '❌ 这题你答错过 · 正确答案：' + escapeHtml(ansText(q))}</div>${escapeHtml(q.sol)}`;
   body.appendChild(sol);
   const row = document.createElement('div'); row.className = 'row2 mt10';
   const ask = document.createElement('button'); ask.className = 'btn ghost'; ask.textContent = '💬 让 TA 讲讲这题';
@@ -3960,9 +3992,9 @@ function askHelp(q){
     step.innerHTML = `<div class="h">💡 ${mate.name} · 第2层提示：解题关键</div>${pick(mate.lines.tip)} ${hint}` + nextTip;
   } else {
     addAff(MOD2MATE[q.m], 1);
-    step.innerHTML = `<div class="h">📖 ${mate.name} · 第3层：讲给你听（学习模式）</div>${q.sol || '（这题暂无解析，先记住「' + modName(q.m) + '」的套路：' + (mo && mo.ds ? mo.ds : '找关键词，套公式') + '，跟着选项倒推。）'}<br><span style="color:#8fe8b8;font-weight:700">🎓 听懂后自己去选答案：答对照常记连击，XP 减半，这题之后还会回来验收你一次。</span>`;
+    step.innerHTML = `<div class="h">📖 ${mate.name} · 第3层：讲给你听（学习模式）</div>${escapeHtml(q.sol || '（这题暂无解析，先记住「' + modName(q.m) + '」的套路：' + (mo && mo.ds ? mo.ds : '找关键词，套公式') + '，跟着选项倒推。）')}<br><span style="color:#8fe8b8;font-weight:700">🎓 听懂后自己去选答案：答对照常记连击，XP 减半，这题之后还会回来验收你一次。</span>`;
     if(btn){ btn.classList.remove('helpbtn'); btn.textContent = '💞 提示已全开 · 看懂就去作答吧'; btn.disabled = true; }
-    save();
+    saveSoon();
   }
   body.appendChild(step);
   step.scrollIntoView({behavior:'smooth', block:'nearest'});
@@ -4055,7 +4087,7 @@ async function openSteps(q, btn){
     if(idx >= steps.length){
       quizBox.innerHTML = '<div class="steptip ok">✅ 全部步骤都走通了，合上讲解回去作答吧！</div>';
       d.help = Math.max(d.help || 0, 3);
-      addAff(MOD2MATE[q.m], 2); save();
+      addAff(MOD2MATE[q.m], 2); saveSoon();
       const sp = panel.querySelectorAll('.spd i'); sp.forEach(x => x.classList.add('on'));
       return;
     }
@@ -4120,8 +4152,8 @@ function drillFeedback(q, ok){
   }
   const homeHit = ok && isHomeSubj(MOD2MATE[q.m], subjOfMod(q.m));
   const sol = document.createElement('div'); sol.className = 'sol show ' + (ok ? 'good' : 'bad');
-  sol.innerHTML = `<div class="h">${ok ? '✅ 答对了' : '❌ 答错了 · 正确答案：' + ansText(q)}</div>`
-    + (homeHit ? `<div class="homebonus">💞 ${mate.name} 的主场共鸣 · 经验 +2</div>` : '') + q.sol;
+  sol.innerHTML = `<div class="h">${ok ? '✅ 答对了' : '❌ 答错了 · 正确答案：' + escapeHtml(ansText(q))}</div>`
+    + (homeHit ? `<div class="homebonus">💞 ${mate.name} 的主场共鸣 · 经验 +2</div>` : '') + escapeHtml(q.sol);
   body.appendChild(sol);
   if(ok && (S.drill.help || 0) >= 3 && !S.drill.isWrong){
     const tg = document.createElement('div'); tg.className = 'helpstep lv3';
@@ -4219,7 +4251,7 @@ function submitDrill(k, el){
   if(ok) addAff(MOD2MATE[q.m], st.combo >= 5 ? 2 : 1);
   if(ok && affLv(st.aff[MOD2MATE[q.m]] || 0) >= 2) addXp(4);
   if(ok && isHomeSubj(MOD2MATE[q.m], subjOfMod(q.m))) addXp(2);   // 闭环④ 主场共鸣：在 TA 的主场科目作答，额外 +2 XP
-  save();
+  saveSoon();
   recordAnswer(q, ok, (d.help || 0) >= 3);
   saveDrillProgress();
   drillFeedback(q, ok);
@@ -4267,7 +4299,7 @@ function submitFill(v){
     if(isHomeSubj(MOD2MATE[q.m], subjOfMod(q.m))) addXp(2);   // 闭环④ 主场共鸣
   } else st.combo = 0;
   drillVerdict(q, ok);
-  save();
+  saveSoon();
   recordAnswer(q, ok, (d.help || 0) >= 3);
   saveDrillProgress();
   drillFeedback(q, ok);
@@ -4308,7 +4340,7 @@ function recordAnswer(q, ok, tutor){
     if(st.combo === 5 || st.combo === 10 || st.combo === 15 || st.combo === 20){
       const bonus = st.combo >= 10 ? 20 : 10;
       rankUpCheck(st.xp, st.xp + bonus);
-      st.xp += bonus; save();
+      st.xp += bonus; saveSoon();
       popReward('🔥 ' + st.combo + ' 连击！额外 +' + bonus + ' XP', '#e8536f');
     }
   }
@@ -4355,7 +4387,7 @@ async function aiGenVariant(q){
   trimVariantPool();
   const bucket = q.id ? (st.variants[q.id] || (st.variants[q.id] = [])) : null;
   if(bucket && bucket.length >= VARIANT_CAP){   // 已出满上限：回收复用旧变式，不再消耗 API
-    st.aiStats.hit++; save();
+    st.aiStats.hit++; saveSoon();
     const v = bucket[Math.floor(Math.random() * bucket.length)]; v._recycled = true; return v;
   }
   const mate = getMate(MOD2MATE[q.m]);
@@ -4383,7 +4415,7 @@ async function aiGenVariant(q){
     }
   }
   if(v){
-    if(bucket && bucket.length < VARIANT_CAP){ bucket.push(v); save(); }
+    if(bucket && bucket.length < VARIANT_CAP){ bucket.push(v); saveSoon(); }
     return v;
   }
   /* 0.8 确定性降级：从同模块题库里挑一道没做过的同型题当变式（功能不缺失，不卡加载） */
@@ -4493,7 +4525,7 @@ function diagnoseErr(q){
     if(mm){
       const err = mm[1].trim();
       const w = st.wrong.find(x => x.id === q.id);
-      if(w){ w.err = err; save(); }
+      if(w){ w.err = err; saveSoon(); }
       const tag = document.createElement('div'); tag.className = 'errtag';
       tag.style.cssText = 'display:inline-block;margin-top:8px';
       tag.textContent = '🩺 已记录错因：' + err + (w ? '' : '（题库外题目，不进错题本）');
@@ -4927,7 +4959,7 @@ function renderGpQuiz(box, j, pt, offline){
       fb.innerHTML = '<div class="h">' + (ok ? '✅ 拿下！' : '❌ 正确答案：' + escapeHtml(j.o[a])) + '</div>' + escapeHtml(j.sol || '');
       box.appendChild(fb);
       addAff(GP_SUBJ === 'mat' ? 'luo' : GP_SUBJ === 'pol' ? 'xue' : 'ziyuan', ok ? 2 : 1);
-      if(ok){ rankUpCheck(st.xp, st.xp + 8); st.xp += 8; save(); }
+      if(ok){ rankUpCheck(st.xp, st.xp + 8); st.xp += 8; saveSoon(); }
     };
     box.appendChild(op);
   });
@@ -4993,7 +5025,7 @@ function renderBoss(){
   if(q.t === 'choice'){
     q.o.forEach((o, k) => {
       const op = document.createElement('div'); op.className = 'opt';
-      op.innerHTML = `<div class="k">${String.fromCharCode(65 + k)}</div><div>${o}</div>`;
+      op.innerHTML = `<div class="k">${String.fromCharCode(65 + k)}</div><div>${escapeHtml(o)}</div>`;
       op.onclick = () => bossHit(k, op); body.appendChild(op);
     });
   } else {
@@ -5007,7 +5039,7 @@ function renderBoss(){
 }
 function bossFeedback(q, ok){
   const sol = document.createElement('div'); sol.className = 'sol show ' + (ok ? 'good' : 'bad');
-  sol.innerHTML = `<div class="h">${ok ? '💥 暴击！' : '🛡️ 被反击 · 正确答案：' + ansText(q)}</div>${q.sol}`;
+  sol.innerHTML = `<div class="h">${ok ? '💥 暴击！' : '🛡️ 被反击 · 正确答案：' + escapeHtml(ansText(q))}</div>${escapeHtml(q.sol)}`;
   document.getElementById('bossBody').appendChild(sol);
   const nb = document.createElement('button'); nb.className = 'btn magenta mt10'; nb.textContent = '继续 ▶';
   nb.onclick = () => { S.boss.i++; renderBoss(); };
@@ -5080,7 +5112,7 @@ function renderMock(){
       <div style="text-align:center;color:var(--sub);margin:8px 0 12px">答对 ${m.right}/${m.list.length} · 用时 ${String(Math.floor(usedS / 60)).padStart(2,'0')}:${String(usedS % 60).padStart(2,'0')} · 历史最佳 ${st.mockBest} 分</div>`;
     m.list.forEach((q, k) => {
       const r = document.createElement('div'); r.className = 'rev ' + (m.results[k] ? 'r-ok' : 'r-no');
-      r.innerHTML = `<div class="rq">${k + 1}. ${q.q}</div><div class="ra">答案：${ansText(q)} ${m.results[k] ? '✓' : '✗'}</div><div class="rm">${q.sol}</div>`;
+      r.innerHTML = `<div class="rq">${k + 1}. ${escapeHtml(q.q)}</div><div class="ra">答案：${escapeHtml(ansText(q))} ${m.results[k] ? '✓' : '✗'}</div><div class="rm">${escapeHtml(q.sol)}</div>`;
       rev.appendChild(r);
     });
     const back = document.createElement('button'); back.className = 'btn magenta mt10'; back.textContent = '返回自习室';
@@ -5099,7 +5131,7 @@ function renderMock(){
   if(q.t === 'choice'){
     q.o.forEach((o, k) => {
       const op = document.createElement('div'); op.className = 'opt';
-      op.innerHTML = `<div class="k">${String.fromCharCode(65 + k)}</div><div>${o}</div>`;
+      op.innerHTML = `<div class="k">${String.fromCharCode(65 + k)}</div><div>${escapeHtml(o)}</div>`;
       op.onclick = () => mockAns(k, op); body.appendChild(op);
     });
   } else {
@@ -5113,7 +5145,7 @@ function renderMock(){
 }
 function mockFeedback(q, ok){
   const sol = document.createElement('div'); sol.className = 'sol show ' + (ok ? 'good' : 'bad');
-  sol.innerHTML = `<div class="h">${ok ? '✅' : '❌ 正确答案：' + ansText(q)}</div>${q.sol}`;
+  sol.innerHTML = `<div class="h">${ok ? '✅' : '❌ 正确答案：' + escapeHtml(ansText(q))}</div>${escapeHtml(q.sol)}`;
   document.getElementById('mockBody').appendChild(sol);
   const nb = document.createElement('button'); nb.className = 'btn magenta mt10'; nb.textContent = '下一题 ▶';
   nb.onclick = () => { S.mock.i++; renderMock(); };
@@ -6873,9 +6905,10 @@ function gqTimed(body, cfg){
     const qt = document.createElement('div'); qt.className = 'qtext'; qt.textContent = q.q;
     body.appendChild(qt);
     left = cfg.secs;
+    const t0 = Date.now();   // v3.4.2 时间戳差值法：后台标签页 setInterval 被节流时倒计时不冻结
     t = setInterval(() => {
-      left -= 0.1;
-      bar.style.width = Math.max(0, Math.round(left / cfg.secs * 100)) + '%';
+      left = Math.max(0, cfg.secs - (Date.now() - t0) / 1000);
+      bar.style.width = Math.round(left / cfg.secs * 100) + '%';
       if(left <= 0) lock(-1);
     }, 100);
     function lock(k){
@@ -6888,7 +6921,7 @@ function gqTimed(body, cfg){
       if(k >= 0) opts[k].classList.add(ok ? 'ok' : 'no');
       opts[q.a].classList.add('ok');
       const fb = document.createElement('div'); fb.className = 'sol show ' + (ok ? 'good' : 'bad');
-      fb.innerHTML = `<div class="h">${ok ? '✅ 秒答命中' : (k < 0 ? '⏰ 超时 · 正确答案：' + q.o[q.a] : '❌ 正确答案：' + q.o[q.a])}</div>${q.sol || ''}`;
+      fb.innerHTML = `<div class="h">${ok ? '✅ 秒答命中' : (k < 0 ? '⏰ 超时 · 正确答案：' + escapeHtml(q.o[q.a]) : '❌ 正确答案：' + escapeHtml(q.o[q.a]))}</div>${escapeHtml(q.sol || '')}`;
       body.appendChild(fb);
       if(!ok) gameWrong(q);
       dqOnAnswer(ok, 0);
@@ -6898,7 +6931,7 @@ function gqTimed(body, cfg){
     }
     q.o.forEach((o, k) => {
       const op = document.createElement('div'); op.className = 'opt';
-      op.innerHTML = `<div class="k">${String.fromCharCode(65 + k)}</div><div>${o}</div>`;
+      op.innerHTML = `<div class="k">${String.fromCharCode(65 + k)}</div><div>${escapeHtml(o)}</div>`;
       op.onclick = () => lock(k);
       body.appendChild(op);
     });
@@ -6934,6 +6967,8 @@ function gameRush(body){
   const fRush = q => q.subj === 'math' && q.t === 'choice';
   const qs = injectIntoQS(shuffle(ALLQ.filter(fRush)).slice(0, 24), fRush);   // 注入项排在前面，60 秒内就能撞上
   let i = 0, right = 0, wrong = 0, left = 60, t = null, locked = false;
+  const rushT0 = Date.now();   // v3.4.2 全局 60s 预算改时间戳锚定，切后台不再暂停计时
+  function rushLeft(){ return Math.max(0, 60 - (Date.now() - rushT0) / 1000); }
   function stopT(){ if(t){ clearInterval(t); t = null; } }
   function end(){
     stopT();
@@ -6944,6 +6979,7 @@ function gameRush(body){
       xp: right * 2, coins: right * 2, wrongN: wrong, mateId:'ye', replay: () => gameRush(body)});
   }
   function ask(){
+    left = rushLeft();
     if(left <= 0){ end(); return; }
     locked = false;
     const q = qs[i % qs.length]; i++;
@@ -6954,13 +6990,13 @@ function gameRush(body){
     const qt = document.createElement('div'); qt.className = 'qtext'; qt.textContent = q.q;
     body.appendChild(qt);
     t = setInterval(() => {
-      left -= 0.2;
-      bar.style.width = Math.max(0, left / 60 * 100) + '%';
+      left = rushLeft();
+      bar.style.width = Math.round(left / 60 * 100) + '%';
       if(left <= 0) end();
     }, 200);
     q.o.forEach((o, k) => {
       const op = document.createElement('div'); op.className = 'opt';
-      op.innerHTML = `<div class="k">${String.fromCharCode(65 + k)}</div><div>${o}</div>`;
+      op.innerHTML = `<div class="k">${String.fromCharCode(65 + k)}</div><div>${escapeHtml(o)}</div>`;
       op.onclick = () => {
         if(locked) return; locked = true;
         stopT();
@@ -6976,7 +7012,7 @@ function gameRush(body){
           body.querySelectorAll('.opt')[q.a].classList.add('ok', 'dis');
           gameWrong(q);
           const fb = document.createElement('div'); fb.className = 'sol show bad';
-          fb.innerHTML = `<div class="h">🛡️ 被反击 · 正确答案：${q.o[q.a]}</div>${q.sol || ''}`;
+          fb.innerHTML = `<div class="h">🛡️ 被反击 · 正确答案：${escapeHtml(q.o[q.a])}</div>${escapeHtml(q.sol || '')}`;
           body.appendChild(fb);
           setTimeout(ask, 1400);
         }
@@ -7078,7 +7114,7 @@ function gameStepOrder(body){
   const steps = splitSol(q.sol);
   const shuffled = shuffle(steps.map((s, i) => ({s, i})));
   let pos = 0, miss = 0;
-  body.innerHTML = `<div class="card"><div style="font-weight:700;margin-bottom:4px">🪜 按解题顺序依次点击步骤（点错会晃）</div><div class="qtext" style="font-size:13px">${q.q}</div><div id="oSlots" style="margin:10px 0;display:flex;flex-direction:column;gap:6px"></div><div class="ochips" id="oChips"></div><div style="font-size:12.5px;color:var(--sub);margin-top:8px" id="ostat">失误 0</div></div>`;
+  body.innerHTML = `<div class="card"><div style="font-weight:700;margin-bottom:4px">🪜 按解题顺序依次点击步骤（点错会晃）</div><div class="qtext" style="font-size:13px">${escapeHtml(q.q)}</div><div id="oSlots" style="margin:10px 0;display:flex;flex-direction:column;gap:6px"></div><div class="ochips" id="oChips"></div><div style="font-size:12.5px;color:var(--sub);margin-top:8px" id="ostat">失误 0</div></div>`;
   const slots = document.getElementById('oSlots');
   steps.forEach((_, i) => {
     const d = document.createElement('div'); d.className = 'mchip'; d.style.opacity = '.5';
@@ -7161,11 +7197,11 @@ function gameChat(body){
         xp: right * 2, coins: right * 3, wrongN: qs.length - right, mateId:'ziyuan', replay: () => gameChat(body)});
     }
     const q = qs[i];
-    body.innerHTML = `<div class="card"><div style="font-weight:700;margin-bottom:8px">🗣️ 情景卡 ${i + 1}/${qs.length} · 点一句最恰当的回复</div><div class="chatin">💬 ${q.q.replace('选出最恰当的选项补全', '补全')}</div><div id="gcChatOpts"></div></div>`;
+    body.innerHTML = `<div class="card"><div style="font-weight:700;margin-bottom:8px">🗣️ 情景卡 ${i + 1}/${qs.length} · 点一句最恰当的回复</div><div class="chatin">💬 ${escapeHtml(q.q.replace('选出最恰当的选项补全', '补全'))}</div><div id="gcChatOpts"></div></div>`;
     const wrap = document.getElementById('gcChatOpts');
     q.o.forEach((o, k) => {
       const line = document.createElement('div'); line.className = 'chatline';
-      line.innerHTML = `<div class="bub">${o}</div>`;
+      line.innerHTML = `<div class="bub">${escapeHtml(o)}</div>`;
       line.onclick = () => {
         wrap.querySelectorAll('.chatline').forEach(x => x.style.pointerEvents = 'none');
         const ok = k === q.a;
@@ -7174,7 +7210,7 @@ function gameChat(body){
         if(!ok) wrap.children[q.a].querySelector('.bub').classList.add('bok');
         if(!ok) gameWrong(q);
         const fb = document.createElement('div'); fb.className = 'sol show ' + (ok ? 'good' : 'bad');
-        fb.innerHTML = (ok ? '✅ 发送成功 · ' : `❌ 应选 ${String.fromCharCode(65 + q.a)} · `) + (q.sol || '');
+        fb.innerHTML = (ok ? '✅ 发送成功 · ' : `❌ 应选 ${String.fromCharCode(65 + q.a)} · `) + escapeHtml(q.sol || '');
         body.firstElementChild.appendChild(fb);
         dqOnAnswer(ok, 0);
         const nb = document.createElement('button'); nb.className = 'btn magenta mt10'; nb.textContent = '下一句 ▶';
@@ -7202,7 +7238,7 @@ function gameMine(body){
     }
     const q = qs[i];
     let defused = 0, phase = 1, exploded = false;
-    body.innerHTML = `<div class="card"><div style="font-weight:700;margin-bottom:4px">🕳️ 第 ${i + 1}/${qs.length} 题 · 先点掉 2 个错项「排雷」，小心别点到正确答案！</div><div class="qtext" style="font-size:13.5px">${q.q}</div><div id="mineOpts" style="display:flex;flex-direction:column;gap:8px"></div><div style="font-size:12.5px;color:var(--sub);margin-top:8px" id="minePhase">已排雷 0/2</div></div>`;
+    body.innerHTML = `<div class="card"><div style="font-weight:700;margin-bottom:4px">🕳️ 第 ${i + 1}/${qs.length} 题 · 先点掉 2 个错项「排雷」，小心别点到正确答案！</div><div class="qtext" style="font-size:13.5px">${escapeHtml(q.q)}</div><div id="mineOpts" style="display:flex;flex-direction:column;gap:8px"></div><div style="font-size:12.5px;color:var(--sub);margin-top:8px" id="minePhase">已排雷 0/2</div></div>`;
     const wrap = document.getElementById('mineOpts');
     const phase2 = () => {
       phase = 2;
@@ -7214,7 +7250,7 @@ function gameMine(body){
       if(!ok) gameWrong(q);
       wrap.querySelectorAll('.mchip').forEach(c => { c.style.pointerEvents = 'none'; if(c.dataset.k === q.a) c.classList.add('ok'); });
       const fb = document.createElement('div'); fb.className = 'sol show ' + (ok ? 'good' : 'bad');
-      fb.innerHTML = `<div class="h">${ok ? '✅ 安全通过' : (exploded ? '💣 踩雷！那其实是正确答案' : '❌ 答错了 · 正确答案：' + q.o[q.a])}</div>${q.sol || ''}`;
+      fb.innerHTML = `<div class="h">${ok ? '✅ 安全通过' : (exploded ? '💣 踩雷！那其实是正确答案' : '❌ 答错了 · 正确答案：' + escapeHtml(q.o[q.a]))}</div>${escapeHtml(q.sol || '')}`;
       body.firstElementChild.appendChild(fb);
       dqOnAnswer(ok, 0);
       const nb = document.createElement('button'); nb.className = 'btn magenta mt10'; nb.textContent = '下一题 ▶';
@@ -7224,7 +7260,7 @@ function gameMine(body){
     [0, 1, 2, 3].forEach(k => {
       const c = document.createElement('div'); c.className = 'mchip'; c.style.textAlign = 'left';
       c.dataset.k = k;
-      c.innerHTML = `<b style="color:#b08ca0;margin-right:6px">${String.fromCharCode(65 + k)}</b>${q.o[k]}`;
+      c.innerHTML = `<b style="color:#b08ca0;margin-right:6px">${String.fromCharCode(65 + k)}</b>${escapeHtml(q.o[k])}`;
       c.onclick = () => {
         if(c.classList.contains('ok') || c.style.pointerEvents === 'none') return;
         if(phase === 1){

@@ -154,5 +154,40 @@ if (kd && Array.isArray(kd.KAODIAN)) {
              : P('F8', 'img 条目均有图（' + kd.KAODIAN.filter(d => d && d.kind === 'img').length + ' 条）');
 }
 
+/* ---------- F9 字段禁含 HTML/危险模式（v3.4.2：与渲染层全面 escapeHtml 配套的双保险） ---------- */
+{
+  const reTag = /<\/?[a-zA-Z]+[^>]*>/;
+  const reDanger = /<script|on\w+\s*=|javascript\s*:/i;
+  let tagN = 0, dangerN = 0, dangerIds = [];
+  ALL.forEach(q => {
+    if (!q) return;
+    const fields = [q.q, q.sol, q.hint].concat(q.o || [], q.ans || []);
+    let hasTag = false;
+    fields.forEach(v => {
+      const s = String(v || '');
+      if (reDanger.test(s)) { dangerN++; if (dangerIds.length < 5) dangerIds.push(q.id); }
+      else if (reTag.test(s)) hasTag = true;
+    });
+    if (hasTag) tagN++;
+  });
+  dangerN ? F('F9', '题库字段含危险模式（script/事件/js协议）' + dangerN + ' 处：' + dangerIds.join(','))
+          : P('F9', '题库字段无危险模式');
+  tagN ? W('F9', '题库字段含 HTML 标签 ' + tagN + ' 题（渲染层已转义，不影响安全，但建议清理）')
+       : P('F9', '题库字段无 HTML 标签');
+}
+
+/* ---------- F10 diff 难度档与 hint 契约（v3.4.2 议案议题4 回填） ---------- */
+{
+  const badDiff = ALL.filter(q => q && ![1, 2, 3].includes(q.diff));
+  const leak = ALL.filter(q => q && q.hint && /故选|答案是|正确答案/.test(String(q.hint)));
+  const noHint = ALL.filter(q => q && (!q.hint || !String(q.hint).trim()));
+  badDiff.length ? F('F10', 'diff 缺失/越界 ' + badDiff.length + ' 题（合法值 1/2/3）：' + badDiff.slice(0, 5).map(q => q.id).join(','))
+                 : P('F10', 'diff 难度档全覆盖且合法（1-3）');
+  leak.length ? F('F10', 'hint 泄露答案 ' + leak.length + ' 题：' + leak.slice(0, 5).map(q => q.id).join(','))
+              : P('F10', 'hint 无答案泄露');
+  noHint.length ? W('F10', 'hint 空值 ' + noHint.length + ' 题（' + (noHint.length / ALL.length * 100).toFixed(1) + '%）')
+                : P('F10', 'hint 全覆盖');
+}
+
 console.log('\ndata_check: ' + (fail ? ('FAIL ' + fail + ' 项') : 'PASS') + (warn ? '（WARN ' + warn + ' 项）' : ''));
 process.exit(fail ? 1 : 0);
