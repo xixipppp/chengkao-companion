@@ -41,24 +41,29 @@ function T(name, ok, extra){
   });
   T('prefers-reduced-motion 规则存在', rm);
 
-  // 4. DUP_REAL 映射正确性
-  const dup = await p.evaluate(() => ({
-    f13: DUP_REAL['mat26qz1_f13'],   // 高数模拟一 ← 2019真题
-    e36: DUP_REAL['eng26qz5_036'],   // 英语模拟五 ← 2016真题
-    real: DUP_REAL['mat19_f15'],     // 真题本身不应有角标
-    cnt: Object.keys(DUP_REAL).length
-  }));
+  // 4. 复用真题映射正确性（P3-D 起改为惰性：裸引用 DUP_REAL → 调用 dupReal()）
+  const dup = await p.evaluate(() => {
+    const D = dupReal();
+    return {
+      f13: D['mat26qz1_f13'],   // 高数模拟一 ← 2019真题
+      e36: D['eng26qz5_036'],   // 英语模拟五 ← 2016真题
+      real: D['mat19_f15'],     // 真题本身不应有角标
+      cnt: Object.keys(D).length,
+      lazy: typeof dupReal === 'function'
+    };
+  });
   T('模拟卷题映射到真题年份', dup.f13 === '2019' && dup.e36 === '2016', JSON.stringify(dup));
   T('真题本身无角标', !dup.real, 'mat19_f15=' + dup.real);
+  T('复用映射惰性可用（P3-D）', dup.lazy && dup.cnt > 0, 'cnt=' + dup.cnt);
 
   // 5. 真实刷题路径：开始刷题 → 答题 → 下一题 → 角标渲染
   const badge = await p.evaluate(async () => {
     setSubject('math');
     startDrill('m1');
     await new Promise(r => setTimeout(r, 400));
-    // 本轮 20 题里找有角标资格的题：直接翻到有 DUP_REAL 的题渲染
+    // 本轮 20 题里找有角标资格的题：直接翻到有复用映射的题渲染
     const d = S.drill;
-    const hit = d.list.findIndex(q => DUP_REAL[q.id]);
+    const hit = d.list.findIndex(q => dupReal()[q.id]);
     if (hit >= 0) { d.i = hit; renderDrill(); }
     await new Promise(r => setTimeout(r, 300));
     return { hit, has: !!document.querySelector('#drillBody .dupbadge'), txt: (document.querySelector('#drillBody .dupbadge') || {}).textContent || '' };
@@ -106,12 +111,26 @@ function T(name, ok, extra){
   });
   T('恢复后刷题页可继续作答', cont.hasOpt, cont.prog.replace(/\s+/g, ' ').slice(0, 40));
 
-  // 8. ROI 权重校准：政治首位模块合理 & 权重生效
+  // 8. 考点权重与 ROI —— v3.2.0 起 MOD_W 不再手写，改由 KD_SCORE 客观分值归一导出（1~2 星级）；
+  //    ROI v2 把「学习成本」放进分母，且超纲模块（p4 史纲 / p6 思修）ROI 恒为 0。
   const roi = await p.evaluate(() => {
     const l = roiList('pol');
-    return { top: l[0].mo.id, w: MOD_W.p1, list: l.slice(0, 3).map(r => r.mo.id + ':' + r.roi) };
+    const mx = Math.max.apply(null, Object.keys(KD_SCORE).map(k => KD_SCORE[k].obj));
+    const want = k => Math.round((0.5 + 1.5 * KD_SCORE[k].obj / mx) * 100) / 100;
+    return {
+      top: l[0].mo.id,
+      list: l.slice(0, 3).map(r => r.mo.id + ':' + r.roi),
+      wP1: MOD_W.p1, wP2: MOD_W.p2,
+      derived: Object.keys(KD_SCORE).every(k => Math.abs(MOD_W[k] - want(k)) < 1e-9),
+      inRange: Object.keys(MOD_W).every(k => MOD_W[k] >= 0.5 && MOD_W[k] <= 2.0 + 1e-9),
+      extZero: modRoi('p4') === 0 && modRoi('p6') === 0,
+      /* 超纲模块可以「出现」在列表尾部（roi=0、带剔除理由），但绝不允许排进前 3 */
+      noExtTop: l.slice(0, 3).every(r => !isExtMod(r.mo.id)),
+      extAllZero: l.filter(r => isExtMod(r.mo.id)).every(r => r.roi === 0)
+    };
   });
-  T('政治 ROI 权重已校准(p1=1.35)', roi.w === 1.35, 'Top3: ' + roi.list.join(', '));
+  T('政治 ROI 权重已校准（MOD_W 由 KD_SCORE 客观分值派生）', roi.derived && roi.inRange && roi.extZero, JSON.stringify(roi));
+  T('政治 ROI 首位为分值最高的 p2（毛概 46.5 分），前三无超纲模块', roi.top === 'p2' && roi.noExtTop && roi.extAllZero, 'Top3: ' + roi.list.join(', '));
 
   // 9. 全库缺解析复查（在 App 数据层）
   const miss = await p.evaluate(() => {
@@ -124,10 +143,18 @@ function T(name, ok, extra){
 
   // 10. 结束清理：完成本轮（把 i 推到末尾）→ 落盘应清除
   const fin = await p.evaluate(() => {
-    S.drill.i = S.drill.list.length; renderDrill();
-    return { sav: !!st.drillSav, endScreen: document.getElementById('drillBody').textContent.includes('正确率') };
+    const d = S.drill;
+    const info = { before: { i: d.i, len: d.list.length, cleared: !!d.cleared, pend: d.pendingWrong, isWrong: !!d.isWrong } };
+    d.i = d.list.length; renderDrill();
+    info.sav = !!st.drillSav;
+    /* 结算页有两种合法形态：普通轮次「本轮正确率 N%」；带错题清零的轮次走 drillClear 的「任务通关」战报页。
+       （是否走战报取决于 d.cleared 是否为对象，而恢复自 drillSav 时可能是 null → 两种都要认） */
+    info.endScreen = /正确率|任务通关/.test(document.getElementById('drillBody').textContent);
+    info.body = document.getElementById('drillBody').textContent.replace(/\s+/g, ' ').slice(0, 60);
+    info.savSnap = st.drillSav ? { i: st.drillSav.i, ids: (st.drillSav.ids || []).length } : null;
+    return info;
   });
-  T('刷完一轮后落盘清除', !fin.sav && fin.endScreen);
+  T('刷完一轮后落盘清除', !fin.sav && fin.endScreen, JSON.stringify(fin));
 
   console.log('\n══════════ ' + pass + ' 通过 / ' + fail + ' 失败 ══════════');
   if (errs.length) console.log('页错误:\n' + errs.join('\n'));

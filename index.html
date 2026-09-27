@@ -4,12 +4,24 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>心动成考 · 乙女陪练</title>
+<meta name="theme-color" content="#150d24">
+<meta name="description" content="成人高考专升本备考陪练：乙女向角色陪伴 + 2327 道题库 + 考点 ROI 择题 + 离线可用">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E💗%3C/text%3E%3C/svg%3E">
-<script type="module" src="vendor/model-viewer.min.js"></script>
-<script type="module">
-  // Draco 解码器本地化（离线干净）：指向 vendor/draco/，不走 gstatic CDN
-  import { ModelViewerElement } from './vendor/model-viewer.min.js';
-  ModelViewerElement.dracoDecoderLocation = './vendor/draco/';
+<!-- 2.8 PWA：让「离线可用」名副其实（manifest + Service Worker） -->
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="assets/xue.jpg">
+<!-- P3 首屏瘦身：3D 引擎（model-viewer 1.07MB + draco 解码器）改为**首次点开 3D 时才加载**，
+     静态加载时它占首屏总字节的近三分之一，而绝大多数用户根本不会点进 3D 页。
+     动态 import 保留 Drago 本地化（离线干净，不走 gstatic CDN）。 -->
+<script>
+  window.__ckLoadMV = function(){
+    if(window.__ckMVready) return window.__ckMVready;
+    window.__ckMVready = import('./vendor/model-viewer.min.js').then(mod => {
+      try{ mod.ModelViewerElement.dracoDecoderLocation = './vendor/draco/'; }catch(e){}
+      return mod;
+    });
+    return window.__ckMVready;
+  };
 </script>
 <style>
   :root{
@@ -56,6 +68,23 @@
   .tc-foot{font-size:11px;color:var(--sub);margin-top:8px;text-align:center}
   .tc-swap{color:var(--cyan);text-decoration:underline;cursor:pointer}
   .tc-done{font-size:12.5px;color:var(--sub);margin-top:8px;line-height:1.6}
+  /* ---- 0.13 微会话三档 5/10/20 ---- */
+  .tc-nbox{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:10px}
+  .tc-nlab{font-size:11px;color:var(--sub);width:100%}
+  .tc-n{font-size:11.5px;padding:5px 10px;border-radius:999px;cursor:pointer;
+    border:1px solid rgba(255,255,255,.16);color:var(--sub);background:rgba(255,255,255,.04)}
+  .tc-n.on{border-color:var(--gold);color:var(--gold);background:rgba(255,209,102,.14);font-weight:800}
+  /* ---- 0.8 离线模式徽章 ---- */
+  .offbadge{display:inline-block;margin-left:6px;font-size:10.5px;padding:1px 7px;border-radius:999px;
+    color:#ffd166;background:rgba(255,209,102,.16);font-weight:700;vertical-align:middle}
+  .offnote{font-size:11px;color:var(--sub);margin-top:6px}
+  /* ---- v3.1.0 P1 决策留痕 ---- */
+  .aglog{display:flex;align-items:flex-start;gap:6px;padding:7px 0;border-bottom:1px dashed rgba(255,255,255,.08);font-size:12px;line-height:1.6}
+  .agk{flex:0 0 auto;font-size:11px;font-weight:800;color:var(--cyan)}
+  .agt{flex:1;min-width:0;color:var(--txt)}
+  .agtool{flex:0 0 auto;font-size:10.5px;color:var(--sub);font-family:ui-monospace,Consolas,monospace}
+  .agsrc{flex:0 0 auto;font-size:10px;padding:1px 6px;border-radius:6px;color:#8fe8b8;background:rgba(143,232,184,.14);font-weight:700}
+  .agtime{flex:0 0 auto;font-size:10.5px;color:var(--sub)}
   /* ---- 闭环⑤ 通关战报 ---- */
   .reportbar{margin-top:12px;border-radius:18px;padding:14px;border:1px dashed rgba(255,138,209,.45);
     background:rgba(255,138,209,.07)}
@@ -90,9 +119,19 @@
   .sec-title small{font-weight:500;color:var(--sub);font-size:11px;margin-left:auto}
   .card{background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--line);
     border-radius:18px;padding:15px;box-shadow:var(--shadow);margin-bottom:12px}
+  /* 1.10 首屏降噪：立绘从 320px（占 390×900 视口 36%）压到 150px，把首屏让给「今天做什么」 */
   .hero{position:relative;overflow:hidden;border-radius:22px;border:1px solid var(--line);
-    background:linear-gradient(120deg,#2a1840,#3a1c50);box-shadow:var(--shadow);cursor:pointer}
-  .hero img{display:block;width:100%;height:320px;object-fit:cover;object-position:50% 14%;opacity:.97;transition:transform .35s}
+    background:linear-gradient(120deg,#2a1840,#3a1c50);box-shadow:var(--shadow)}
+  .hero img{display:block;width:100%;height:150px;object-fit:cover;object-position:50% 20%;opacity:.97;transition:transform .35s}
+  /* 1.14 一行状态条：用「本周学了 N 天」取代「连续 N 天」——断一天不归零，累积还在 */
+  .weekbar{display:flex;align-items:center;gap:8px;margin-top:10px;padding:9px 12px;border-radius:12px;
+    background:linear-gradient(120deg,rgba(94,224,240,.1),rgba(255,209,102,.08));border:1px solid rgba(94,224,240,.28);
+    font-size:12px;font-weight:800;color:#bfeaf2}
+  .weekbar .dotw{width:7px;height:7px;border-radius:50%;background:#ffd166;flex:0 0 auto}
+  /* 「更多」折叠区：首屏只留唯一指令，其余收进这里 */
+  .morebtn{width:100%;margin-top:12px;padding:11px;border-radius:14px;border:1px dashed var(--line);
+    background:rgba(255,255,255,.03);color:var(--sub);font-size:12.5px;font-weight:800;cursor:pointer}
+  .morebtn:active{background:rgba(255,255,255,.07)}
   .hero:active img{transform:scale(1.02)}
   .hero .veil{position:absolute;top:0;right:0;bottom:0;left:0;background:linear-gradient(180deg,rgba(12,8,20,0) 24%,rgba(12,8,20,.55) 60%,rgba(12,8,20,.95) 100%)}
   .hero .info{position:absolute;left:14px;right:14px;bottom:12px}
@@ -724,7 +763,18 @@
     <div id="homeResume"></div>
 
     <div id="mateInviteWrap"></div>
+    <!-- 1.14 状态条：本周学了 N 天（断一天不归零） -->
+    <div class="weekbar" id="weekBar"></div>
+    <!-- 1.9 新用户三步上手 / 2.11 动机锚点 / 2.10 每日小事件 -->
+    <div id="homeExtra"></div>
+    <!-- 1.10 首屏第 2 层：今日约定 + 到期错题，紧跟唯一指令 -->
+    <div class="card" style="margin-top:12px" id="dqWrap"></div>
+    <div id="homeDueWrap"></div>
+    <div id="bigCtaWrap"></div>
 
+    <!-- 1.10 首屏第 3 层：其余全部收进「更多」折叠，首屏只留一条指令 -->
+    <button class="morebtn" id="moreBtn" onclick="toggleHomeMore()">展开更多 ▾</button>
+    <div id="homeMore" style="display:none">
     <div class="card" style="margin-top:12px">
       <div class="xpwrap">
         <div class="xpbar"><i id="xpFill"></i></div>
@@ -745,9 +795,6 @@
 
     <div class="card crowncard" style="margin-top:12px" id="rankWrap"></div>
     <div style="margin-top:12px" id="inviteWrap"></div>
-    <div id="bigCtaWrap"></div>
-    <div class="card" style="margin-top:12px" id="dqWrap"></div>
-    <div id="homeDueWrap"></div>
 
     <div class="sec-title"><span class="bar"></span>今日速记 · 一句考点<small>每天滚动</small></div>
     <div class="card">
@@ -757,9 +804,9 @@
       </div>
     </div>
 
-    <div class="sec-title"><span class="bar"></span>3 天倒计时<small>点任务打卡</small></div>
+    <div class="sec-title"><span class="bar"></span>考前节奏<small id="cdLeft">点任务打卡</small></div>
     <div class="card" style="border-color:rgba(255,209,102,.35);padding:12px 14px;cursor:pointer" onclick="go('s-plan')">
-      <div style="font-size:13px;line-height:1.7;color:#f6e3b0" id="homePlan">🎯 战略：背公式 + 套题型 + 刷真题。保底 100 分稳过线，冲刺 130+。</div>
+      <div style="font-size:13px;line-height:1.7;color:#f6e3b0" id="homePlan">🎯 先练满 30 题，我就能给你一个客观题估分区间。</div>
     </div>
 
     <div class="sec-title"><span class="bar"></span>新功能<small>管家陪你冲刺过线</small></div>
@@ -783,6 +830,7 @@
         <div style="font-size:12px;color:var(--gold)">进入 ›</div>
       </div>
     </div>
+    </div><!-- /homeMore -->
     <div class="appfoot"><span id="appVer"></span> · 心动成考·乙女陪练 · 数据仅存本机浏览器</div>
   </section>
 
@@ -1010,6 +1058,7 @@
       <button data-bt="dash" class="on" onclick="butlerTab('dash')">📊 仪表盘</button>
       <button data-bt="plan" onclick="butlerTab('plan')">🗓️ 每日规划</button>
       <button data-bt="diag" onclick="butlerTab('diag')">🩺 诊断</button>
+      <button data-bt="agent" onclick="butlerTab('agent')">🧭 决策</button>
       <button data-bt="sprint" onclick="butlerTab('sprint')">🚀 15天冲刺</button>
       <button data-bt="arc" onclick="butlerTab('arc')">💾 存档</button>
     </div>
@@ -1024,7 +1073,7 @@
 
   <!-- ============ DRILL ============ -->
   <section class="screen" id="s-drill">
-    <div class="back" onclick="go('s-study')">← 返回</div>
+    <div class="back" onclick="pauseForToday()">← 返回（进度会存档）</div>
     <div id="drillBody"></div>
   </section>
 
@@ -1138,9 +1187,61 @@
 </section>
 <script src="data/mathbank.js"></script>
 <script src="data/subjectbank.js"></script>
-<script src="data/kaodian.js"></script>
-<script src="data/goldpoints.js"></script>
+<!-- v3.4.0 · 首屏减负：data/kaodian.js(501KB 考点速记资料库) 与 data/goldpoints.js(380KB 黄金考点)
+     都不参与 ALLQ 构建，只有「考点速记」页与「速记图猜考点」小游戏用到 →
+     改为由 ensureBank() 按需异步加载（首屏同步解析体积 2.03MB → 1.15MB，HTML 解析与首绘不再等待）。
+     离线不受影响：两个文件仍在 sw.js 的 PRECACHE_URLS 里。 -->
 <script>
+/* =================== v3.4.0 · 按需题库（首屏减负） ===================
+   kaodian.js(501KB 考点速记资料库) / goldpoints.js(380KB 黄金考点) 只服务于「考点速记」页
+   与「速记图猜考点」小游戏，**不参与 ALLQ 构建**。原来的静态 <script src> 会让浏览器同步
+   下载并解析这 881KB，首屏白白等它 —— 改为按需异步加载：
+     · boot 完成后空闲预取（有 SW 预缓存时是本地读，几乎零延迟）
+     · 进入用到它们的页面/游戏时兜底 ensure，未就绪先给加载态，到位后就地重绘
+     · 两个文件仍在 sw.js 的 PRECACHE_URLS 里 → 断网照样可用 */
+const BANK_SRC = { kaodian:'data/kaodian.js', goldpoints:'data/goldpoints.js' };
+const BANK_TAG = { kaodian:'考点速记资料库', goldpoints:'黄金考点' };
+const __bankP = {};
+function bankReady(name){
+  if(name === 'kaodian') return !!window.KAODIAN;
+  if(name === 'goldpoints') return !!(window.GOLD_POINTS && window.GOLD_POINTS.data);
+  return true;
+}
+function ensureBank(name){
+  if(bankReady(name)) return Promise.resolve(true);
+  if(__bankP[name]) return __bankP[name];
+  __bankP[name] = new Promise(resolve => {
+    const s = document.createElement('script');
+    s.src = BANK_SRC[name];
+    s.async = true;
+    s.onload = () => resolve(bankReady(name));
+    s.onerror = () => { try{ s.remove(); }catch(e){} delete __bankP[name]; resolve(false); };   // 失败可重试
+    document.head.appendChild(s);
+  });
+  return __bankP[name];
+}
+function ensureBanks(names){ return Promise.all((names || []).map(ensureBank)).then(a => a.every(Boolean)); }
+/* 题库到位后：把依赖 gpReadBlock()（黄金考点入排程）的视图**就地**重绘，用户零操作 */
+function afterBanksReady(){
+  try{
+    const sc = document.querySelector('.screen.active'); if(!sc) return;
+    if(sc.id === 's-note'){
+      if(typeof GP_SRC !== 'undefined' && GP_SRC === 'gold') renderGold((document.getElementById('gpSearch') || {}).value || '');
+      else renderNote((document.getElementById('noteSearch') || {}).value || '');
+      return;
+    }
+    if(sc.id === 's-plan') renderPlan3Day();
+    else if(sc.id === 's-home') renderHome();
+    else if(sc.id === 's-butler') renderButler();
+  }catch(e){}
+}
+window.__ckBanksReady = false;
+function prefetchBanks(){
+  ensureBanks(['kaodian', 'goldpoints']).then(ok => {
+    window.__ckBanksReady = !!ok;
+    if(ok) afterBanksReady();
+  });
+}
 /* =================== 数据 =================== */
 const MODULES = [
   {id:'m1', name:'极限与连续', en:'Limits', ico:'∞', c:'#5ee0f0', ds:'代入 → 洛必达 → 等价无穷小，三步走。选择填空送分区。'},
@@ -1394,9 +1495,31 @@ const MATES = [
 ];
 
 /* ---- 好感阈值与等级 ---- */
-const AFF_T = [0, 30, 80, 160, 280];
+/* 1.11 好感双轨（叙事专家裁决）：
+   aff（成就轨）= 一起完成的事，决定等级/结局/SKILLS；
+   care（关怀轨）= 答错、连错、深夜、中断回归时给的情绪回应 —— 只读文案，**永不进 AFF_T**。
+   红线 R6：关怀不得成为奖品，也不得与正确率/连击挂钩。 */
+const AFF_T = [0, 24, 60, 110, 180];          // 原 [0,30,80,160,280]，下调以缩短正反馈周期
 const AFF_NAME = ['初识','熟悉','信赖','心动','命定'];
 function affLv(v){let lv=1;for(let i=0;i<AFF_T.length;i++){if(v>=AFF_T[i])lv=i+1;}return lv;}
+/* 旧存档迁移：阈值下调后按比例映射旧值，保证等级不降（只多不少） */
+function migrateAff(){
+  if(st._affMig) return;
+  const MAP = [0, 30, 80, 160, 280];             // 旧阈值
+  Object.keys(st.aff || {}).forEach(k => {
+    const v = st.aff[k] || 0;
+    let lv = 1; for(let i = 0; i < MAP.length; i++){ if(v >= MAP[i]) lv = i + 1; }
+    const need = AFF_T[lv - 1] || 0;
+    if(v < need) st.aff[k] = need;               // 等级不降
+  });
+  st._affMig = 1;
+}
+/* 关怀轨：答错 / 连错 / 深夜 / 中断回归时调用。不给数值反馈、不解锁任何东西，只让角色说句人话。 */
+function addCare(id, n){
+  if(!id || id === 'all') id = 'xue';
+  st.care = st.care || {}; st.care[id] = (st.care[id] || 0) + (n || 1);
+  return st.care[id];
+}
 
 const FORMULAS = {
   m1:[
@@ -1585,15 +1708,26 @@ const ALLQ = QUESTIONS.map(q => (q.subj ? q : Object.assign({}, q, {subj: 'math'
 
 /* 真题复用标记：《全真模拟》《押题》卷大量复用历年真题原题。
    构建一次「模拟卷题 id → 真题年份」映射，刷到这类题时显示 🔁 角标，提示先刷真题。 */
-const DUP_REAL = (function(){
+/* P3 惰性化：原来在加载期就做两次全库 O(N) 建键（2327 题 × 两次），
+   但真正的消费点只有错题角标。改成首次访问时才算，首屏少两次全库扫描。 */
+let __dupCache = null;
+/* ---------- P3 索引：ALLQ 的 O(1) 查找（原来有 7 处 O(错题数 × 2327) 的线性扫描）---------- */
+let __qbyid = null;
+function qById(id){
+  if(!__qbyid){ __qbyid = new Map(); ALLQ.forEach(q => __qbyid.set(q.id, q)); }
+  return __qbyid.get(id) || null;
+}
+function dupReal(){
+  if(__dupCache) return __dupCache;
   const norm = s => (s || '').replace(/\s+/g, '').replace(/[，。、,.;；:：？?！!]/g, '');
   const keyOf = q => (q.subj || '') + '|' + norm(q.q) + '|' + (q.o ? norm(q.o.join('#')) : (q.ans ? norm(q.ans.join('#')) : norm(q.answer || '')));
   const isMock = q => /模拟|押题|揭秘|考前/.test(q.paper || '');
   const seen = {}, dup = {};
   ALLQ.forEach(q => { if(!isMock(q) && !seen[keyOf(q)]) seen[keyOf(q)] = (String(q.paper || '').match(/\d{4}/) || [''])[0]; });
   ALLQ.forEach(q => { if(isMock(q)){ const y = seen[keyOf(q)]; if(y) dup[q.id] = y; } });
+  __dupCache = dup;
   return dup;
-})();
+}
 let FILTER = { subj: 'math', src: 'all', year: 'all' };
 
 /* 每个科目各自的可选年份（从聚合题库里现算） */
@@ -1765,7 +1899,20 @@ SUBJECTS.forEach(s => (s.mods || []).forEach(mo => { if(!MOD2MATE[mo.id]) MOD2MA
 /* =================== 闭环④ 角色 × 科目 × 进度 三位一体 ===================
    每位角色的「主场科目」：与 TA 一起学这门课，会吃到专属增益（主场共鸣）；
    学任何一科都会涨对应陪练的好感（防偏科红线：好感照给，增益只在主场叠加）。 */
+/* 1.12 人设 × 科目错位订正（叙事专家 D2 / 交叉验证后的最小修复）：
+   专家的原始判断是「ziyuan(偏导女王, m4) 写成 focus='eng'、ye(概率赌徒, m5) 写成 focus='pol' 属错位」。
+   但 MATE_FOCUS 的科目分散是**有意设计**——它是「防偏科陪练邀请」的数据基础（数学练多了就去邀请别的科目），
+   且已被 S2/S3/S8/S9/S17 五条断言锁定。直接把五人都改成 math 会让防偏科机制当场失效。
+   → 真正的缺陷在**措辞**而非数据：说「紫苑的主场是英语」与「偏导女王」直接冲突，
+     但说「今天由紫苑陪你练英语」完全成立（陪练 ≠ 主场）。
+   故：保留 MATE_FOCUS 数据不变；新增 MATE_MOD 作为**人设一致的模块级主场**（极限/微分/积分/多元/概率）；
+       并把面向用户的「主场」措辞改为「陪练科目」（「主场共鸣」这个增益名保留，它由科目级 MATE_FOCUS 决定）。*/
 const MATE_FOCUS = {xue:'all', luo:'math', cheng:'math', qing:'math', ziyuan:'eng', ye:'pol'};
+/* 人设一致的模块级主场（与各角色 title/desc/mod 严格对应） */
+const MATE_MOD = {luo:'m1', cheng:'m2', qing:'m3', ziyuan:'m4', ye:'m5'};
+function mateModLabel(id){ const mid = MATE_MOD[id]; return mid ? (modName(mid) || '') : ''; }
+/* 模块级主场：才是真正「人设主场」（紫苑 = 偏导 m4，夜喵 = 概率 m5） */
+function isHomeMod(mateId, modId){ return MATE_MOD[mateId] === modId; }
 const FOCUS_LABEL = {all:'全科', math:'高数二', pol:'政治', eng:'英语'};
 function focusOf(id){ return MATE_FOCUS[id] || 'all'; }
 function focusLabel(id){ return FOCUS_LABEL[focusOf(id)] || '全科'; }
@@ -1790,26 +1937,94 @@ function blank(){ return {name:'女主', xp:0, correct:0, total:0,
   wrong:[], mod:{}, plan:{}, mockBest:0, bossBest:0, combo:0, bestCombo:0, srsGrad:0,
   dq:null, streak:0, lastDay:'', examDate:'', p10:null,
   records:{}, sessions:[], butler:{weights:{math:1,pol:1,eng:1}, wDone:{}}, sprint:null,
-  variants:{}, aiStats:{api:0, hit:0},
-  todayTask:null, lastReport:null, planExtra:[], lessonFeed:[], bond:{}}; }
-function load(){
-  try{
-    const s = JSON.parse(localStorage.getItem(KEY) || 'null');
-    if(!s || !s.aff) return blank();
-    const b = blank();
-    for(const k in b){ if(s[k] === undefined) s[k] = b[k]; }
-    for(const k in b.aff){ if(s.aff[k] === undefined) s.aff[k] = 0; }
-    s.bond = s.bond || {};
-    MATES.forEach(m => { const t = s.bond[m.id] || (s.bond[m.id] = {}); t.q = t.q || 0; t.clear = t.clear || 0; t.kill = t.kill || 0; });
-    return s;
-  }catch(e){ return blank(); }
+  variants:{}, aiStats:{api:0, hit:0, blocked:0, nokey:0, open:0, rpm:0, deg:0, tok:0},
+  todayTask:null, lastReport:null, planExtra:[], lessonFeed:[], bond:{}, shield:2, shieldMax:3,
+  /* 1.11 关怀轨（不参与等级/结局/SKILLS）、1.9 用户画像、2.9 暂缓区、2.11 内在动机锚点 */
+  care:{}, profile:null, deferList:[], why:'', lastEventDay:'',
+  /* v3.1.0 P1 件4 记忆分层：新增「单个顶层 key」即可让老存档自动升级（load 会补默认值） */
+  mem:{sem:{}, epi:[], pro:{}}}; }
+/* 0.7 归一化：load() 与 importArchive() 共用，杜绝两条路径补字段不一致 */
+function normalize(s){
+  const b = blank();
+  if(!s || !s.aff) return b;
+  for(const k in b){ if(s[k] === undefined) s[k] = b[k]; }
+  for(const k in b.aff){ if(s.aff[k] === undefined) s.aff[k] = 0; }
+  for(const k in b.aiStats){ if(s.aiStats[k] === undefined) s.aiStats[k] = b.aiStats[k]; }
+  s.bond = s.bond || {};
+  MATES.forEach(m => { const t = s.bond[m.id] || (s.bond[m.id] = {}); t.q = t.q || 0; t.clear = t.clear || 0; t.kill = t.kill || 0; });
+  if(s.shield === undefined) s.shield = b.shield;
+  if(s.shieldMax === undefined) s.shieldMax = b.shieldMax;
+  /* 老存档：mem 缺失或子层缺失都补齐（顶层 key 已由上面 for-in 补过整体，这里防半成品） */
+  if(!s.mem || typeof s.mem !== 'object') s.mem = b.mem;
+  if(!s.mem.sem || typeof s.mem.sem !== 'object') s.mem.sem = {};
+  if(!Array.isArray(s.mem.epi)) s.mem.epi = [];
+  if(!s.mem.pro || typeof s.mem.pro !== 'object') s.mem.pro = {};
+  /* 1.11 关怀轨 / 1.9 画像 / 2.9 暂缓区：补齐默认（顶层 key 已由 for-in 补过，这里防半成品） */
+  if(!s.care || typeof s.care !== 'object') s.care = {};
+  ['xue','luo','cheng','qing','ziyuan','ye'].forEach(k => { if(s.care[k] === undefined) s.care[k] = 0; });
+  if(!Array.isArray(s.deferList)) s.deferList = [];
+  if(s.why === undefined) s.why = '';
+  return s;
 }
-function save(){ try{ localStorage.setItem(KEY, JSON.stringify(st)); }catch(e){} }
+function load(){
+  try{ return normalize(JSON.parse(localStorage.getItem(KEY) || 'null')); }
+  catch(e){ return blank(); }
+}
+const KEY_AI = 'ckmath_v3_aicache';
+/* 0.6 存档写入不再静默失败：先牺牲 AI 缓存重试，仍失败则告警并引导导出 */
+function save(){
+  try{ if(typeof bumpStat === 'function') bumpStat(); }catch(e){}
+  try{ localStorage.setItem(KEY, JSON.stringify(st)); return true; }
+  catch(e){
+    console.warn('[save] 写入失败，尝试释放 AI 缓存后重试', e);
+    try{
+      if(st.variants && Object.keys(st.variants).length){ st.variants = {}; localStorage.setItem(KEY, JSON.stringify(st)); toast('⚠️ 空间不足，已清理 AI 变式题缓存'); return true; }
+    }catch(_){}
+    try{ localStorage.removeItem(KEY_AI); localStorage.setItem(KEY, JSON.stringify(st)); toast('⚠️ 空间不足，已清理 AI 缓存'); return true; }
+    catch(_){}
+    toast('⚠️ 存档写入失败（浏览器存储已满）· 请到「学习管家 → 存档」导出备份');
+    return false;
+  }
+}
+/* AI 缓存独立分区（上限 1.5MB，LRU，可牺牲，绝不挤占学习数据） */
+function aiCacheGet(k){
+  try{ const o = JSON.parse(localStorage.getItem(KEY_AI) || '{}'); const v = o[k]; if(!v) return null; v._t = Date.now(); o[k] = v; localStorage.setItem(KEY_AI, JSON.stringify(o)); return v.v; }
+  catch(_){ return null; }
+}
+function aiCacheSet(k, v){
+  try{
+    const o = JSON.parse(localStorage.getItem(KEY_AI) || '{}');
+    o[k] = { v:v, _t:Date.now() };
+    let s = JSON.stringify(o);
+    if(s.length > 1500000){                       // 超上限：按时间淘汰最旧的一半
+      const arr = Object.keys(o).sort((a,b) => (o[a]._t||0) - (o[b]._t||0));
+      arr.slice(0, Math.ceil(arr.length/2)).forEach(x => delete o[x]);
+      s = JSON.stringify(o);
+    }
+    localStorage.setItem(KEY_AI, s);
+  }catch(_){ /* 缓存写不进去就算了，绝不牵连主存档 */ }
+}
 let st = load();
+try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v2.4.0';   // 同步 GitHub Release 标签
+const APP_VER = 'v3.4.0';   // 同步 GitHub Release 标签（v3.2.0 = P1 收尾 + P2 纵深；v3.3.0 = P3 应用效率；v3.4.0 = Agent 会用工具 + 首屏减负）
 
 /* =================== 工具 =================== */
+/* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
+   满分 450 = 客观题 285（本 App 训练范围）+ 主观题 165（解答题/作文，本 App 不训练） */
+const SCORE_OBJ_TOTAL = 285, SCORE_SUBJ_TOTAL = 165;
+function scoreModel(){
+  const n = st.total || 0;
+  const acc = n ? (st.correct || 0) / n : 0;
+  const lo = Math.max(0, Math.round(SCORE_OBJ_TOTAL * (acc - 0.08)));
+  const hi = Math.min(SCORE_OBJ_TOTAL, Math.round(SCORE_OBJ_TOTAL * (acc + 0.08)));
+  return { n:n, acc:acc, lo:lo, hi:hi, obj:SCORE_OBJ_TOTAL, subj:SCORE_SUBJ_TOTAL };
+}
+function scoreLine(){
+  const m = scoreModel();
+  if(m.n < 30) return '先练满 30 题，我就能给你一个客观题估分区间。';
+  return '按已练 ' + m.n + ' 题的正确率估：客观题约 ' + m.lo + '~' + m.hi + ' 分（满分 ' + m.obj + '）；另有 ' + m.subj + ' 分解答题/作文本 App 不训练，仅供参考。';
+}
 function getMate(id){ return MATES.find(m => m.id === id); }
 function affPct(v, lv){ if(lv >= 5) return 100; const lo = AFF_T[lv-1], hi = AFF_T[lv]; return Math.min(100, Math.max(0, Math.round((v - lo) / (hi - lo) * 100))); }
 function levelInfo(){
@@ -1872,9 +2087,9 @@ function dqEnsure(){
   }
 }
 const DQ_DEFS = [
-  {k:'q', ico:'📝', n:'今日刷题 12 道',       goal:12, get:s => s.p,  xp:40},
-  {k:'a', ico:'✅', n:'今日答对 8 道',        goal:8,  get:s => s.c,  xp:60},
-  {k:'m', ico:'🔥', n:'打出 3 连击',          goal:3,  get:s => s.mc, xp:50}
+  {k:'q', ico:'📝', n:'今日刷题 12 道',       goal:12, get:s => s.p,  xp:40, coins:15},
+  {k:'a', ico:'✅', n:'今日答对 8 道',        goal:8,  get:s => s.c,  xp:60, coins:15},
+  {k:'m', ico:'🔥', n:'打出 3 连击',          goal:3,  get:s => s.mc, xp:50, coins:20}
 ];
 function dqOnAnswer(ok, combo){
   dqEnsure();
@@ -1884,21 +2099,29 @@ function dqOnAnswer(ok, combo){
   if(combo > (st.dq.mc || 0)) st.dq.mc = combo;
   if(wasFirst){
     let tip = '';
-    if(st.lastDay === todayStr(1)){ st.streak = (st.streak || 0) + 1; }
-    else if(st.lastDay === todayStr(2)){
-      // 漏 1 天：宽容日 —— 不掉回 1，只扣 1 天，给拖延症留一口气
-      st.streak = Math.max(1, (st.streak || 1) - 1);
-      tip = ' · 用掉一次「宽容日」，连续天数只 -1';
+    if(st.lastDay === todayStr(1)){
+      st.streak = (st.streak || 0) + 1;
+      /* 0.10 连续满 7 天奖励一枚护盾（上限 3） */
+      if(st.streak % 7 === 0 && (st.shield || 0) < (st.shieldMax || 3)){ st.shield = (st.shield || 0) + 1; tip = ' · 获得一枚 🛡️ 护盾'; }
     }
-    else if(st.lastDay !== todayStr()){ st.streak = 1; }
+    else if(st.lastDay === todayStr(2)){
+      if((st.shield || 0) > 0){ st.shield--; tip = ' · 🛡️ 护盾替你顶住了这一次'; }
+      else{ st.streak = Math.max(1, (st.streak || 1) - 1); tip = ' · 中间空了一天，天数不作废'; }
+    }
+    else if(st.lastDay !== todayStr()){
+      if((st.shield || 0) > 0){ st.shield--; tip = ' · 🛡️ 护盾替你顶住了这一次'; }
+      else st.streak = 1;                    // 无护盾才归 1
+    }
     st.lastDay = todayStr();
-    toast('📅 打卡成功 · 已连续 ' + st.streak + ' 天 🔥' + tip);
+    /* 1.14 去内疚文案（红线 R2）：不出现「断/清零/只 -1」等损失框架，只呈现「今天也留下了痕迹」 */
+    toast('📅 今天也留下了痕迹 · 本周第 ' + weekStudyDays() + ' 天' + tip);
   }
   DQ_DEFS.forEach(t => {
-    if(!st.dq.claim[t.k] && t.get(st.dq) >= t.goal){
+    if(!st.dq.claim[t.k] && t.get(st.dq) >= dqGoal(t)){
       st.dq.claim[t.k] = true;
       st.xp += t.xp;
-      setTimeout(() => { popReward('+' + t.xp + ' XP · 每日任务达成', '#e8536f'); toast(t.ico + ' ' + t.n + ' 达成！ +' + t.xp + ' XP'); }, 600);
+      st.coins = (st.coins || 0) + (t.coins || 0);   // 0.11 把承诺的「+50 心动币」真正发出来
+      setTimeout(() => { popReward('+' + t.xp + ' XP · +' + (t.coins||0) + ' 心动币', '#e8536f'); toast(t.ico + ' ' + t.n + ' 达成！ +' + t.xp + ' XP · +' + (t.coins||0) + ' 心动币'); }, 600);
       rankUpCheck(st.xp - t.xp, st.xp);
     }
   });
@@ -1908,28 +2131,89 @@ function renderDQ(){
   const box = document.getElementById('dqWrap'); if(!box) return;
   dqEnsure();
   const doneN = DQ_DEFS.filter(t => st.dq.claim[t.k]).length;
+  /* 1.14 去内疚：不再显示「🔥 连续 N 天」（亏损框架），改显示「本周学了 N 天」（累积框架） */
   let h = `<div style="display:flex;align-items:center;justify-content:space-between">
     <div style="font-weight:900;font-size:14px">💌 今日的心动约定 <span style="font-size:11px;color:var(--sub);font-weight:500">${doneN}/${DQ_DEFS.length}</span></div>
-    <div style="font-size:12px;color:#ffd166;font-weight:800">🔥 连续 ${st.streak || 0} 天</div></div>`;
+    <div style="font-size:12px;color:#ffd166;font-weight:800">📅 本周学了 ${weekStudyDays()} 天</div></div>`;
   DQ_DEFS.forEach(t => {
-    const v = Math.min(t.get(st.dq), t.goal), pct = Math.round(v / t.goal * 100), ok = st.dq.claim[t.k];
+    const goal = dqGoal(t);                       // 0.13：微会话档当日按 N/20 缩放约定目标
+    const v = Math.min(t.get(st.dq), goal), pct = Math.round(v / goal * 100), ok = st.dq.claim[t.k];
     h += `<div class="pact ${ok ? 'done' : ''}">
       <div class="dot">✓</div>
-      <div class="tx">${t.n}</div>
-      <div class="rw">${ok ? '已达成' : v + '/' + t.goal + ' · +' + t.xp + 'XP'}</div></div>
+      <div class="tx">${t.n}${goal !== t.goal ? '<span style="font-size:10.5px;color:var(--sub);font-weight:500"> · 碎片档 ' + goal + '</span>' : ''}</div>
+      <div class="rw">${ok ? '已达成 ✅' : v + '/' + goal + ' · +' + t.xp + 'XP · +' + (t.coins||0) + '币'}</div></div>
       <div style="height:4px;border-radius:4px;background:rgba(255,209,102,.14);overflow:hidden"><i style="display:block;height:100%;width:${pct}%;background:linear-gradient(90deg,#ffd166,#ff8ac2);border-radius:4px"></i></div>`;
   });
-  h += `<div style="font-size:11px;color:var(--sub);margin-top:10px">清空约定，加冕更进一步 👑</div>`;
+  h += `<div style="font-size:11px;color:var(--sub);margin-top:10px">三条里完成任意一条，今天就算数 👑</div>`;
   box.innerHTML = h;
 }
-/* =================== 提分 ROI 引擎 =================== */
-const MOD_W = {
-  m1:1.1, m2:1.3, m3:1.3, m4:0.8, m5:0.7,
-  /* 政治按真题分值占比校准：马哲(选择主力+辨析)≈45分 / 毛中特+中特(含简答论述)≈60分 / 习思想≈18分
-     史纲≈6分 / 时政≈12分(选择题好突击) / 思修≈6分 */
-  p1:1.35, p2:1.3, p3:1.15, p4:0.7, p5:1.1, p6:0.6,
-  e1:0.5, e2:1.2, e3:1.0, e4:1.5, e5:0.6
+/* =================== 提分 ROI 引擎 v2 · 1.6 考点分值表 ===================
+   obj = 该模块在**真卷客观题**中的分值。数值来自对 data/ 真卷的实测统计，非拍脑袋：
+   · 高数：2014-2023 十年真卷 200 题实测占比（m1 18% / m2 32% / m3 31% / m4 14.5% / m5 4.5%），
+           按客观 80 分折算。注：2024-2025 卷结构变为 12 选择 + 3 填空，占比仍按十年均值保守取。
+   · 政治：2014-2025 十二年真卷每题量均值（p1 10.5 / p2 21.5 / p5 5），按客观 80 分折算。
+           p3/p4/p6 在**真卷中出现 0 次**，仅存于 2026 模拟/押题卷 → p4 史纲、p6 思修
+           不在专升本政治考纲三块（马哲 / 毛中特 / 时政）内，标 ext 剔除出 ROI；
+           p3 属大纲内但真卷无支撑，标 est（估算值），UI 会显示「待核实」。
+   · 英语：2014-2025 十二年真卷题量恒定（e1 5 / e2 15 / e3 15 / e4 20 / e5 5），
+           按题型分值折为客观 125 分（语音 5 / 词汇 15 / 完形 30 / 阅读 60 / 补全 15）。
+   红线 R4：这些分值只用于**排序择题**，绝不换算成「你能得多少分」的承诺。 */
+const KD_SCORE = {                       // 命名避让 data/kaodian.js 注入的 window.KAODIAN（考点速记资料库）
+  m1:{obj:14.4, diff:3, dep:2}, m2:{obj:25.6, diff:4, dep:3}, m3:{obj:24.8, diff:4, dep:3},
+  m4:{obj:11.6, diff:2, dep:3}, m5:{obj:3.6,  diff:2, dep:2},
+  p1:{obj:22.7, diff:2, dep:2}, p2:{obj:46.5, diff:3, dep:3}, p5:{obj:10.8, diff:1, dep:0},
+  p3:{obj:15,   diff:4, dep:3, est:1},
+  p4:{obj:0,    diff:3, dep:2, ext:1}, p6:{obj:0, diff:3, dep:2, ext:1},
+  e1:{obj:5,  diff:1, dep:1}, e2:{obj:15, diff:3, dep:2}, e3:{obj:30, diff:4, dep:3},
+  e4:{obj:60, diff:4, dep:3}, e5:{obj:15, diff:2, dep:2}
 };
+const MOD_W = {};                       // 兼容旧引用：由 KD_SCORE 归一导出（1~2 的星级）
+(function(){ const mx = Math.max.apply(null, Object.keys(KD_SCORE).map(k=>KD_SCORE[k].obj));
+  Object.keys(KD_SCORE).forEach(k=>{ MOD_W[k] = Math.round((0.5 + 1.5*KD_SCORE[k].obj/mx)*100)/100; }); })();
+function kdOf(id){ return KD_SCORE[id] || {obj:10, diff:3, dep:2}; }
+function isExtMod(id){ return !!(kdOf(id).ext); }        // 超纲扩展模块：不入 ROI、不进今日任务
+/* ROI v2：把「学习成本」放进分母（成考命题策略专家裁决 ①）
+   roi = 客观分值 × 提分空间 × 新鲜度 × 题量充足度 / 学习成本 */
+function modRoi(mid){
+  const k = kdOf(mid);
+  if(k.ext) return 0;                                    // 超纲模块 ROI 恒为 0，永不推荐
+  const s = modStats(mid);
+  if(!s.total) return 0;
+  const acc   = s.att ? s.acc/100 : 0.5;                 // 没练过按 50% 掌握估
+  const space = Math.max(0, 1 - acc);
+  const cost  = Math.min(3, Math.max(0.5, 1 + 0.4*(k.diff-3) + 0.3*k.dep));
+  const bulk  = Math.min(2, 0.6 + s.total/40);
+  const fresh = s.cov === 0 ? 1.15 : 1;
+  return Math.round(k.obj * space * fresh * bulk / cost * 100) / 100;
+}
+/* 1.7 三科动态权重：ROI 决定配比，SUBJ_MIN_SHARE 硬下限防偏科，用户滑块作为 prior 乘子（0.6~1.4） */
+const SUBJ_MIN_SHARE = 0.20;
+function dynamicWeights(){
+  const prior = st.butler && st.butler.weights ? st.butler.weights : {math:3, pol:2, eng:2};
+  const priorMax = Math.max(1, Math.max(prior.math||1, prior.pol||1, prior.eng||1));
+  const raw = {};
+  SUBJECTS.forEach(s=>{ let v = 0; s.mods.forEach(m=>{ v += modRoi(m.id); }); raw[s.id] = v; });
+  const rsum = SUBJECTS.reduce((a,s)=>a+raw[s.id], 0) || 1;
+  const w = {};
+  SUBJECTS.forEach(s=>{
+    const roiShare = raw[s.id] / rsum;
+    const pm = 0.6 + 0.8 * ((prior[s.id]||1) / priorMax);      // 滑块：先验权重最多上下浮动 40%
+    w[s.id] = roiShare * pm;
+  });
+  const wsum = SUBJECTS.reduce((a,s)=>a+w[s.id], 0) || 1;
+  SUBJECTS.forEach(s=>{ w[s.id] /= wsum; });
+  // 硬下限：任一科不低于 20%，超出部分按 ROI 比例从其他科回填
+  let deficit = 0; const below = [];
+  SUBJECTS.forEach(s=>{ if(w[s.id] < SUBJ_MIN_SHARE){ deficit += SUBJ_MIN_SHARE - w[s.id]; below.push(s.id); w[s.id] = SUBJ_MIN_SHARE; } });
+  if(deficit > 0){
+    const pool = SUBJECTS.filter(s=>below.indexOf(s.id) < 0);
+    const psum = pool.reduce((a,s)=>a+w[s.id], 0) || 1;
+    pool.forEach(s=>{ w[s.id] = Math.max(SUBJ_MIN_SHARE, w[s.id] - deficit * (w[s.id]/psum)); });
+  }
+  const fin = SUBJECTS.reduce((a,s)=>a+w[s.id], 0) || 1;
+  SUBJECTS.forEach(s=>{ w[s.id] = Math.round(w[s.id]/fin*1000)/1000; });   // Σ=1
+  return w;
+}
 function subjMods(subjId){
   const s = SUBJECTS.find(x => x.id === (subjId || FILTER.subj)) || SUBJECTS[0];
   return s.mods;
@@ -1939,14 +2223,12 @@ function roiList(subjId){
     const prog = st.mod[mo.id] || {c: 0, t: 0};
     const n = ALLQ.filter(q => q.m === mo.id).length;   // 不受当前筛选影响
     if(!n) return null;
-    const w = MOD_W[mo.id] || 1;
-    const mastery = prog.t ? prog.c / prog.t : 0.5;   // 未刷过的模块按 50% 掌握估
-    const space = 1 - mastery;                        // 提分空间
-    const bulk = Math.min(2, 0.6 + n / 40);           // 题量充足度
-    const fresh = prog.t ? 1 : 1.15;                  // 新模块略优先
-    return {mo, prog, n, w, acc: Math.round(mastery * 100),
-      roi: Math.round(w * space * bulk * fresh * 100) / 100,
-      reason: prog.t ? (mastery < 0.6 ? '正确率 ' + Math.round(mastery * 100) + '%，提分空间大' : '正确率 ' + Math.round(mastery * 100) + '%，保持手感') : '还没刷过，先探底'};
+    const k = kdOf(mo.id);
+    const s = modStats(mo.id);
+    return {mo, prog, n, w: MOD_W[mo.id] || 1, obj: k.obj, ext: !!k.ext, est: !!k.est,
+      acc: s.acc, roi: modRoi(mo.id),
+      reason: k.ext ? '不在专升本考纲内，真卷 0 次 · 已从推荐中剔除'
+        : (s.cov === 0 ? '还没刷过，先探底' : (s.acc < 60 ? '正确率 ' + s.acc + '%，提分空间大' : '正确率 ' + s.acc + '%，保持手感'))};
   }).filter(Boolean).sort((a, b) => b.roi - a.roi);
 }
 function startMod(mid, mode){
@@ -2154,11 +2436,9 @@ function renderBigCta(){
   const box = document.getElementById('bigCtaWrap'); if(!box) return;
   const hot = roiAll();
   const dueN = st.wrong.filter(w => w.srs && w.srs.due && w.srs.due <= Date.now()).length;
-  if(dueN){
-    box.innerHTML = `<button class="bigcta" style="background:linear-gradient(120deg,#ff8ad1,#ff7a9c)" onclick="reviewDue()">⏰ ${dueN} 道错题到了记忆临界点<small>现在复习 = 留存率最高的时候</small></button>`;
-    return;
-  }
-  if(!hot){ box.innerHTML = `<button class="bigcta" onclick="enterStudy()">赴约 · 开始今天的刷题<small>三科都在等你</small></button>`; return; }
+  /* 1.10 去重：到期错题提醒已由 #homeDueWrap 承担，此处不再重复输出同一个入口（原来首屏出现两遍） */
+  if(dueN){ box.innerHTML = ''; return; }
+  if(!hot){ box.innerHTML = ''; return; }   // 没有可推荐模块时不占首屏
   const sn = (SUBJECTS.find(s => s.id === hot.subj) || {}).name || '';
   box.innerHTML = `<button class="bigcta" onclick="enterSubject('${hot.subj}')">赴约 · ${sn} ${hot.name}<small>提分 ROI ${hot.roi.toFixed(2)} · 今天最该刷的就是它</small></button>`;
 }
@@ -2167,12 +2447,44 @@ function addAff(id, n){
   const old = affLv(st.aff[id]);
   st.aff[id] += n;
   const nv = affLv(st.aff[id]);
-  if(nv > old) showLup(id, nv);
+  if(nv > old){ showLup(id, nv); memScene(id, 'levelup', { lv:nv }); }   // 2.3 升级即名场面
   save();
 }
 /* 闭环④ 羁绊档案：好感之外，记录「我们一起做过什么」——角色×进度的凭证 */
 function bondOf(id){ st.bond = st.bond || {}; const b = st.bond[id] || (st.bond[id] = {q:0, clear:0, kill:0}); b.q = b.q||0; b.clear = b.clear||0; b.kill = b.kill||0; return b; }
 function bondAdd(id, field, n){ if(!id || id === 'all') return; const b = bondOf(id); b[field] = (b[field] || 0) + (n || 1); }
+/* ---------- 2.3 羁绊档案叙事化：把「一起经历过的事」从计数升级成可回看的名场面 ----------
+   扁平存在 st.mem[id]（不是 st.mem.sem/epi/pro 下），老存档零迁移。
+   每条含时间、类型、模块、台词与当时的语境数据，可以随时翻回去看。 */
+const SCENE_KIND = {first:'初次并肩', levelup:'羁绊升级', clear:'共同通关', kill:'携手反杀', comeback:'重逢', night:'深夜相伴'};
+function memScene(id, kind, data){
+  if(!id || id === 'all') return;
+  const mem = memEnsure();
+  const list = mem[id] || (mem[id] = []);
+  const m = getMate(id) || {};
+  const k = kind || 'clear';
+  if(k !== 'clear' && k !== 'kill'){                       // 同类事件去重（升级/重逢不重复记）
+    if(list.some(x => x.k === k && x.d === todayStr(0))) return;
+  }
+  list.push({ t:Date.now(), d:todayStr(0), k:k, mod:(data && data.mod) || '', mods:(data && data.mods) || '',
+    lv:(data && data.lv) || affLv(st.aff[id] || 0), n:(data && data.n) || 0,
+    line:String((data && data.line) || (m.lines && m.lines.correct ? pick(m.lines.correct) : '')).slice(0, 60),
+    ctx:(data && data.ctx) || '' });
+  if(list.length > 60) list.shift();
+  save();
+}
+function scenesOf(id){ const mem = memEnsure(); return (mem[id] || []).slice().reverse(); }
+function renderSceneCards(id){
+  const list = scenesOf(id).slice(0, 6);
+  if(!list.length) return '<div style="font-size:11.5px;color:var(--sub);margin-top:8px">还没有名场面。第一次通关、第一次升级，都会被记在这里。</div>';
+  return '<div style="font-size:12px;font-weight:800;margin-top:12px">🎬 名场面</div>'
+    + list.map(x => '<div class="card" style="margin:8px 0 0;padding:10px 12px;border-color:rgba(255,138,209,.35)">'
+      + '<div style="font-size:11px;color:var(--sub)">' + escapeHtml(x.d || '') + ' · ' + escapeHtml(SCENE_KIND[x.k] || x.k)
+      + (x.mod ? ' · ' + escapeHtml(modName(x.mod)) : '') + '</div>'
+      + '<div style="font-size:12.5px;margin-top:4px;line-height:1.7">「' + escapeHtml(x.line || '') + '」</div>'
+      + (x.ctx ? '<div style="font-size:11px;color:var(--dim);margin-top:3px">' + escapeHtml(x.ctx) + '</div>' : '')
+      + '</div>').join('');
+}
 /* 共同经历值：把三类凭证折算成一个可比较的「羁绊进度」（用于陪练邀请排序） */
 function bondScore(id){ const b = bondOf(id); return b.q + b.clear * 20 + b.kill * 5; }
 function showLup(id, lv){
@@ -2244,9 +2556,94 @@ function ttsBar(getText, opt){
   mk('⏹', '停止', () => stopSpeak());
   return bar;
 }
-function mateLine(mateId, ok){ const m = getMate(mateId); return pick(ok ? m.lines.correct : m.lines.wrong); }
+/* =================== 2.2 情境化台词矩阵（叙事专家 P0 最小可用切法）===================
+   情境：wrongFirst（第一次错）/ wrongRepeat（同一轮连错≥2）/ comfort（深夜、中断后回归的安慰）/
+        greetOff（客场开场）/ comeback（好久不见）/ beforeExam（考前）
+   红线 R6：关怀类（wrongFirst/wrongRepeat/comfort）不带交易钩子、不与正确率或连击挂钩、不出现任何数值奖励承诺。 */
+const LINES2 = {
+  xue:{
+    wrongFirst:['这一题错在细节，不是方向。记住这个坑，它就变成你的。','别急着往下翻。这道题我们拆开看一遍。'],
+    wrongRepeat:['连着两道了，说明不是手滑——是这块地基没打牢。我把节奏放慢，你跟着走。','先停一下。连着错不是你的问题，是这段该换讲法了。'],
+    comfort:['今天能坐下来做题，本身就已经赢了半个你。','累了就歇。进度不会因为你休息就消失。'],
+    greetOff:['这不是我的领域，但我还是来陪你。','我不擅长这科，可我擅长陪你把不会的变成会的。'],
+    comeback:['你回来了。灯我一直给你留着。','不用解释，坐下来就行。'],
+    beforeExam:['考前这几天，跟着我的节奏走就好。']
+  },
+  luo:{
+    wrongFirst:['嘻，掉进坑里啦？别慌，坑也是我挖的，我带你爬出来。','这题有诈，被我抓到一次。记下来。'],
+    wrongRepeat:['喂——连错两次了，这不是你的水平。我们从头捋一遍。','停停停，你先别急，我讲一遍你就懂了。'],
+    comfort:['错就错呗，反正又不扣你分数。陪我再做一道？','……其实你已经很努力了，不用装作不在意。'],
+    greetOff:['这不是我的地盘，但我可以来串门。','换块场地而已，题还是那道题。'],
+    comeback:['哟，舍得回来啦？我等你很久了。','别摆那副表情，坐下来，我们继续。'],
+    beforeExam:['考前别乱刷，跟着我挑题就行。']
+  },
+  cheng:{
+    wrongFirst:['（银线轻绕）这一步断了，但整条链还在。我们从断点接上。','错一次，记一笔。它不会再拦住你第二次。'],
+    wrongRepeat:['连着出错，说明推导的起点偏了。我们把第一步重新写一遍。','先别算。停在这里，看清条件再动笔。'],
+    comfort:['你今天坐下来的时候，就已经比昨天多走了一步。','不必为了进度责备自己。慢慢来，我在。'],
+    greetOff:['这里不是我的主场，但我仍与你同行。','换一门课，规则不变：一步一步来。'],
+    comeback:['你回来了。推导可以重来，人也可以。','不用道歉。坐下，我们从这里继续。'],
+    beforeExam:['考前把链式法则再过一遍，剩下的交给我。']
+  },
+  qing:{
+    wrongFirst:['欸，这题有点坏心眼。没关系，我陪你再看一次。','错了才好，说明它值得记。'],
+    wrongRepeat:['连着两题都偏了，我们换一种想法试试？','先深呼吸。我先不讲，你自己再读一遍题看看。'],
+    comfort:['不管今天做对几道，我都在这儿。慢慢来就好。','今天已经很好了。剩下的明天我们一起。'],
+    greetOff:['这科不是我最拿手的，但我愿意陪你学。','我可能讲得慢一点，你别嫌弃呀。'],
+    comeback:['你回来啦！我一直在这等你。','欢迎回来——我们接着上次的地方继续。'],
+    beforeExam:['考前别慌，把错题本过一遍就够啦。']
+  },
+  ziyuan:{
+    wrongFirst:['（慵懒）看错了变量吧。求谁的导，其他字母都是常数。','这一笔偏了，仅此而已。重来。'],
+    wrongRepeat:['连错两次，说明方法选错了，不是算错。换条路。','停。先把题读完，再决定求谁。'],
+    comfort:['你已经在这里坐了这么久，这一点本身就值得被记住。','不必急。时间是站在肯回来的人这一边的。'],
+    greetOff:['（挑眉）这不是我的地盘。不过，我来了。','换科目而已。我只看你，不看卷子。'],
+    comeback:['（轻笑）终于想起我了。','回来就好。灯，我没熄。'],
+    beforeExam:['考前只过一个东西：你自己错过的题。']
+  },
+  ye:{
+    wrongFirst:['唔，这次概率站对面了。下把赢回来。','掉坑了？记下坐标，下次绕着走。'],
+    wrongRepeat:['连错两把……（打哈欠）行吧，重开一局，规则不变。','别急着押注，先把条件读完。'],
+    comfort:['（尾巴扫过来）今天到这就行，反正分数不会跑。','你啊，已经很拼了。歇会儿，我守着你。'],
+    greetOff:['（打哈欠）不是我的地盘……但我还是来了。','换场地而已，我照样陪你。'],
+    comeback:['哦，你回来了。（尾巴晃了一下）','别解释，坐下吧。局还没结束。'],
+    beforeExam:['考前的题我都替你看过一遍了，没有陷阱。']
+  }
+};
+function situationLine(mateId, ctx){
+  const t = LINES2[mateId];
+  if(ctx && t && t[ctx] && t[ctx].length) return pick(t[ctx]);
+  return '';
+}
+function mateLine(mateId, ok, ctx){
+  const m = getMate(mateId); if(!m) return '';
+  const s = situationLine(mateId, ctx);
+  if(s) return s;
+  return pick(ok ? m.lines.correct : m.lines.wrong);
+}
 
 /* =================== 导航 =================== */
+/* 0.14 中断即保护：切后台 / 关页面立刻落盘；Android 返回键退回首页而不是直接退出应用 */
+let CK_PUSHED = false;
+function ckFlush(){
+  try{ save(); if(S && S.drill && typeof saveDrillProgress === 'function') saveDrillProgress(); }catch(_){}
+}
+function bindLifecycleGuards(){
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState === 'hidden') ckFlush();
+    /* v3.4.0：从后台切回来 = 时段可能已经变了 → 让管家自动重估（节流 60s） */
+    else { try{ agAutoTick(); }catch(_){} }
+  });
+  window.addEventListener('pagehide', ckFlush);
+  window.addEventListener('beforeunload', ckFlush);
+  window.addEventListener('popstate', function(){
+    try{
+      if(!CK_PUSHED){ history.pushState({ ck:1 }, '', location.href); CK_PUSHED = true; }
+      go('s-home');
+    }catch(_){}
+  });
+  try{ history.pushState({ ck:0 }, '', location.href); }catch(_){}
+}
 function go(t){
   // 离开答题页时把进度落盘（含已选答案），切回来能原样还原
   const cur = document.querySelector('.screen.active');
@@ -2262,10 +2659,10 @@ function go(t){
   else if(t === 's-me') renderMe();
   else if(t === 's-study') renderStudy();
   else if(t === 's-cards') renderCards();
-  else if(t === 's-note') renderNote();
+  else if(t === 's-note') renderNoteScreen();
   else if(t === 's-tree') renderTree();
   else if(t === 's-myNotes') renderMyNotes();
-  else if(t === 's-plan') renderPlan();
+  else if(t === 's-plan') renderPlan3Day();
   else if(t === 's-drill') renderDrill();
   else if(t === 's-boss') renderBoss();
   else if(t === 's-mock') renderMock();
@@ -2273,19 +2670,158 @@ function go(t){
   else if(t === 's-sprint') renderSprint();
   else if(t === 's-butler') renderButler();
   else if(t === 's-readanime') renderReadAnime();
+  /* v3.4.0：管家自动轻感知（屏幕切换触发，60s 节流；只规划不执行） */
+  if(t === 's-home' || t === 's-butler' || t === 's-games' || t === 's-study') agAutoTick();
 }
 function enterStudy(){ go('s-study'); }
 
 /* =================== 首页 =================== */
+/* ---------- 1.14 「本周学了 N 天」：断一天不归零，累积还在（替代「连续 N 天」的亏损框架）---------- */
+function weekStart(){
+  const d = new Date(); const w = (d.getDay() + 6) % 7;      // 周一为一周起点
+  d.setHours(0,0,0,0); d.setDate(d.getDate() - w); return d;
+}
+function weekStudyDays(){
+  const ws = weekStart(), wsd = ws.getFullYear()+'-'+pad(ws.getMonth()+1)+'-'+pad(ws.getDate());
+  const set = {};
+  (st.sessions || []).forEach(s=>{ if(s.d && s.d >= wsd && (s.n||0) > 0) set[s.d] = 1; });
+  if((st.sessions||[]).find(s=>s.d===todayStr(0) && (s.n||0)>0)) set[todayStr(0)] = 1;
+  return Object.keys(set).length;
+}
+function renderWeekBar(){
+  const el = document.getElementById('weekBar'); if(!el) return;
+  const n = weekStudyDays();
+  const left = Math.max(0, daysUntilExam());
+  el.innerHTML = '<span class="dotw"></span><span>本周已学 <b style="color:#ffd166">' + n + '</b> 天</span>'
+    + '<span style="margin-left:auto;color:var(--sub);font-weight:600">距考试还有 ' + left + ' 天</span>';
+}
+/* ---------- 1.10 首屏「更多」折叠 ---------- */
+function toggleHomeMore(){
+  const box = document.getElementById('homeMore'), btn = document.getElementById('moreBtn');
+  if(!box || !btn) return;
+  const open = box.style.display !== 'none';
+  box.style.display = open ? 'none' : 'block';
+  btn.textContent = open ? '展开更多 ▾' : '收起 ▴';
+}
+/* ---------- 2.4 双向感：回归问候按「离开多久」分档 ----------
+   不出现「你已 N 天没来」这类损失框架（红线 R2）；间隔越久，台词越偏向「灯光一直亮着」。 */
+function seenBucket(prevMs){
+  if(!prevMs) return 'new';
+  const h = (Date.now() - prevMs) / 36e5;
+  if(h < 2) return 'same';
+  if(h < 24) return 'day';
+  if(h < 72) return 'gap';
+  return 'long';
+}
+function greetByRecency(m){
+  const b = seenBucket(st.lastOpenAt);
+  if(b === 'long' || b === 'gap'){
+    const s = situationLine(m.id, 'comeback');
+    if(s) return s;
+  }
+  return pick(m.lines.greet);
+}
+/* ---------- 1.9 新用户三步上手（考期 / 每日可用时长 / 易学时段）----------
+   原实现无 onboarding，且 sprintState() 默认考试日期 = 今天 +10 天（Q5），
+   于是所有人的阶段划分、冲刺节奏、估分模型全部建立在错误基准上。这里让用户第一次进来就把它定下来。 */
+const SLOT_OPTIONS = [['早','6:00–9:00'],['午','12:00–15:00'],['晚','20:00–23:00']];
+function profileDone(){ return !!(st.profile && st.profile.examDate && st.profile.minutes && st.profile.slot); }
+function setProfile(k, v){
+  st.profile = st.profile || {};
+  st.profile[k] = v;
+  if(k === 'examDate') st.examDate = v;
+  save(); renderHomeExtra();
+}
+function onboardingHTML(){
+  const p = st.profile || {};
+  const today = todayStr(0);
+  return '<div class="card" style="border-color:rgba(255,209,102,.5);margin-top:12px">'
+    + '<div style="font-weight:900;font-size:14px">👋 先认识一下你（3 步，10 秒）</div>'
+    + '<div style="font-size:11.5px;color:var(--sub);margin-top:3px">定下来之后，课表和冲刺节奏才是按你的真实情况排的。</div>'
+    + '<div style="font-size:12px;font-weight:800;margin-top:10px">① 你的考试日期</div>'
+    + '<input type="date" id="obDate" value="' + (p.examDate || '') + '" min="' + today + '" onchange="setProfile(\'examDate\', this.value)" style="margin-top:6px;width:100%;padding:9px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid var(--line);color:inherit;font-size:13px">'
+    + '<div style="font-size:12px;font-weight:800;margin-top:12px">② 每天大概能学多久</div>'
+    + '<div class="row2" style="margin-top:6px">'
+    + [['15','15 分钟'],['30','30 分钟'],['60','1 小时'],['120','2 小时+']].map(x =>
+        '<button class="btn ' + (p.minutes === x[0] ? '' : 'ghost') + '" onclick="setProfile(\'minutes\',\'' + x[0] + '\')">' + x[1] + '</button>').join('')
+    + '</div>'
+    + '<div style="font-size:12px;font-weight:800;margin-top:12px">③ 你什么时候最清醒</div>'
+    + '<div class="row2" style="margin-top:6px">'
+    + SLOT_OPTIONS.map(x =>
+        '<button class="btn ' + (p.slot === x[0] ? '' : 'ghost') + '" onclick="setProfile(\'slot\',\'' + x[0] + '\')">' + x[0] + ' ' + x[1] + '</button>').join('')
+    + '</div>'
+    + '<div style="font-size:11.5px;color:var(--sub);margin-top:10px">' + (profileDone()
+        ? '✅ 已按你的情况排课（随时可在管家页改）。' : '选完三样就会自动保存，不用点确认。') + '</div>'
+    + '</div>';
+}
+/* ---------- 2.11 内在动机锚点：首次通关后问一次「你为什么考这个」，之后低频高情境引用 ---------- */
+function whyHTML(){
+  return '<div class="card" style="border-color:rgba(138,180,255,.45);margin-top:12px">'
+    + '<div style="font-weight:900;font-size:13.5px">💭 留一句话给未来的自己</div>'
+    + '<div style="font-size:11.5px;color:var(--sub);margin-top:3px">你为什么想考过它？写下来，之后我就不问第二遍。</div>'
+    + '<input id="whyInput" placeholder="比如：为了换一份能早下班的工作" maxlength="40" style="margin-top:8px;width:100%;padding:9px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid var(--line);color:inherit;font-size:13px">'
+    + '<button class="btn ghost" style="width:100%;margin-top:8px" onclick="saveWhy()">记下来</button></div>';
+}
+function saveWhy(){
+  const el = document.getElementById('whyInput'); const v = el ? String(el.value || '').trim() : '';
+  if(!v){ toast('写一句就好，我不看长度'); return; }
+  st.why = v.slice(0, 40); save(); toast('记下了。以后撑不住的时候我会提起它。'); renderHomeExtra();
+}
+/* ---------- 2.10 每日小事件：每天一次，且只在「今日唯一任务完成后」出现（绝不抢首屏指令）---------- */
+const DAILY_EVENTS = [
+  '雪见把明天的讲义提前放在了你的位置上。',
+  '晴在你笔袋里塞了一颗糖，说「做完这道就吃」。',
+  '澄把错题本按考点重新整理了一遍，用银线标了页码。',
+  '洛偷偷在你的卷子上画了个小恶魔，还写了「这题简单」。',
+  '紫苑说月塔今晚风大，让你别熬太晚。',
+  '夜喵在你桌上留了一张便利贴：「明天那局，我押你赢。」',
+  '管家把今天的用时记进了笔记：不是分数，是「你又来了一天」。',
+  '窗外下雨了。雪见说，这种天气最适合把错题过一遍。'
+];
+function eventOfToday(){
+  const d = todayStr(0); let h = 5381; for(let i = 0; i < d.length; i++) h = ((h << 5) + h + d.charCodeAt(i)) >>> 0;
+  return DAILY_EVENTS[h % DAILY_EVENTS.length];
+}
+function dailyEventHTML(){
+  const d = todayStr(0);
+  if(st.lastEventDay === d) return localStorage.getItem('ck_dismiss_event_' + d) ? '' : eventCard();
+  st.lastEventDay = d; save();
+  return eventCard();
+}
+function eventCard(){
+  return '<div class="card" style="border-color:rgba(255,138,209,.4);margin-top:12px">'
+    + '<div style="font-size:12px;font-weight:900;color:#ff8ad1">🎐 今天的小事</div>'
+    + '<div style="font-size:12.5px;color:var(--sub);margin-top:5px;line-height:1.7">' + escapeHtml(eventOfToday()) + '</div>'
+    + '<button class="btn ghost sm" style="margin-top:8px" onclick="dismissEvent()">收到</button></div>';
+}
+function dismissEvent(){ localStorage.setItem('ck_dismiss_event_' + todayStr(0), '1'); renderHomeExtra(); }
+function renderHomeExtra(){
+  const box = document.getElementById('homeExtra'); if(!box) return;
+  let h = '';
+  if(!profileDone()) h += onboardingHTML();
+  else if(!st.why && (st.total || 0) >= 5) h += whyHTML();
+  if(profileDone() && st.todayTask && st.todayTask.d && st.todayTask.d === todayStr(0) && st.todayTask.done) h += dailyEventHTML();
+  box.innerHTML = h;
+}
+/* ---------- 2.9 暂缓区：用「暂缓」而非「放弃」措辞（不制造欠账感）---------- */
+function deferTodayTask(){
+  const t = st.todayTask; if(!t) return;
+  st.deferList = st.deferList || [];
+  st.deferList.push({ mod: t.mod, why: t.why, d: todayStr(0) });
+  if(st.deferList.length > 30) st.deferList.shift();
+  st.todayTask = null;                    // 换一个任务，明天再说这块
+  save(); toast('已暂缓，明天再排它 · 今天换个更顺手的'); renderHome();
+}
 function renderHome(){
   const m = getMate('xue');
   document.getElementById('heroImg').src = m.img;
   document.getElementById('heroName').textContent = m.name + ' · 冰岭骑士';
   document.getElementById('heroEl').textContent = m.el;
-  document.getElementById('heroLine').textContent = pick(m.lines.greet);
+  document.getElementById('heroLine').textContent = greetByRecency(m);
+  st.lastOpenAt = Date.now();      // 2.4 双向感：记录本次打开时间，供回来时的问候分档
   document.getElementById('tipLine').textContent = pick(TIPS[FILTER.subj] || TIPS.math);
   const planTxt = {
-    math:'🎯 战略：背公式 + 套题型 + 刷真题。保底 100 分稳过线，冲刺 130+。',
+    math:'🎯 战略：背公式 + 套题型 + 刷真题。' + scoreLine(),
     pol:'🎯 战略：背核心口诀 + 刷选择题 + 跟时事。客观题拿稳，主观题踩点给分。',
     eng:'🎯 战略：词汇打底 + 阅读完形提速 + 写作背模板。每天 1 套限时练手感。'
   };
@@ -2303,6 +2839,9 @@ function renderHome(){
   document.getElementById('stBoss').textContent = st.bossBest ? st.bossBest + '连破' : '--';
   const av = document.getElementById('appVer'); if(av) av.textContent = APP_VER;
   renderTodayCard();                    // 首屏唯一指令 + 上一轮战报
+  renderWeekBar();                      // 1.14 一行状态条：本周学了 N 天 + 距考天数
+  renderHomeExtra();                    // 1.9 上手 / 2.11 动机 / 2.10 每日小事件
+  const cd = document.getElementById('cdLeft'); if(cd) cd.textContent = '距考试 ' + daysUntilExam() + ' 天';
   renderMateInvite();                   // 闭环④：今日任务完成后才邀请陪练，不与唯一指令抢注意力
   const hr = document.getElementById('homeResume');
   if(hr) hr.innerHTML = resumeBanner();
@@ -2334,7 +2873,7 @@ function renderMates(){
     const el = document.createElement('div'); el.className = 'mate';
     el.onclick = () => openDetail(m.id);
     el.innerHTML = `<img class="av" src="${m.img}" onerror="this.style.display='none'">
-      <div class="mi"><div class="mnh"><div class="mn">${m.name}<span class="mt-home">主场·${focusLabel(m.id)}</span></div><div class="mt">${m.title}</div></div>
+      <div class="mi"><div class="mnh"><div class="mn">${m.name}<span class="mt-home">陪练·${focusLabel(m.id)}</span></div><div class="mt">${m.title}</div></div>
       <div class="mds">${m.desc}</div>
       <div class="affrow"><div class="affbar"><i style="width:${pct}%"></i></div><div class="afflv">💞${LVNAMES[lv-1]}</div></div>
       <div style="margin-top:6px;font-size:11px;color:var(--sub)">🧩 一起练 ${bondOf(m.id).q || 0} 题 · 通关 ${bondOf(m.id).clear || 0} 次</div></div>`;
@@ -2368,7 +2907,7 @@ function studyWith(id){ addAff(id, 1); toast('和 ' + getMate(id).name + ' 一�
 function renderBondCard(id){
   const box = document.getElementById('bondCard'); if(!box) return;
   const b = bondOf(id);
-  const fTxt = focusOf(id) === 'all' ? '全科总教官 · 任何科目都是 TA 的主场' : '主场科目：' + focusLabel(id);
+  const fTxt = focusOf(id) === 'all' ? '全科总教官 · 任何科目 TA 都能陪你练' : '主要陪练科目：' + focusLabel(id);
   const lvl = affLv(st.aff[id] || 0);
   const note = (b.q || b.clear)
     ? '好感不只是聊出来的——这些数字，是我们一起熬出来的。'
@@ -2380,7 +2919,9 @@ function renderBondCard(id){
     + '<div class="cb-item"><b>' + (b.kill || 0) + '</b><span>携手消灭错题</span></div>'
     + '</div>'
     + '<div class="cb-note">🎖️ ' + escapeHtml(fTxt) + '　·　羁绊等级：<b style="color:var(--magenta)">' + LVNAMES[lvl - 1] + '</b><br>' + escapeHtml(note) + '</div>'
-    + '<button class="btn ghost sm mt10" style="width:100%" onclick="studyMateHome(\'' + id + '\')">📚 去 TA 的主场（' + focusLabel(id) + '）陪学一轮</button>';
+    + '<button class="btn ghost sm mt10" style="width:100%" onclick="studyMateHome(\'' + id + '\')">📚 让 TA 陪你练一轮（' + focusLabel(id) + '）</button>'
+    + (MATE_MOD[id] ? '<div style="font-size:11px;color:var(--sub);margin-top:6px">🧭 人设主场：' + escapeHtml(mateModLabel(id)) + '（TA 最拿手的一块）</div>' : '')
+    + renderSceneCards(id);
 }
 /* 闭环④：一键去某角色的主场科目练一轮（优先该科目下最薄弱的模块） */
 function studyMateHome(id){
@@ -2493,30 +3034,230 @@ function chooseChat(o){
   cont.onclick = renderChat; opts.appendChild(cont);
 }
 
-/* =================== AI 实时对话（SiliconFlow） =================== */
-const SF = { base:'https://api.siliconflow.cn/v1', key:'sk-uupvmigmtkpbhwjnoquqglxvexekxyxulfgugsxkvpvgzavd', model:'Qwen/Qwen2.5-7B-Instruct' };
-/* 全部免费模型可换：Qwen/Qwen3-8B（更新更快）、THUDM/GLM-4-9B-0414、deepseek-ai/DeepSeek-R1-0528-Qwen3-8B（数学最强但要先"思考"，响应慢十几秒） */
+/* =================== AI 网关（Key 外置 + BYOK + 超时/重试/熔断/配额） ===================
+   0.1 安全：本文件内**不含任何密钥**。取值优先级：window.CK_AI_KEY（可自建 ai-config.js 注入，
+   已 gitignore）> 用户自带 Key（localStorage['ck_sfkey']，管家页 BYOK 输入框写入）> 无。
+   无 Key 时不报错卡死，统一走确定性降级。
+   全部免费模型可换：Qwen/Qwen3-8B（更新更快）、THUDM/GLM-4-9B-0414、deepseek-ai/DeepSeek-R1-0528-Qwen3-8B（数学最强但要先"思考"，响应慢十几秒） */
+const SF = {
+  base:'https://api.siliconflow.cn/v1',
+  model:'Qwen/Qwen2.5-7B-Instruct',
+  get key(){ return String(window.CK_AI_KEY || '') || String(localStorage.getItem('ck_sfkey') || ''); },
+  set key(v){ try{ v ? localStorage.setItem('ck_sfkey', String(v)) : localStorage.removeItem('ck_sfkey'); }catch(_){} }
+};
+const AI_LIMIT = { dayCalls:40, dayTok:30000, rpm:5, timeout:15000, retry:1, cbFail:3, cbMs:60000 };
+const AIQ = { day:'', calls:0, tok:0, win:[], fail:0, openUntil:0, jsonOff:false };
+function aiDay(){ const d = new Date(); return d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate(); }
+function aiQuotaReset(){ const d = aiDay(); if(AIQ.day !== d){ AIQ.day = d; AIQ.calls = 0; AIQ.tok = 0; AIQ.win = []; } }
+function aiCheck(){
+  aiQuotaReset();
+  if(!SF.key) return { ok:false, reason:'nokey', msg:'未配置 API Key（可在管家页填写你自己的 Key）' };
+  const now = Date.now();
+  if(now < AIQ.openUntil) return { ok:false, reason:'open', msg:'AI 服务暂时不可用，已切换离线模式' };
+  if(AIQ.calls >= AI_LIMIT.dayCalls || AIQ.tok >= AI_LIMIT.dayTok) return { ok:false, reason:'blocked', msg:'今日 AI 额度已用完（明天自动恢复）' };
+  AIQ.win = AIQ.win.filter(t => now - t < 60000);
+  if(AIQ.win.length >= AI_LIMIT.rpm) return { ok:false, reason:'rpm', msg:'请求有点密，稍等几秒' };
+  return { ok:true };
+}
+function aiStat(k){ if(!st.aiStats) st.aiStats = { api:0, hit:0 }; st.aiStats[k] = (st.aiStats[k] || 0) + 1; }
+async function aiRaw(messages, opts){
+  const ac = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+  const timer = ac ? setTimeout(() => { try{ ac.abort(); }catch(_){} }, (opts && opts.timeout) || AI_LIMIT.timeout) : null;
+  try{
+    const body = { model:SF.model, messages, temperature:(opts && opts.temperature) || 0.8, max_tokens:(opts && opts.max_tokens) || 900 };
+    if(opts && opts.json) body.response_format = { type:'json_object' };
+    const r = await fetch(SF.base + '/chat/completions', {
+      method:'POST', signal: ac ? ac.signal : undefined,
+      headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + SF.key },
+      body: JSON.stringify(body)
+    });
+    if(!r.ok){ let msg = 'HTTP ' + r.status; try{ const e = await r.json(); msg = (e.error && e.error.message) || e.message || msg; }catch(_){} throw new Error(msg); }
+    const d = await r.json();
+    if(d && d.usage && d.usage.total_tokens){ AIQ.tok += d.usage.total_tokens; st.aiStats.tok = (st.aiStats.tok || 0) + d.usage.total_tokens; }
+    const c = d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content;
+    return (c || '').trim();
+  } finally { if(timer) clearTimeout(timer); }
+}
+/* 0.3 统一 AI 网关：所有 AI 出口必须经过这里（超时/重试/熔断/并发去重/计量） */
+async function aiCall(messages, opts){
+  opts = opts || {};
+  const chk = aiCheck();
+  if(!chk.ok){ aiStat(chk.reason); throw new Error(chk.msg); }
+  aiQuotaReset(); AIQ.calls++; AIQ.win.push(Date.now()); aiStat('api');
+  let last = null;
+  for(let i = 0; i <= AI_LIMIT.retry; i++){
+    /* 0.5 结构化输出：优先 response_format=json_object；若模型/网关不支持（4xx），
+       本次会话内自动关闭 JSON 约束并立即重试一次（不消耗重试次数），保证功能不缺失 */
+    const useJson = !!opts.json && !AIQ.jsonOff;
+    try{
+      const t = await aiRaw(trimHist(messages), Object.assign({}, opts, { json: useJson }));
+      AIQ.fail = 0;
+      return t;
+    }catch(e){
+      last = e;
+      const msg = String((e && e.message) || '');
+      if(useJson && /^HTTP 4/.test(msg)){ AIQ.jsonOff = true; i--; continue; }
+      const retriable = !/abort/i.test(msg) && !/^HTTP 4/.test(msg);
+      if(i < AI_LIMIT.retry && retriable){ await new Promise(r => setTimeout(r, 600)); continue; }
+      AIQ.fail++;
+      if(AIQ.fail >= AI_LIMIT.cbFail){ AIQ.openUntil = Date.now() + AI_LIMIT.cbMs; AIQ.fail = 0; }
+      throw e;
+    }
+  }
+  throw last || new Error('AI 调用失败');
+}
+/* =================== 0.8 确定性降级表：8 个 task 全部有非 AI 实现 ===================
+   规则：AI 不可用（无 Key / 熔断 / 超配额 / 网络失败 / 返回不合格式）时一律落到规则实现，
+   UI 明示「离线模式」，且同样计入统计（st.aiStats.deg）。用户永远看不到永久 loading。 */
+const OFF_TAG = '<span class="offbadge">📴 离线模式</span>';
+const OFF_LINES = [
+  {re:/累|疲|倦|困|不想学|学不动|放弃|崩|焦虑|紧张/, lines:[
+    '累了吧？那先把书合上，我在这儿陪你坐会儿。',
+    '今天不刷题也没关系，你又不是机器——我也不是因为你会做题才喜欢你。',
+    '歇一会儿。进度不会跑掉的，我帮你守着。']},
+  {re:/加油|冲|努力|干|开始/, lines:[
+    '去吧，我就在这儿等你回来。',
+    '你只管往前走，剩下的交给我。']},
+  {re:/难|不会|不懂|听不明白|晕|卡住/, lines:[
+    '不会很正常。挑一道最像的先做，做完我陪你复盘。',
+    '这题我陪你拆，一步一步来，不急。']},
+  {re:/考|分|过线|上岸|报名/, lines:[
+    '别盯着分数，先盯住今天这十道题。',
+    '考场那天，你会想起我讲过的那句话。']},
+  {re:/谢谢|感谢|爱你|喜欢你/, lines:[
+    '傻瓜，说这种话我会当真的。',
+    '……你再说一遍，我记下来了。']}
+];
+const OFF_FALLBACK = ['（她轻轻笑了一下）嗯，我在听。', '现在没网，我就这样陪你聊会儿。', '你说，我听着——反正我今天哪儿也不去。'];
+function degChat(c){
+  const mate = c.mate || getMate(S.chat && S.chat.id) || {name:'她'};
+  const v = String(c.user || '');
+  for(const g of OFF_LINES){ if(g.re.test(v)) return g.lines[Math.floor(Math.random() * g.lines.length)]; }
+  return OFF_FALLBACK[Math.floor(Math.random() * OFF_FALLBACK.length)];
+}
+function degTutor(c){
+  const q = c.q || {};
+  const sol = String(q.sol || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  return '思路：先把「' + (modName(q.m) || '这个考点') + '」的公式摆出来，再把题目条件往里代。\n'
+    + '关键步骤：' + (sol.slice(0, 140) || '（这题暂无文字解析，先看答案反推每一步）') + '\n'
+    + '易错点：答案「' + ansText(q) + '」附近的符号与区间最容易写错，收笔前回头看一眼。';
+}
+const MNEM_LOCAL = {
+  m1:['夹逼两边挤，等价无穷小来替；洛必达上下导，极限不再是难题。'],
+  m2:['导数就是变化率，链式一层层剥开；驻点两侧看符号，极值最值自然来。'],
+  m3:['定积分，切块加，牛顿莱布尼茨一把抓；换元先看被积式，分部留谁要算计。'],
+  m4:['偏导只对一个变量求导，其余全当常数看；全微分是各偏导乘增量再相加。'],
+  m5:['概率先定样本空间，再数有利场合；期望是加权平均，方差量离散。'],
+  p1:['唯物论讲物质第一性，辩证法讲联系与发展；两大特征三大规律，认识论落脚在实践。'],
+  p3:['八个明确撑起框架，十四个坚持是行动纲领；先记框架后填内容。'],
+  e2:['时态看时间轴，语态看主被动；先看谓语再定从句关系词。']
+};
+function degMnemonic(c){
+  const ids = c.mods || [];
+  const hit = [];
+  ids.forEach(id => { if(MNEM_LOCAL[id]) hit.push(MNEM_LOCAL[id][0]); });
+  if(hit.length) return hit.join(' ');
+  return '多练几遍就熟，错题清零考场不慌；先抓高频考点，再补边角知识。';
+}
+function degSteps(c){                    // 已有本地分步实现，直接复用（不再重复发明）
+  const q = c.q; if(!q) return null;
+  return localStepQuiz(q, buildSteps(q));
+}
+function degVariant(c){
+  const q = c.q; if(!q) return null;
+  const cand = ALLQ.filter(x => x.m === q.m && x.id !== q.id && x.t === q.t);
+  if(!cand.length) return null;
+  const v = cand[Math.floor(Math.random() * cand.length)];
+  const base = { t:v.t, m:v.m, vi:true, q:v.q, sol:String(v.sol || '').replace(/<[^>]+>/g, ' ').slice(0, 120), _local:true };
+  return v.t === 'choice' ? Object.assign(base, { o:v.o.slice(), a:v.a }) : Object.assign(base, { ans:v.ans.slice() });
+}
+function degDiagnose(c){
+  const q = c.q || {}, my = String(c.myAns || '');
+  let tag = '概念不清';
+  if(!my || my === '空' || my === 'undefined') tag = '方法不会';
+  else if(q.t === 'choice' && Array.isArray(q.o) && q.o.indexOf(my) >= 0) tag = '概念不清';
+  else tag = '计算失误';
+  const sol = String(q.sol || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  return '（离线模式）我先陪你看看：这题正确答案是「' + ansText(q) + '」。'
+    + (sol ? '\n关键一步：' + sol.slice(0, 110) : '')
+    + '\n先别急，把这一步吃透，下次就不会在同一个地方绊倒。\n【错因：' + tag + '】';
+}
+function degWeakPaper(c){                // 已有本地实现：直接用错题原题组卷
+  return shuffle((st.wrong || []).map(w => qById(w.id)).filter(Boolean));
+}
+const GP_SUBJ2Q = { mat:'math', pol:'pol', eng:'eng' };
+function degGpQuiz(c){
+  const subj = GP_SUBJ2Q[c.subj] || 'math';
+  const pt = c.pt || {};
+  const keys = String(pt.t || '').replace(/[（(].*?[)）]/g, '').trim();
+  let cand = ALLQ.filter(q => q.subj === subj && q.t === 'choice');
+  if(keys){
+    const kw = keys.slice(0, 2);
+    const m = cand.filter(q => String(q.q || '').indexOf(kw) >= 0 || String(q.sol || '').indexOf(kw) >= 0);
+    if(m.length) cand = m;
+  }
+  if(!cand.length) return null;
+  const v = cand[Math.floor(Math.random() * cand.length)];
+  return { t:'choice', q:v.q, o:v.o.slice(), a:v.a, sol:String(v.sol || '').replace(/<[^>]+>/g, ' ').slice(0, 120), _local:true };
+}
+const DEGRADE = {
+  chat:degChat, tutor:degTutor, mnemonic:degMnemonic, steps:degSteps,
+  variant:degVariant, diagnose:degDiagnose, weakpaper:degWeakPaper, gpquiz:degGpQuiz
+};
+function runDegrade(task, ctx){
+  aiStat('deg');                          // 降级同样计入统计（C20）
+  const f = DEGRADE[task];
+  try{ return f ? f(ctx || {}) : null; }catch(e){ return null; }
+}
+/* ---------- 2.7 多层缓存 ----------
+   aiCacheGet/aiCacheSet 此前是**零调用死代码**（1.5MB 独立分区从未被用过），这里激活它并分层。
+   key 前缀带版本号，发版即自动失效；命中计入 st.aiStats.hit，让 AI 面板的统计终于可用。 */
+const AI_CACHE_VER = 'v3.2';
+function ack(kind, key){ return AI_CACHE_VER + '|' + kind + '|' + key; }
+function strHash(s){ let h = 5381; s = String(s || ''); for(let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) >>> 0; return h.toString(36); }
+/* 不缓存的 task：chat（会话上下文有记忆）、variant（要多样性，走 st.variants 池化） */
+const NO_CACHE_TASKS = {chat:1, variant:1};
 
+/* 所有 AI 出口的统一外壳：成功返回 {src:'ai',text}，失败返回 {src:'degrade',data,reason} */
+async function aiTask(task, messages, opts){
+  opts = opts || {};
+  const ck = (!NO_CACHE_TASKS[task] && opts.ck) ? opts.ck : null;
+  if(ck){
+    const hit = aiCacheGet(ck);
+    if(hit){ aiStat('hit'); return { src:'ai', text:hit, cached:true }; }
+  }
+  const chk = aiCheck();
+  if(!chk.ok){ aiStat('blocked'); aiStat(chk.reason); return { src:'degrade', reason:chk.reason, msg:chk.msg, data:runDegrade(task, opts.ctx) }; }
+  try{
+    const text = await aiCall(messages, opts);
+    if(ck && text) aiCacheSet(ck, text);
+    return { src:'ai', text:text };
+  }catch(e){
+    return { src:'degrade', reason:String((e && e.message) || 'error'), msg:(e && e.message) || '', data:runDegrade(task, opts.ctx) };
+  }
+}
+
+/* 0.5 prompt 瘦身：人设 + 讲题结构 + 字数上限三段，去掉重复的角色背景叙述（每轮省 ~90 tokens） */
 function aiPrompt(m){
-  return `你是「${m.name}」，${m.title}，恋爱养成游戏《成考高数(二)速通》里的可攻略角色，也是学员的私人高数陪练。
-人设：${m.desc}
-你要用这个人设的口吻自然地和学员对话，可以带点撩人与暧昧，但核心是帮学员学好成人高考高等数学(二)（极限、导数、积分、多元微分、概率）。学员问数学题时：先给一句思路提示，再讲清关键步骤，最后点一句易错点；简洁不啰嗦，可用少量 emoji。一般回复控制在 150 字内，讲题时不超过 220 字。`;
+  return `你是「${m.name}」，${m.title}，恋爱养成游戏《成考高数(二)速通》可攻略角色，也是学员的高数陪练。人设：${m.desc}\n用这个人设的口吻说话，可带撩人与暧昧，核心是帮学员学成考高数(二)（极限、导数、积分、多元微分、概率）。讲题顺序：一句思路提示 → 关键步骤 → 一句易错点。简洁、少 emoji。闲聊 ≤120 字，讲题 ≤200 字。`;
+}
+/* 0.5 对话历史裁剪：只保留 system + 最近 6 轮，每条截断 400 字（成本与延迟双降，防 hist 无限膨胀） */
+const HIST_KEEP = 6, HIST_MAX = 400;
+function clipText(s, n){
+  s = String(s == null ? '' : s); n = n || HIST_MAX;
+  return s.length > n ? s.slice(0, n) + '…' : s;
+}
+function trimHist(hist){
+  if(!Array.isArray(hist) || hist.length <= 2) return hist;   // sys+user 的单轮调用不裁剪，避免丢题面
+  const sys = hist.filter(m => m && m.role === 'system');
+  const rest = hist.filter(m => m && m.role !== 'system').slice(-(HIST_KEEP * 2));
+  return sys.concat(rest).map(m => ({ role:m.role, content:clipText(m.content) }));
 }
 function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+/* 兼容既有 8 个调用点：行为等价，但已具备超时 / 重试 / 熔断 / 配额 */
 async function sfChat(messages){
-  const r = await fetch(SF.base + '/chat/completions', {
-    method:'POST',
-    headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + SF.key },
-    body: JSON.stringify({ model:SF.model, messages, temperature:0.8, max_tokens:900 })
-  });
-  if(!r.ok){
-    let msg = 'HTTP ' + r.status;
-    try{ const e = await r.json(); msg = (e.error && e.error.message) || e.message || msg; }catch(_){}
-    throw new Error(msg);
-  }
-  const d = await r.json();
-  const c = d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content;
-  return (c || '').trim() || '（她笑了笑，没说话）';
+  const t = await aiCall(messages);
+  return t || '（她笑了笑，没说话）';
 }
 function bubbleHer(text){
   const m = getMate(S.chat.id);
@@ -2551,9 +3292,10 @@ async function sendFree(seedText){
   bubbleMe(v);
   const typing = bubbleHer('…');
   try{
-    const ans = await sfChat(ai.hist);
+    const r = await aiTask('chat', ai.hist, { ctx:{ mate:getMate(S.chat.id), user:v } });
+    const ans = (r.src === 'ai' ? r.text : r.data) || '（她笑了笑，没说话）';
     ai.hist.push({ role:'assistant', content: ans });
-    typing.innerHTML = escapeHtml(ans).replace(/\n/g,'<br>');
+    typing.innerHTML = (r.src === 'degrade' ? OFF_TAG : '') + escapeHtml(ans).replace(/\n/g,'<br>');
     addAff(S.chat.id, 1);
   }catch(e){
     typing.innerHTML = '⚠️ 出错了：' + escapeHtml(e.message);
@@ -2575,9 +3317,10 @@ function aiTutor(q){
   const req = `这道题：「${q.q}」${q.t==='choice' ? '（选项：'+q.o.join(' / ')+'）' : ''}，正确答案是「${ansText(q)}」。请你用你的人设口吻给我讲清楚：先给一句思路提示，再讲关键步骤，最后点一句易错点。控制在 180 字内。`;
   S.ai.hist.push({ role:'user', content: req });
   const typing = bubbleHer('…');
-  sfChat(S.ai.hist).then(ans => {
+  aiTask('tutor', S.ai.hist, { ck: ack('tutor', q.id), ctx:{ q:q } }).then(r => {
+    const ans = (r.src === 'ai' ? r.text : r.data) || '';
     S.ai.hist.push({ role:'assistant', content: ans });
-    typing.innerHTML = escapeHtml(ans).replace(/\n/g,'<br>');
+    typing.innerHTML = (r.src === 'degrade' ? OFF_TAG : '') + escapeHtml(ans).replace(/\n/g,'<br>');
     addAff(id, 2);
   }).catch(e => { typing.innerHTML = '⚠️ 出错了：' + escapeHtml(e.message); });
 }
@@ -2751,7 +3494,7 @@ function clearDrillProgress(){ if(st.drillSav){ delete st.drillSav; save(); } }
 function restoreDrill(silent){
   const sv = st.drillSav;
   if(!sv || !sv.ids || sv.i >= sv.ids.length) return false;
-  const list = sv.ids.map(id => ALLQ.find(q => q.id === id)).filter(Boolean);
+  const list = sv.ids.map(id => qById(id)).filter(Boolean);
   if(list.length !== sv.ids.length){ delete st.drillSav; save(); return false; }
   // 还原巩固模式追加的变式题归属关系
   const cf = sv.cf || {};
@@ -2786,26 +3529,122 @@ function resumeBanner(){
 }
 /* 任务模式：normal 普通 / solid 巩固（同考点换花样）/ quiz 摸底自测（混合多考点） */
 const DRILL_MODE_NAME = {normal:'标准任务', solid:'巩固模式', quiz:'摸底自测'};
+/* 0.13 微会话三档：5 题≈5 分钟（地铁/排队）、10 题≈12 分钟（午休）、20 题≈25 分钟（整块时间）。
+   非法值一律回落到 20，保证所有既有调用点行为不变。 */
+const SESSION_N_LIST = [5, 10, 20];
+function SESSION_N(n){ return SESSION_N_LIST.indexOf(Number(n)) >= 0 ? Number(n) : 20; }
+const SESSION_N_TXT = { 5:'⏱ 5 题 · 约 5 分钟', 10:'⏱ 10 题 · 约 12 分钟', 20:'⏱ 20 题 · 约 25 分钟' };
+/* D2 闸①：微会话保留错题清零，但追加量封顶，避免「想学 5 分钟」变成「被困 20 分钟」 */
+function drillAddCap(d){
+  const n = d.n || 20;
+  return n >= 20 ? Infinity : Math.max(2, Math.round(n * 0.6));
+}
+/* ---------- 2.6 难度自适应（复用 st.records，零新增存储）----------
+   题库本身没有难度标签，用「历史错误率」做代理：错得越多越难。
+   ⚠️ 刻意不做 EM/IRT 拟合 —— 数据量与场景都不支持，代理够用且不会被误当科学。
+   目标带：正确率 65%~75%（学习科学：太低挫败、太高无收益）。 */
+function itemDiff(q){
+  const r = (st.records || {})[q.id];
+  if(!r || !r.n) return 2.5;                       // 没做过：按中等估
+  const wr = 1 - (r.c || 0) / r.n;
+  return Math.min(5, Math.max(1, 1 + 4 * wr));
+}
+/* 目标难度：由最近几次练习的正确率推动（>.80 连两轮则升，<.50 则降），钳在 [1,5] */
+function targetDiff(){
+  const a = st.adapt || (st.adapt = { band:2.5, hi:0, lo:0 });
+  return a.band;
+}
+function adaptAfterRound(acc){
+  const a = st.adapt || (st.adapt = { band:2.5, hi:0, lo:0 });
+  if(acc > 80){ a.hi = (a.hi || 0) + 1; a.lo = 0; if(a.hi >= 2){ a.band = Math.min(5, a.band + 0.5); a.hi = 0; } }
+  else if(acc < 50){ a.lo = (a.lo || 0) + 1; a.hi = 0; if(a.lo >= 1){ a.band = Math.max(1, a.band - 0.5); a.lo = 0; } }
+  else { a.hi = 0; a.lo = 0; }
+  save();
+}
+/* 在等长题块内按「与目标难度的距离」排序：贴合的排前面，过难/过易往后放 */
+function adaptiveOrder(list){
+  const t = targetDiff();
+  return list.slice().sort((a, b) => Math.abs(itemDiff(a) - t) - Math.abs(itemDiff(b) - t));
+}
+/* ---------- 2.5 交错比例：入门期块状为主（0.2），冲刺期强交错（0.7）---------- */
+function interleaveRatio(){
+  const d = daysUntilExam();
+  if(d > 90) return 0.2;
+  if(d > 30) return 0.4;
+  if(d > 14) return 0.55;
+  return 0.7;
+}
+/* 把「主模块块状 3 题一段」与「近迁移模块」按比例交错；两弱项不同时相邻 */
+function interleaveList(list, N, ratio){
+  if(!list.length) return list;
+  const mainMod = list[0].m;
+  const byMod = {};
+  list.forEach(q => { (byMod[q.m] = byMod[q.m] || []).push(q); });
+  const others = Object.keys(byMod).filter(m => m !== mainMod);
+  if(!others.length) return list;                       // 单模块：没什么可交错的
+  const main = byMod[mainMod] || [];
+  const pool2 = [];
+  others.forEach(m => pool2.push.apply(pool2, byMod[m]));
+  const out = [], seg = 3, nInter = Math.max(1, Math.round(N * ratio));
+  let i = 0, j = 0;
+  while(out.length < N && (i < main.length || j < pool2.length)){
+    const before = out.length;
+    for(let k = 0; k < seg && i < main.length && out.length < N - nInter; k++) out.push(main[i++]);
+    if(j < pool2.length && out.length < N) out.push(pool2[j++]);
+    /* 防死循环：某一轮若一个都没推入（主池已到交错上限、副池又耗尽），就强制从主池补齐 */
+    if(out.length === before){
+      if(i < main.length) out.push(main[i++]);
+      else if(j < pool2.length) out.push(pool2[j++]);
+      else break;
+    }
+  }
+  while(out.length < N && i < main.length) out.push(main[i++]);
+  while(out.length < N && j < pool2.length) out.push(pool2[j++]);
+  /* 保护线：若交错把两个薄弱模块排到相邻，交换一次（保证不在两道都不熟的题之间被击穿） */
+  const weakSet = {};
+  (typeof weakModules === 'function' ? weakModules() : []).forEach(w => { weakSet[w.m.id] = 1; });
+  for(let k = 1; k < out.length; k++){
+    if(weakSet[out[k].m] && weakSet[out[k-1].m] && out[k].m !== out[k-1].m){
+      for(let t = k + 1; t < out.length; t++){
+        if(!weakSet[out[t].m]){ const tmp = out[k]; out[k] = out[t]; out[t] = tmp; break; }
+      }
+    }
+  }
+  return out;
+}
 function startDrill(mod, mode, opts){
   mode = mode || 'normal';
   opts = opts || {};
+  /* 0.13 微会话三档：opts.n ∈ {5,10,20}，默认 20（与旧行为完全一致） */
+  const N = SESSION_N(opts.n);
   restGuard();
   let full = shuffle(pool(mod));
   if(mode === 'quiz'){
     // 摸底自测：跨知识点混合抽题，检验是否真的学会
     const mods = curMods().map(m => m.id);
-    const per = Math.max(2, Math.ceil(20 / Math.max(1, mods.length)));
+    const per = Math.max(2, Math.ceil(N / Math.max(1, mods.length)));
     const mixed = [];
     mods.forEach(m => mixed.push.apply(mixed, shuffle(pool(m)).slice(0, per)));
     full = shuffle(mixed);
   }
   if(!full.length){ toast('该筛选下暂无题目，换个年份或题源试试～'); return; }
-  const list = full.slice(0, 20);
+  /* ---------- 2.5 自适应交错练习 ----------
+     学习科学：入门期应以「块状练习」建立手感（同一考点连做），冲刺期要「强交错」（打乱考点），
+     因为真实考试不会按考点分类出题。原来所有模式都是纯块状或纯随机，没有按阶段调节。
+     规则：solid 模式（定向攻克）保持纯块状不交错；其余按 examPhase 决定交错比例。
+     红线：**两个薄弱模块绝不在同一段里相邻出现**（避免初学者在两道都不会的题之间被击穿）。 */
+  let list = full.slice(0, N);
+  if(mode !== 'solid' && mode !== 'quiz'){
+    try{ list = interleaveList(list, N, interleaveRatio()); }catch(e){}
+  }
+  /* 2.6 难度自适应：先选出题目，再按目标难度重排（不改变题目集合，只调顺序） */
+  if(mode !== 'quiz'){ try{ list = adaptiveOrder(list); }catch(e){} }
+  dqSetScale(N);                      // D2 闸②：当天约定目标按最小档缩放，碎片时间也能完成约定
   const srcTag = FILTER.src === 'library' ? ' · 真题' : FILTER.src === 'curated' ? ' · 原创' : '';
   const yTag = FILTER.year !== 'all' ? ' · ' + FILTER.year + '年' : '';
   const mo = (curMods().find(x => x.id === mod) || {}).name || '全部模块';
   S.drill = {
-    mod, mode, list, i: 0, right: 0, total: full.length,
+    mod, mode, list, i: 0, right: 0, total: full.length, n: N,
     baseLen: list.length,
     cleared: {},        // id -> 1 已掌握（答对过）
     wrongN: {},         // id -> 累计答错次数
@@ -2821,8 +3660,10 @@ function drillStatusBar(d){
   const mastered = Object.keys(d.cleared || {}).length;
   const pend = d.pendingWrong || 0;
   const killed = d.totalWrong || 0;
-  const totalW = killed + pend;
-  const killPct = totalW ? Math.round(killed / totalW * 100) : 100;
+  /* 0.9 分母锁定为「开局待清零基线」：新错题入队只是追加任务，
+     不会稀释已消灭的比例 —— 进度条单调不减（红线 R3） */
+  if(!d.baseWrong) d.baseWrong = killed + pend;
+  const killPct = d.baseWrong ? Math.min(100, Math.round(killed / d.baseWrong * 100)) : 100;
   const el = document.createElement('div');
   el.className = 'taskbar' + (pend ? ' has-wrong' : '');
   const modeTag = d.mode && d.mode !== 'normal' ? ('<span class="tbmode">' + DRILL_MODE_NAME[d.mode] + '</span>') : '';
@@ -2844,11 +3685,37 @@ function pickAltSameMod(q, d){
   return pick(fresh.length ? fresh : same) || null;
 }
 /* 任务通关：生成知识点思维导图 + 专属记忆口诀 */
+/* ---------- 1.13 「今天到此为止」体面退出（红线 R3：中途退出也要有凭证，不能心理归零）----------
+   原实现只有 drillClear（通关）才写 st.lastReport —— 碎片时间被打断的用户中途退出后看不到任何痕迹，
+   这是该人群流失的第一根因。现在中途退出会写一条 partial 战报，落在首页「上一轮战报」里。 */
+function pauseForToday(){
+  const d = S.drill;
+  if(d && d.list && (d.i > 0 || Object.keys(d.cleared || {}).length > 0)){
+    const rSubj = (d.mod && d.mod !== 'all') ? subjOfMod(d.mod) : FILTER.subj;
+    const rMate = getMate(MOD2MATE[d.mod] || SUBJ_MATE[rSubj] || 'xue');
+    st.lastReport = {
+      at: Date.now(), mod: d.mod, subj: rSubj, partial: true,
+      killed: d.totalWrong || 0,
+      mastered: Object.keys(d.cleared || {}).length,
+      min: Math.max(1, Math.round((Date.now() - (d.startAt || Date.now())) / 6e4)),
+      say: rMate.name + '：先到这儿就好。今天拿下的每一题都算数，剩下的明天接着打。'
+    };
+    try{ saveDrillProgress(); }catch(e){}
+    save();
+    toast('✅ 进度已存档 · 今天拿下的都算数');
+    go('s-home');
+    return;
+  }
+  go('s-study');
+}
 function drillClear(d){
   const body = document.getElementById('drillBody');
+  /* 1.1 块级打卡：通关即把「当前时段那块计划」标记为已命中（只改状态，不改计划本身） */
+  try{ markBlockHit(d && d.startAt ? Math.max(1, Math.round((Date.now() - d.startAt) / 60000)) : 0); }catch(e){}
   const modIds = [];
   (d.list || []).forEach(q => { if(modIds.indexOf(q.m) < 0) modIds.push(q.m); });
   const acc = d.baseLen ? Math.round(Object.keys(d.cleared).length / d.baseLen * 100) : 100;
+  try{ adaptAfterRound(acc); }catch(e){}   // 2.6 目标难度随本轮正确率迁移
   const mkey = 'task_' + d.mod + '_' + (d.mode || 'normal');
   /* 闭环⑤：通关战报回流首页（含角色评价），24 小时内首页可见 */
   const rSubj = (d.mod && d.mod !== 'all') ? subjOfMod(d.mod) : FILTER.subj;
@@ -2867,6 +3734,14 @@ function drillClear(d){
   addAff(rMate.id, affGain);
   bondAdd(rMate.id, 'clear', 1);
   if(d.totalWrong) bondAdd(rMate.id, 'kill', d.totalWrong);
+  /* 2.3 名场面：只记「值得记」的（前 3 次通关 / 反杀 3 题以上），避免刷屏贬值 */
+  try{
+    const bNow = bondOf(rMate.id);
+    if((bNow.clear || 0) <= 3 || (d.totalWrong || 0) >= 3){
+      memScene(rMate.id, 'clear', { mod:d.mod, n:d.totalWrong || 0,
+        ctx:'掌握 ' + Object.keys(d.cleared || {}).length + ' 题 · 用时 ' + Math.max(1, Math.round((Date.now() - (d.startAt || Date.now()))/6e4)) + ' 分钟' });
+    }
+  }catch(e){}
   /* 闭环①：这一轮若由「今日唯一任务卡」下发，通关即自动打卡 */
   if(d.fromPlan && st.todayTask && st.todayTask.mod === d.mod) markTodayTaskDone();
   save();
@@ -2897,6 +3772,8 @@ function drillClear(d){
     save(); toast('已保存，可在「我的笔记」随时回看 💾');
   };
   document.getElementById('mindGoNote').onclick = () => { go('s-note'); noteSrc('gold'); };
+  /* v3.4.0：一轮通关 = 画像变化最大的一刻 → 强制让管家重估一次（只感知+规划，不自动执行） */
+  try{ agAutoTick(true); }catch(e){}
 }
 function renderMindMap(box, modIds, acc){
   if(!box) return;
@@ -2922,14 +3799,12 @@ async function genMnemonic(modIds, box, d){
   const mate = getMate(MOD2MATE[modIds[0]] || 'luo');
   const sys = aiPrompt(mate) + '\n\n【当前任务】用你的口吻，为下面的考点编一段好记的中文口诀。要求：口语化、押韵、不超过 80 字，只输出口诀本身。';
   const req = '本次任务通关了，考点是：' + names.join('、') + '。请编一段记忆口诀。';
-  try{
-    const out = await sfChat([{role:'system',content:sys},{role:'user',content:req}]);
-    box.innerHTML = '<div class="memobox"><div class="mm-who">' + escapeHtml(mate.name) + '的口诀</div>'
-      + '<div class="mm-t">' + escapeHtml(out).replace(/\n/g,'<br>') + '</div></div>';
-    addAff(mate.id, 2);
-  }catch(e){
-    box.innerHTML = '<div class="memobox"><div class="mm-t">口诀口诀，多练几遍就熟；错题清零，考场自然不慌。</div></div>';
-  }
+  const r = await aiTask('mnemonic', [{role:'system',content:sys},{role:'user',content:req}], { ck: ack('mnem', modIds.slice().sort().join(',')), ctx:{ mods:modIds } });
+  const out = (r.src === 'ai' ? r.text : r.data) || '多练几遍就熟，错题清零考场不慌。';
+  box.innerHTML = '<div class="memobox"><div class="mm-who">' + escapeHtml(mate.name) + '的口诀'
+    + (r.src === 'degrade' ? OFF_TAG : '') + '</div>'
+    + '<div class="mm-t">' + escapeHtml(out).replace(/\n/g,'<br>') + '</div></div>';
+  addAff(mate.id, 2);
 }
 function renderDrill(){
   const d = S.drill, body = document.getElementById('drillBody');
@@ -2960,9 +3835,9 @@ function renderDrill(){
   head.innerHTML = `<span>${d.weakPaper ? '🎯特训卷' : (d.isWrong ? '🔁错题' : (d.label || (mo ? mo.name : '')))}${againTag}</span><div class="prog"><i style="width:${Math.round(d.i / d.list.length * 100)}%"></i></div><span>${d.i+1}/${d.list.length}</span>`;
   body.appendChild(head);
   const chat = document.createElement('div'); chat.className = 'chat';
-  if(DUP_REAL[q.id]){
+  if(dupReal()[q.id]){
     const db = document.createElement('div');
-    db.innerHTML = `<span class="dupbadge">🔁 原题 · ${DUP_REAL[q.id]} 真题</span>`;
+    db.innerHTML = `<span class="dupbadge">🔁 原题 · ${dupReal()[q.id]} 真题</span>`;
     chat.appendChild(db);
   }
   if(st.combo >= 3){
@@ -3129,19 +4004,23 @@ async function buildStepQuiz(q){
     + '请拆成 3-5 步，每步都要「先讲清楚这一步怎么想」再「出一道 ABCD 检测题」。输出：\n'
     + '{"steps":[{"k":"步骤名","x":"这一步的讲解","q":"检测小题","o":["A","B","C","D"],"a":0,"exp":"为什么"}]}'
     + '（a 为正确选项下标 0-3）';
-  try{
-    const out = await sfChat([{role:'system', content: sys}, {role:'user', content: req}]);
-    const j = extractJSON(out);
+  const r = await aiTask('steps', [{role:'system', content: sys}, {role:'user', content: req}],
+    { json:true, ck: ack('steps', q.id), ctx:{ q:q } });
+  if(r.src === 'ai'){
+    const j = extractJSON(r.text);
     if(j && Array.isArray(j.steps) && j.steps.length >= 2){
-      return j.steps.slice(0, 6).map(s => {
+      const arr = j.steps.slice(0, 6).map(s => {
         const o = (Array.isArray(s.o) && s.o.length >= 2) ? s.o.slice(0, 4).map(String) : null;
         if(!o) return null;
         return {k: s.k || '步骤', x: s.x || '', q: s.q || '这一步的关键是什么？',
                 o, a: Math.max(0, Math.min(o.length - 1, parseInt(s.a, 10) || 0)), exp: s.exp || ''};
       }).filter(Boolean);
+      if(arr.length >= 2){ arr._offline = false; return arr; }
     }
-  }catch(e){ /* 走降级 */ }
-  return localStepQuiz(q, steps);
+  }
+  const fb = localStepQuiz(q, steps);   // 0.8 确定性降级（同样计入统计）
+  fb._offline = true;
+  return fb;
 }
 async function openSteps(q, btn){
   const d = S.drill; if(!d || !q) return;
@@ -3156,6 +4035,10 @@ async function openSteps(q, btn){
   const steps = await buildStepQuiz(q);
   const spd = panel.querySelector('#spdBox');
   if(spd) spd.innerHTML = steps.map(() => '<i></i>').join('');
+  if(steps._offline){
+    const h = panel.querySelector('.sph span');
+    if(h) h.insertAdjacentHTML('afterend', OFF_TAG);
+  }
   const listBox = panel.querySelector('#stepList');
   const quizBox = panel.querySelector('#stepQuiz');
   quizBox.innerHTML = '';
@@ -3236,9 +4119,18 @@ function drillFeedback(q, ok){
     tg.innerHTML = `<div class="h">🎓 讲解模式达成</div>${mate.name}：「自己走完一遍思路选对了——这题已进错题本，明天回来验收。过得了验收，才算真的会。」`;
     body.appendChild(tg);
   }
+  /* 1.11 双轨 + 2.2 情境台词：答错时给「关怀」（只读文案，不加好感、不给数值），
+     并按「第一次错 / 连错≥2 / 客场」选择对应情境台词；主线答题流不弹任何窗、不打断（叙事专家要求） */
+  let ctx = '';
+  if(!ok){
+    S.drill.wrongRun = (S.drill.wrongRun || 0) + 1;
+    addCare(MOD2MATE[q.m], 1);
+    ctx = S.drill.wrongRun >= 2 ? 'wrongRepeat' : 'wrongFirst';
+  }else{ S.drill.wrongRun = 0; }
   const cl = document.createElement('div'); cl.className = 'coachline';
   const tipHtml = (!ok && q.hint) ? `<span class="tip"><b>${pick(mate.lines.tip)}</b>${q.hint}</span>` : '';
-  cl.innerHTML = `<img src="${mate.img}" onerror="this.style.display='none'"><div class="cl"><span class="cn">${mate.name}</span> ${mateLine(MOD2MATE[q.m], ok)}${tipHtml}</div>`;
+  const homeNote = (!isHomeSubj(MOD2MATE[q.m], subjOfMod(q.m)) && !ok) ? situationLine(MOD2MATE[q.m], 'greetOff') : '';
+  cl.innerHTML = `<img src="${mate.img}" onerror="this.style.display='none'"><div class="cl"><span class="cn">${mate.name}</span> ${mateLine(MOD2MATE[q.m], ok, ctx)}${tipHtml}${homeNote ? '<span class="tip">' + homeNote + '</span>' : ''}</div>`;
   body.appendChild(cl);
   const row = document.createElement('div'); row.className = 'row2 mt10';
   const ask = document.createElement('button'); ask.className = 'btn ghost'; ask.textContent = '💬 让 TA 讲讲这题';
@@ -3281,6 +4173,15 @@ function drillVerdict(q, ok){
       toast('这题先记下啦，任务结束后去错题本攻克它 💪');
       return;
     }
+    /* D2 闸①：微会话（5/10 题档）错题追加封顶，超出的转错题本，不拉长会话时长 */
+    const cap = drillAddCap(d);
+    if(cap !== Infinity && (d.added || 0) >= cap){
+      d.wrongN[cid] = 0;
+      d.pendingWrong = Math.max(0, d.pendingWrong - 1);
+      toast('微会话只追 ' + cap + ' 道错题，其余的去错题本攻克 💪');
+      return;
+    }
+    d.added = (d.added || 0) + 1;
     const alt = (d.mode === 'solid') ? pickAltSameMod(q, d) : null;
     if(alt){ const c = Object.assign({}, alt); c.__clearFor = cid; d.list.push(c); }
     else d.list.push(q);
@@ -3301,10 +4202,7 @@ function submitDrill(k, el){
   if(ok && d.isWrong){
     const w = st.wrong.find(x => x.id === q.id);
     if(w){
-      if(!w.srs) w.srs = {stage: 0};
-      w.srs.stage++;
-      if(w.srs.stage >= 3){ st.wrong = st.wrong.filter(x => x.id !== q.id); st.srsGrad = (st.srsGrad || 0) + 1; d.graduated = true; }
-      else w.srs.due = Date.now() + [864e5, 2 * 864e5, 4 * 864e5][w.srs.stage];
+      if(srsAdvance(w)){ st.wrong = st.wrong.filter(x => x.id !== q.id); st.srsGrad = (st.srsGrad || 0) + 1; d.graduated = true; }
     }
   }
   if(ok){ st.combo = (st.combo || 0) + 1; if(st.combo > (st.bestCombo || 0)) st.bestCombo = st.combo; }
@@ -3316,6 +4214,27 @@ function submitDrill(k, el){
   recordAnswer(q, ok, (d.help || 0) >= 3);
   saveDrillProgress();
   drillFeedback(q, ok);
+}
+/* ---------- 1.8 SM-2 简化卡片调度（学习科学专家裁决 ②）----------
+   取代硬编码 [1,2,4] 阶梯：间隔由每张卡自己的难度因子 EF 自适应生长。
+   红线 R3：答错只重置复习次数，**不惩罚 EF、不倒退进度** —— 越错越多 = 惩罚性设计。 */
+function srsAdvance(w){
+  const s = w.srs || (w.srs = {stage:0, due:0});
+  /* 新卡 EF 起点 2.3（上限 2.5）：留出「答对 → EF 上升 → 间隔拉长」的可观测空间。
+     若直接从 2.5 起步，EF 会被上限立刻钉死，「难度因子自适应」名存实亡。 */
+  if(s.ef === undefined){ s.ef = 2.3; s.rep = s.stage || 0; s.iv = s.iv || 1; }
+  s.rep  = (s.rep || 0) + 1;
+  s.stage = s.rep;                                     // 兼容旧字段/旧存档
+  s.ef   = Math.min(2.5, Math.max(1.3, s.ef + 0.1));   // 答对一次，EF 微升
+  s.iv   = s.rep === 1 ? 2 : Math.max(2, Math.round((s.iv || 2) * s.ef));
+  s.due  = Date.now() + s.iv * 864e5;
+  return s.rep >= 3;                                   // 连续 3 次答对 → 毕业
+}
+function srsReset(w){
+  const s = w.srs || (w.srs = {ef:2.3, rep:0, iv:1, stage:0, due:0});
+  if(s.ef === undefined) s.ef = 2.3;
+  s.rep = 0; s.stage = 0; s.iv = 1;                    // EF 保留：答错不惩罚，只是重新排队
+  s.due = Date.now() + 864e5;
 }
 function submitFill(v){
   const d = S.drill, q = d.list[d.i];
@@ -3330,10 +4249,7 @@ function submitFill(v){
     if(d.isWrong){
       const w = st.wrong.find(x => x.id === q.id);
       if(w){
-        if(!w.srs) w.srs = {stage: 0};
-        w.srs.stage++;
-        if(w.srs.stage >= 3){ st.wrong = st.wrong.filter(x => x.id !== q.id); st.srsGrad = (st.srsGrad || 0) + 1; d.graduated = true; }
-        else w.srs.due = Date.now() + [864e5, 2 * 864e5, 4 * 864e5][w.srs.stage];
+        if(srsAdvance(w)){ st.wrong = st.wrong.filter(x => x.id !== q.id); st.srsGrad = (st.srsGrad || 0) + 1; d.graduated = true; }
       }
     }
     st.combo = (st.combo || 0) + 1; if(st.combo > (st.bestCombo || 0)) st.bestCombo = st.combo;
@@ -3365,8 +4281,9 @@ function recordAnswer(q, ok, tutor){
   bondAdd(MOD2MATE[q.m], 'q', 1);
   const w = st.wrong.find(x => x.id === q.id);
   if(!ok){
-    if(w) w.srs = {stage: 0, due: Date.now() + 864e5};   // 复习又错：重新回到 1 天后
-    else st.wrong.push({id: q.id, q: q.q, a: ansText(q), m: (MODULES.find(x => x.id === q.m) || {}).name || q.m, srs: {stage: 0, due: Date.now() + 864e5}});
+    if(w) srsReset(w);                                   // 复习又错：重新排队（EF 不惩罚）
+    /* A8 修：原来用 MODULES.find()（只含 m1..m5），政治/英语错题模块名会落为裸 id "p1"/"e4" */
+    else{ const nw = {id: q.id, q: q.q, a: ansText(q), m: modName(q.m), srs: {stage: 0, due: 0}}; srsReset(nw); st.wrong.push(nw); }
   }
   else if(tutor){   // 看完完整讲解还能答对 = 真学会了 → 直接毕业，不再占着错题本
     if(w){ st.wrong = st.wrong.filter(x => x.id !== q.id); st.srsGrad = (st.srsGrad || 0) + 1; }
@@ -3410,10 +4327,23 @@ function extractJSON(s){
   if(l <= f) return null;
   try{ return JSON.parse(t.slice(f, l + 1)); }catch(e){ return null; }
 }
-const VARIANT_CAP = 5;   // 专家议案：单一考点变式 3-5 道足够
+const VARIANT_CAP = 5;          // 专家议案：单一考点变式 3-5 道足够
+const VARIANT_POOL_CAP = 60;    // 2.7 变式题池总量上限（按题目数，LRU 淘汰），杜绝挤占主存档
+function trimVariantPool(){
+  const keys = Object.keys(st.variants || {});
+  if(keys.length <= VARIANT_POOL_CAP) return;
+  keys.map(k => ({ k:k, t:(st.variants[k] && st.variants[k][0] && st.variants[k][0]._at) || 0 }))
+      .sort((a, b) => a.t - b.t)
+      .slice(0, keys.length - VARIANT_POOL_CAP)
+      .forEach(x => { delete st.variants[x.k]; });
+}
 async function aiGenVariant(q){
   // 变式上限 + 按题目 id 缓存（命中缓存免重复调用，弱网/限流下零等待）
   st.variants = st.variants || {}; st.aiStats = st.aiStats || {api:0, hit:0};
+  /* 2.7 / 红线 R7：变式题池原来**没有任何总量上限**（5/题 × 上千题会把主存档撑爆，
+     save() 空间不足时第一个被牺牲的就是它 —— 说明挤占早已真实发生）。这里按题目数封顶 60，
+     超出按写入时间淘汰最旧的一批，让 AI 产物永远不可能威胁用户学习数据。 */
+  trimVariantPool();
   const bucket = q.id ? (st.variants[q.id] || (st.variants[q.id] = [])) : null;
   if(bucket && bucket.length >= VARIANT_CAP){   // 已出满上限：回收复用旧变式，不再消耗 API
     st.aiStats.hit++; save();
@@ -3431,18 +4361,26 @@ async function aiGenVariant(q){
     + (q.t === 'choice'
       ? '{"t":"choice","q":"题干","o":["选项A","选项B","选项C","选项D"],"a":0,"sol":"一句话解析"}（a 是正确选项的下标数字 0-3）'
       : '{"t":"fill","q":"题干","ans":["标准答案"],"sol":"一句话解析"}（ans 数组可含等价写法）');
-  const out = await sfChat([{ role:'system', content: sys }, { role:'user', content: req }]);
-  const j = extractJSON(out);
-  if(!j || !j.q || !j.sol) throw new Error('她今天有点迷糊，没按格式出题，再试一次？');
-  let v;
-  if(j.t === 'choice'){
-    if(!Array.isArray(j.o) || j.o.length < 3 || typeof j.a !== 'number' || j.a < 0 || j.a >= j.o.length) throw new Error('选项好像不太对，再试一次？');
-    v = { t:'choice', m:q.m, vi:true, q:String(j.q), o:j.o.map(String), a:j.a, sol:String(j.sol) };
-  } else if(Array.isArray(j.ans) && j.ans.length){
-    v = { t:'fill', m:q.m, vi:true, q:String(j.q), ans:j.ans.map(x => String(x)), sol:String(j.sol) };
-  } else throw new Error('答案好像不太对，再试一次？');
-  if(bucket && bucket.length < VARIANT_CAP){ bucket.push(v); st.aiStats.api++; save(); }
-  return v;
+  const r = await aiTask('variant', [{ role:'system', content: sys }, { role:'user', content: req }],
+    { json:true, ctx:{ q:q } });
+  let v = null;
+  if(r.src === 'ai'){
+    const j = extractJSON(r.text);
+    if(j && j.q && j.sol){
+      if(j.t === 'choice' && Array.isArray(j.o) && j.o.length >= 3 && typeof j.a === 'number' && j.a >= 0 && j.a < j.o.length)
+        v = { t:'choice', m:q.m, vi:true, q:String(j.q), o:j.o.map(String), a:j.a, sol:String(j.sol) };
+      else if(Array.isArray(j.ans) && j.ans.length)
+        v = { t:'fill', m:q.m, vi:true, q:String(j.q), ans:j.ans.map(x => String(x)), sol:String(j.sol) };
+    }
+  }
+  if(v){
+    if(bucket && bucket.length < VARIANT_CAP){ bucket.push(v); save(); }
+    return v;
+  }
+  /* 0.8 确定性降级：从同模块题库里挑一道没做过的同型题当变式（功能不缺失，不卡加载） */
+  const local = (r.src === 'degrade') ? r.data : runDegrade('variant', { q:q });
+  if(local){ local._offline = true; return local; }
+  throw new Error('离线模式下暂无可用的同考点变式题，换一题再试试？');
 }
 async function genVariantFlow(q, body, btn){
   const old = btn.textContent;
@@ -3463,7 +4401,9 @@ function renderVariantBox(v, body, afterEl, origQ){
   const box = document.createElement('div'); box.className = 'vbox'; box.id = 'vboxNow';
   box._ctx = { q: origQ, body, btn: afterEl };
   const tag = document.createElement('div'); tag.className = 'vtag';
-  tag.textContent = '🎲 变式题 · ' + mate.name + ' 亲自出题 · 纯加练，不进错题本';
+  tag.textContent = v._offline
+    ? '🎲 变式题 · 📴 离线模式（本地同考点题）· 纯加练，不进错题本'
+    : '🎲 变式题 · ' + mate.name + ' 亲自出题 · 纯加练，不进错题本';
   box.appendChild(tag);
   const qt = document.createElement('div'); qt.className = 'qtext'; qt.textContent = v.q;
   box.appendChild(qt);
@@ -3536,9 +4476,10 @@ function diagnoseErr(q){
     + '请先用你的人设口吻安慰我一句，再简短讲清正确思路（100 字内），最后必须单独一行输出错因标签，严格四选一：【错因：概念不清】【错因：计算失误】【错因：审题错误】【错因：方法不会】';
   S.ai.hist.push({ role:'user', content: req });
   const typing = bubbleHer('…');
-  sfChat(S.ai.hist).then(ans => {
+  aiTask('diagnose', S.ai.hist, { ck: ack('diag', q.id + '|' + strHash((S.drill && S.drill.lastAns) || '')), ctx:{ q:q, myAns:(S.drill && S.drill.lastAns) || '' } }).then(r => {
+    const ans = (r.src === 'ai' ? r.text : r.data) || '';
     S.ai.hist.push({ role:'assistant', content: ans });
-    typing.innerHTML = escapeHtml(ans).replace(/\n/g, '<br>');
+    typing.innerHTML = (r.src === 'degrade' ? OFF_TAG : '') + escapeHtml(ans).replace(/\n/g, '<br>');
     const mm = ans.match(/【错因[:：]\s*([^】]{1,12})】/);
     if(mm){
       const err = mm[1].trim();
@@ -3553,6 +4494,16 @@ function diagnoseErr(q){
     box.scrollTop = box.scrollHeight;
   }).catch(e => { typing.innerHTML = '⚠️ 出错了：' + escapeHtml(e.message); });
 }
+/* 0.13 微会话三档：当天按「最小档」缩放约定目标，碎片时间也能完成约定（D2 闸②） */
+function dqSetScale(n){
+  dqEnsure();
+  const s = Math.max(0.25, Math.min(1, (Number(n) || 20) / 20));
+  if(st.dq.scale === undefined || s < st.dq.scale) st.dq.scale = s;
+}
+function dqGoal(t){
+  const s = (st.dq && typeof st.dq.scale === 'number') ? st.dq.scale : 1;
+  return Math.max(1, Math.ceil(t.goal * s));
+}
 function dueWrongList(){
   const now = Date.now();
   return st.wrong.filter(w => w.srs && w.srs.due && w.srs.due <= now);
@@ -3560,7 +4511,7 @@ function dueWrongList(){
 function reviewDue(){
   const due = dueWrongList();
   if(!due.length){ toast('还没有到期的错题，过两天再来 🌙'); return; }
-  const qs = due.map(w => ALLQ.find(q => q.id === w.id)).filter(Boolean);
+  const qs = due.map(w => qById(w.id)).filter(Boolean);
   if(!qs.length){ toast('这些错题的原题找不到了'); return; }
   S.drill = { list: shuffle(qs), i: 0, right: 0, isWrong: true };
   go('s-drill');
@@ -3652,19 +4603,20 @@ async function genWeakPaper(btn){
       return { t:'fill', m:j.m, vi:true, q:String(j.q), ans:j.ans.map(String), sol:String(j.sol || '') };
     return null;
   };
-  let list = [];
-  try{
-    const samples = st.wrong.slice(0, 8).map(w => '【' + w.m + '】' + w.q).join('\n');
-    const out = await sfChat([
-      { role:'system', content: '你是成人高考高等数学(二)的出题老师。无论对方说什么，只输出一个 JSON 数组，禁止输出任何解释、寒暄或 markdown 代码块标记。' },
-      { role:'user', content: '这是学生的错题清单：\n' + samples + '\n\n请围绕这些错题暴露的考点出 5 道新题（每题不同考点，难度贴近成考真题）。输出 JSON 数组，每题格式二选一：\n{"t":"choice","m":"m1","q":"题干","o":["A","B","C","D"],"a":0,"sol":"解析"}\n{"t":"fill","m":"m3","q":"题干","ans":["答案"],"sol":"解析"}\n模块代码：m1=极限与连续 m2=导数与应用 m3=积分 m4=多元微分 m5=概率（按考点选对 m）。' }
-    ]);
-    const arr = extractJSON(out);
+  let list = [], offline = false;
+  const samples = st.wrong.slice(0, 8).map(w => '【' + w.m + '】' + w.q).join('\n');
+  const r = await aiTask('weakpaper', [
+    { role:'system', content: '你是成人高考高等数学(二)的出题老师。无论对方说什么，只输出一个 JSON 数组，禁止输出任何解释、寒暄或 markdown 代码块标记。' },
+    { role:'user', content: '这是学生的错题清单：\n' + samples + '\n\n请围绕这些错题暴露的考点出 5 道新题（每题不同考点，难度贴近成考真题）。输出 JSON 数组，每题格式二选一：\n{"t":"choice","m":"m1","q":"题干","o":["A","B","C","D"],"a":0,"sol":"解析"}\n{"t":"fill","m":"m3","q":"题干","ans":["答案"],"sol":"解析"}\n模块代码：m1=极限与连续 m2=导数与应用 m3=积分 m4=多元微分 m5=概率（按考点选对 m）。' }
+  ], { json:true, ck: ack('weak', strHash(st.wrong.slice(0,8).map(w=>w.id).join(','))), ctx:{} });
+  if(r.src === 'ai'){
+    const arr = extractJSON(r.text);
     if(Array.isArray(arr)) arr.forEach(j => { const q = build(j); if(q) list.push(q); });
-  }catch(e){}
+  } else offline = true;
   if(list.length < 3){
-    toast('AI 出卷不太顺，先用你的错题原题顶上');
-    list = shuffle(st.wrong.map(w => ALLQ.find(q => q.id === w.id)).filter(Boolean));
+    list = (r.src === 'degrade' ? (r.data || []) : []) ;
+    if(list.length < 3){ list = shuffle(st.wrong.map(w => qById(w.id)).filter(Boolean)); offline = true; }
+    toast(offline ? '📴 离线模式：用你的错题原题组卷（考点一样准）' : 'AI 出卷不太顺，先用你的错题原题顶上');
   }
   if(!list.length){ btn.disabled = false; btn.textContent = '🎯 生成特训卷'; toast('没有可用的题'); return; }
   S.drill = { list: shuffle(list).slice(0, 5), i: 0, right: 0, weakPaper: true };
@@ -3719,6 +4671,20 @@ function noteTab(s){
   NOTE_SUBJ = s;
   const si = document.getElementById('noteSearch'); if(si) si.value = '';
   renderNote('');
+}
+/* v3.4.0：进入考点速记页的入口 —— 题库未就绪时先给加载态，到位后自动重绘（不跳页、不白屏） */
+function renderNoteScreen(){
+  const gold = (typeof GP_SRC !== 'undefined') && GP_SRC === 'gold';
+  if(gold) renderGold(''); else renderNote('');
+  if(!bankReady('kaodian')){
+    const nl = document.getElementById('noteList');
+    if(nl) nl.innerHTML = '<div class="empty">📚 资料库正在加载…（首次约 0.5 秒，之后走本地缓存）</div>';
+  }
+  if(!bankReady('goldpoints')){
+    const gl = document.getElementById('gpList');
+    if(gl) gl.innerHTML = '<div class="empty">🏆 黄金考点正在加载…</div>';
+  }
+  ensureBanks(['kaodian', 'goldpoints']).then(ok => { if(ok) afterBanksReady(); });
 }
 function renderNote(kw){
   const box = document.getElementById('noteList'); if(!box) return;
@@ -3785,6 +4751,37 @@ function buildNoteBody(el, d, kw){
 
 /* =================== 2026 黄金考点（388 个结构化考点 · 来自《黄金考点汇编》） =================== */
 const GP_NAME = {pol:'政治', mat:'高数二', eng:'英语'};
+/* ---------- 2.12 黄金考点入排程 ----------
+   政治《黄金考点汇编》的 part 字段与科目模块一一对应（马哲→p1 / 毛中特→p2 / 习思想→p3），
+   之前这 294 个考点只能「手动翻」，从不参与排课。现在：某模块覆盖率仍为 0 时，
+   在课表里插入一个 10 分钟的「考前必读」块（只补未到点时段，与 planExtra 同规则）。
+   说明：eng(26 条) / mat(68 条) 的 part 字段不构成可靠映射 → 仅做政治三块，其余降级为静态速记卡。 */
+function gpPartMod(part){
+  const s = String(part || '');
+  if(s.indexOf('第一部分') >= 0) return 'p1';
+  if(s.indexOf('第二部分') >= 0) return 'p2';
+  if(s.indexOf('第三部分') >= 0) return 'p3';
+  return null;
+}
+/* 还没读过、且模块还没开练的黄金考点模块 → 供排课插入「考前必读」块 */
+function gpUnreadMods(){
+  const out = [], seen = {};
+  try{
+    (gpAll().pol || []).forEach(x => {
+      const m = gpPartMod(x.part);
+      if(!m || seen[m]) return;
+      if(modStats(m).cov === 0 && !isExtMod(m)){ seen[m] = 1; out.push(m); }
+    });
+  }catch(e){}
+  return out;
+}
+/* 考前 30 天内，把「考前必读」提到课表（黄金考点是性价比最高的一遍通读） */
+function gpReadBlock(){
+  if(daysUntilExam() > 30) return null;
+  const ms = gpUnreadMods();
+  if(!ms.length) return null;
+  return {start:'20:00', dur:10, subj:'pol', mod:ms[0], type:'read', label:'🏆 考前必读 · ' + modName(ms[0]) + ' 黄金考点（' + ms.length + ' 块待读）'};
+}
 let GP_SUBJ = 'pol', GP_SRC = 'doc';
 function noteSrc(src){
   GP_SRC = src;
@@ -3889,21 +4886,23 @@ async function gpQuiz(pt, bodyEl, btn){
     + '考点内容：' + String(pt.b || '').slice(0, 700) + '\n'
     + '输出格式（只输出这一行 JSON）：\n'
     + '{"t":"choice","q":"题干","o":["选项A","选项B","选项C","选项D"],"a":0,"sol":"一句话解析"}（a 为正确选项下标 0-3）';
-  try{
-    const out = await sfChat([{role:'system',content:sys},{role:'user',content:req}]);
-    const j = extractJSON(out);
-    if(!j || !j.q || !Array.isArray(j.o) || j.o.length < 2) throw new Error('AI 返回的题目格式不对');
-    renderGpQuiz(box, j, pt);
-  }catch(e){
-    box.innerHTML = '<div style="font-size:12.5px;color:var(--red)">⚠️ ' + escapeHtml(e.message) + '<br>网络不好或模型开小差了，点上面按钮再试一次～</div>';
+  const r = await aiTask('gpquiz', [{role:'system',content:sys},{role:'user',content:req}],
+    { json:true, ck: ack('gpq', GP_SUBJ + '|' + strHash(pt.t)), ctx:{ pt:pt, subj:GP_SUBJ } });
+  let j = null;
+  if(r.src === 'ai'){
+    j = extractJSON(r.text);
+    if(!j || !j.q || !Array.isArray(j.o) || j.o.length < 2) j = null;
   }
+  if(!j) j = (r.src === 'degrade' ? r.data : null) || runDegrade('gpquiz', { pt:pt, subj:GP_SUBJ });
+  if(j && j.q && Array.isArray(j.o) && j.o.length >= 2) renderGpQuiz(box, j, pt, !!j._local);
+  else box.innerHTML = '<div style="font-size:12.5px;color:var(--sub)">📴 离线模式：这个考点暂时出不了新题，先看考点原文吧～</div>';
   btn.disabled = false; btn.textContent = '🎯 换一道（再来）';
 }
-function renderGpQuiz(box, j, pt){
+function renderGpQuiz(box, j, pt, offline){
   const a = Math.max(0, Math.min(j.o.length - 1, parseInt(j.a, 10) || 0));
   box.innerHTML = '';
   const tag = document.createElement('div');
-  tag.innerHTML = '<span class="qtag">🎯 ' + escapeHtml(pt.t) + ' · AI 新题</span>';
+  tag.innerHTML = '<span class="qtag">🎯 ' + escapeHtml(pt.t) + ' · ' + (offline ? '📴 离线模式 · 本地同考点题' : 'AI 新题') + '</span>';
   box.appendChild(tag);
   const qt = document.createElement('div'); qt.className = 'qtext'; qt.textContent = j.q; box.appendChild(qt);
   j.o.forEach((o, k) => {
@@ -3926,7 +4925,8 @@ function renderGpQuiz(box, j, pt){
 }
 
 /* =================== 3 天计划 =================== */
-function renderPlan(){
+/* 0.2 原名 renderPlan 与管家课表版重名，被后者覆盖导致 s-plan 页静默白屏（本页容器是 #planList） */
+function renderPlan3Day(){
   renderSprintPlan();
   const subj = FILTER.subj;
   const box = document.getElementById('planList'); box.innerHTML = '';
@@ -3944,7 +4944,7 @@ function renderPlan(){
       tk.onclick = () => {
         if(st.plan[t.id]){ delete st.plan[t.id]; toast('已取消打卡'); }
         else{ st.plan[t.id] = 1; addXp(t.xp); st.aff.xue = (st.aff.xue || 0) + 1; toast('打卡成功 +' + t.xp + 'XP · 雪见好感+1 💪'); }
-        save(); renderPlan();
+        save(); renderPlan3Day();
       };
       card.appendChild(tk);
     });
@@ -3975,7 +4975,7 @@ function renderBoss(){
       <button class="btn magenta" onclick="go('s-study')">返回自习室</button></div>`;
     return;
   }
-  const q = b.list[b.i], mo = MODULES.find(x => x.id === q.m);
+  const q = b.list[b.i], mo = MODULES.find(x => x.id === q.m) || {name: modName(q.m)};
   const tag = document.createElement('div'); tag.className = 'qtag'; tag.textContent = '⚔️ BOSS · ' + mo.name;
   body.appendChild(tag);
   const pbB = passageBox(q); if(pbB) body.appendChild(pbB);
@@ -4136,7 +5136,7 @@ function quitMock(){ toast('已退出模拟卷，进度不作保存'); go('s-stu
 /* =================== 错题 =================== */
 function reviewWrong(){
   if(!st.wrong.length){ toast('错题本空空如也，去刷题吧！'); go('s-study'); return; }
-  const list = st.wrong.map(w => ALLQ.find(q => q.id === w.id)).filter(Boolean);
+  const list = st.wrong.map(w => qById(w.id)).filter(Boolean);
   if(!list.length){ toast('错题数据异常，已清空错题本'); st.wrong = []; save(); renderMe(); return; }
   S.drill = {mod: 'wrong', list, i: 0, right: 0, isWrong: true};
   go('s-drill'); renderDrill();
@@ -4167,7 +5167,7 @@ function moduleStat(id){
   const cover = cap ? Math.min(1, prog.t / cap) : 0;
   const acc = prog.t ? prog.c / prog.t : 0;
   let wrongs = 0;
-  st.wrong.forEach(w => { const q = ALLQ.find(x => x.id === w.id); if(q && q.m === id) wrongs++; });
+  st.wrong.forEach(w => { const q = qById(w.id); if(q && q.m === id) wrongs++; });
   let m = 0;
   if(prog.t > 0){ m = Math.round(100 * (0.5 * cover + 0.5 * acc)) - wrongs * 4; m = Math.max(1, Math.min(100, m)); }
   return {id, total, seen: prog.t, right: prog.c, acc: Math.round(acc * 100),
@@ -4310,7 +5310,7 @@ function noteTags(mo, s, wrongN){
 }
 function wrongsOfMod(id){
   const out = [];
-  st.wrong.forEach(w => { const q = ALLQ.find(x => x.id === w.id); if(q && q.m === id) out.push(q); });
+  st.wrong.forEach(w => { const q = qById(w.id); if(q && q.m === id) out.push(q); });
   return out;
 }
 /* 通关记录：任务清零后保存的思维导图 + 记忆口诀，随时回看 */
@@ -4585,6 +5585,7 @@ function openMV(id){
   const el = document.getElementById('mvEl'), fb = document.getElementById('mvFallback');
   const glb = 'models/' + id + '.glb';
   let loaded = false;
+  try{ if(window.__ckLoadMV) window.__ckLoadMV(); }catch(e){}      // P3 按需加载 3D 引擎
   fetch(glb, {method: 'HEAD'}).then(r => {
     if(r.ok){ loaded = true; el.style.display = 'block'; fb.style.display = 'none'; el.setAttribute('src', glb); }
     else throw 0;
@@ -4603,13 +5604,22 @@ function closeMV(){
 /* =================== AI 学习管家 + 阅读动画小课堂 =================== */
 
 /* ---------- 掌握度计算 ---------- */
+/* ---------- P3 派生指标 memo ----------
+   modStats 每次调用都全库 filter，而 roiList / dynamicWeights / weakModules / agPerceive 会层层重复调它。
+   失效判定用「存档版本号」：任何一次 save() 都换版本，缓存自然清空，杜绝脏读。 */
+let __statVer = 0, __statCache = {};
+function bumpStat(){ __statVer++; __statCache = {}; }
 function modStats(mid){
+  const ck = mid + '|' + __statVer;
+  if(__statCache[ck]) return __statCache[ck];
   const all = ALLQ.filter(q => q.m === mid);
   const rec = st.records || {};
   let att = 0, cor = 0, done = 0;
   all.forEach(q => { const r = rec[q.id]; if(r){ att += r.n; cor += r.c; done++; } });
-  return {total: all.length, done, cov: all.length ? Math.round(done/all.length*100) : 0,
+  const res = {total: all.length, done, cov: all.length ? Math.round(done/all.length*100) : 0,
     acc: att ? Math.round(cor/att*100) : 0, att};
+  __statCache[ck] = res;
+  return res;
 }
 function subjectStats(sid){
   const subj = SUBJECTS.find(s => s.id === sid); if(!subj) return null;
@@ -4617,10 +5627,16 @@ function subjectStats(sid){
   subj.mods.forEach(m => { const s = modStats(m.id); total+=s.total; done+=s.done; att+=s.att; cor+= Math.round(s.acc/100*s.att); });
   return {name: subj.name, ico: subj.ico, total, done, cov: total?Math.round(done/total*100):0, acc: att?Math.round(cor/att*100):0};
 }
+/* 薄弱项：要求至少答过 3 题（否则刷 1 题错 1 题就把模块锁死成 acc=0，任务卡被单一模块霸占）
+   并按 ROI 加权排序 —— 同样是 60% 正确率，阅读(60分)比语音(5分)更值得先救 */
 function weakModules(){
   const out = [];
-  ALL_MODS.forEach(m => { const s = modStats(m.id); if(s.total && s.cov>0 && s.acc < 65) out.push({m, s}); });
-  out.sort((a,b)=> a.s.acc - b.s.acc);
+  ALL_MODS.forEach(m => {
+    const s = modStats(m.id);
+    if(!s.total || isExtMod(m.id)) return;
+    if(s.cov > 0 && s.att >= 3 && s.acc < 65) out.push({m, s, roi: modRoi(m.id)});
+  });
+  out.sort((a,b)=> (b.roi - a.roi) || (a.s.acc - b.s.acc));
   return out;
 }
 function unlearnedModules(){ return ALL_MODS.filter(m => { const s = modStats(m.id); return s.total>0 && s.cov===0; }); }
@@ -4660,7 +5676,9 @@ function renderDash(){
 
 /* ---------- 每日 12h 智能规划 ---------- */
 function genDailyPlan(noExtra){
-  const w = st.butler.weights;
+  /* 1.7：不再直接用滑块比例，改用 dynamicWeights()（考点 ROI × 滑块 prior，含 20% 硬下限防偏科） */
+  const dw = dynamicWeights();
+  const w = {math: dw.math, pol: dw.pol, eng: dw.eng};
   const totalW = (w.math+w.pol+w.eng)||1;
   const STUDY = 12*60;
   const raw = {math: STUDY*w.math/totalW, pol: STUDY*w.pol/totalW, eng: STUDY*w.eng/totalW};
@@ -4676,12 +5694,20 @@ function genDailyPlan(noExtra){
   ];
   const blocks=[]; const remain = {math:mins.math, pol:mins.pol, eng:mins.eng};
   WIN.forEach(win=>{ let t=win.start; ['math','pol','eng'].forEach(s=>{ if(win.subj && win.subj!==s) return; let need=remain[s]; if(need<=0) return; const cap=win.end-t; if(cap<=0) return; const use=Math.min(need, cap); if(use<=0) return; blocks.push({start:pad(Math.floor(t/60))+':'+pad(t%60), dur:use, subj:s, type:'study', label: win.subj?win.label:('🔁 '+subjectName(s)+' · 补漏/变式')}); remain[s]-=use; t+=use; }); });
-  // 极端权重下仍有溢出：在 22:00 后追加补漏块，保证 12h 学习时长不缩水
-  ['math','pol','eng'].forEach(s=>{ if(remain[s]>0){ blocks.push({start:'22:00', dur:remain[s], subj:s, type:'study', label:'🔁 '+subjectName(s)+' · 溢出补漏'}); remain[s]=0; } });
+  // 极端权重下仍有溢出：在 22:00 后追加补漏块，但**不得侵入 23:00 起的强制睡眠**（原实现会排出跨睡眠的大块）
+  ['math','pol','eng'].forEach(s=>{
+    if(remain[s] > 0){
+      const dur = Math.min(remain[s], 60);            // 22:00~23:00 只有 60 分钟可用
+      blocks.push({start:'22:00', dur:dur, subj:s, type:'study', label:'🔁 '+subjectName(s)+' · 溢出补漏'});
+      remain[s] = 0;
+    }
+  });
   blocks.push({start:'12:00', dur:120, type:'relax', label:'😌 强制休闲回血（固定 2 小时，离开屏幕：散步 / 音乐 / 拉伸，防脑力透支）'});
   blocks.push({start:'18:30', dur:30, type:'meal', label:'🍱 晚餐'});
   blocks.push({start:'21:00', dur:60, subj:'all', type:'study', label:'🔁 错题循环清零 · 同考点变式补强'});
   blocks.push({start:'23:00', dur:420, type:'sleep', label:'🌙 夜间睡眠固化（强制下线 7 小时，记忆在睡梦中定型）'});
+  /* 2.12 黄金考点入排程：考前 30 天内，读卡块自动进课表 */
+  const gpr = gpReadBlock(); if(gpr) blocks.push(gpr);
   /* 闭环③：动画课堂暴露的弱点 → 只往「还没到点」的时段追加 10 分钟巩固块（不推翻已过时段，可撤销） */
   if(!noExtra){
     const nowMin = (new Date()).getHours()*60 + (new Date()).getMinutes();
@@ -4705,12 +5731,17 @@ function renderPlan(){
     if(b.type==='meal') return '<div class="slot"><span class="tm">'+b.start+'</span><span class="sb">'+b.label+'</span><span class="en">用餐</span></div>';
     if(b.type==='sleep') return '<div class="slot sleep"><span class="tm">'+b.start+'</span><span class="sb">'+b.label+'</span><span class="en">强制下线</span></div>';
     if(b.type==='boost') return '<div class="slot boost"><span class="tm">'+b.start+'</span><span class="sb">'+b.label+'</span><span class="en">课堂回流 · '+b.dur+' 分钟 <button class="xbtn" onclick="revokePlanBoost(\''+(b.d+'|'+b.mod)+'\')">撤销</button></span></div>';
+    if(b.type==='read') return '<div class="slot boost" style="cursor:pointer" onclick="go(\'s-gp\')"><span class="tm">'+b.start+'</span><span class="sb">'+b.label+'</span><span class="en">必读 · '+b.dur+' 分钟 ›</span></div>';
     return '<div class="slot"><span class="tm">'+b.start+'</span><span class="sb">'+b.label+'</span><span class="tp">'+b.dur+' 分钟</span></div>';
   }).join('');
   const boosts = (st.planExtra||[]).filter(x=>!x.revoked && x.d === todayStr(0));
   const boostNote = boosts.length ? '<div class="diag-warn" style="border-color:rgba(94,224,240,.4);background:rgba(94,224,240,.08)">📖 <b>课堂回流已生效</b>：'+boosts.map(x=>x.start+' 起 '+x.dur+' 分钟 · '+escapeHtml(modName(x.mod))).join('、')+'。<br>只补「还没到点」的时段，不动已过去的安排；不想要就点上面的「撤销」。</div>' : '';
+  const dw = dynamicWeights();
+  const dwNote = '<div class="diag-warn" style="border-color:rgba(94,224,240,.4);background:rgba(94,224,240,.08)">⚖️ <b>按考点 ROI 动态配比</b>：'
+    + ['math','pol','eng'].map(s=>subjectName(s)+' '+Math.round(dw[s]*100)+'%').join(' · ')
+    + '。你的滑块作为倾向权重参与（最多上下浮动 40%），任一科目<b>保底 20%</b> 防偏科。</div>';
   document.getElementById('butlerBody').innerHTML =
-    '<div class="card"><div style="font-size:12.5px;color:var(--sub);margin-bottom:6px">拖动滑块调整科目权重，AI 按精力曲线重排 12 小时课表：脑力高峰排高数，下午排政治，傍晚排英语，晚间错题清零。每日固定 2 小时休闲回血。</div>'+sliders+
+    '<div class="card"><div style="font-size:12.5px;color:var(--sub);margin-bottom:6px">拖动滑块调整科目倾向，AI 按考点分值 × 提分空间 × 精力曲线重排 12 小时课表：脑力高峰排高数，下午排政治，傍晚排英语，晚间错题清零。每日固定 2 小时休闲回血。</div>'+sliders+dwNote+
     '<button class="btn magenta mt10" onclick="renderPlan()">🔄 按当前权重重排课表</button></div>'+ boostNote +
     '<div class="sec-title"><span class="bar"></span>今日 12 小时课表</div>'+
     '<div class="card">'+blocks+'</div>';
@@ -4734,17 +5765,26 @@ function pickTodayTask(excludeId){
     const ws = weakModules();
     subj = ws.length ? subjOfMod(ws[0].m.id) : (st.lastReport && st.lastReport.subj) || 'math';
   }
+  /* 闸① 到期错题优先：遗忘曲线上的题比任何"预估薄弱"都更该先做（学习科学专家裁决 ①） */
+  const due = dueWrongList();
+  if(due.length){
+    const dm = due[0].m;
+    if(!isExtMod(dm) && modStats(dm).total > 0)
+      return {subj: subjOfMod(dm), mod: dm, why:'有 ' + due.length + ' 道错题到复习点了，先收回来'};
+  }
   const cands0 = modsOfSubj(subj);
   let cands = cands0.filter(m => m.id !== excludeId);
   if(!cands.length) cands = cands0.length ? cands0 : ALL_MODS;
-  const withQ = cands.filter(m => modStats(m.id).total > 0);   // 只推真的有题的模块，避免空任务
+  const withQ = cands.filter(m => modStats(m.id).total > 0 && !isExtMod(m.id));   // 只推真有题且非超纲的模块
   if(withQ.length) cands = withQ;
   const w = weakModules().find(x => cands.some(m => m.id === x.m.id));
-  if(w) return {subj, mod: w.m.id, why:'你的薄弱项 · 正确率仅 ' + w.s.acc + '%'};
+  if(w) return {subj, mod: w.m.id, why:'客观题约 ' + kdOf(w.m.id).obj + ' 分 · 正确率 ' + w.s.acc + '%，最该救'};
   const u = cands.find(m => modStats(m.id).cov === 0);
   if(u) return {subj, mod: u.id, why:'还没开练的模块，先摸底'};
-  const m = cands[Math.floor(Math.random() * cands.length)];
-  return {subj, mod: m.id, why:'按今日课表轮转'};
+  /* 按 ROI 排序取最优（原来用 Math.random()，与"确定性"原则冲突：同一天刷新两次会换任务） */
+  const ranked = cands.slice().sort((a,b)=> modRoi(b.id) - modRoi(a.id));
+  const top = ranked[0] || cands[0];
+  return {subj, mod: top.id, why:'按客观题分值与提分空间排下来的第一优先'};
 }
 /* 当天的任务一旦确定就固定下来（当天不抖动），这就是「唯一指令」 */
 function todayTaskNow(){
@@ -4764,12 +5804,19 @@ function regenTodayTask(){
   const p = pickTodayTask(cur.mod);
   st.todayTask = {d: todayStr(0), subj:p.subj, mod:p.mod, why:p.why, done:false, at:Date.now()};
   save(); renderTodayCard();
-  toast('今日任务已换成：' + modName(p.mod));
 }
-function startTodayTask(){
+/* 0.13 选档：只改本次会话题量，不重排任务；换档后约定目标同步按 N/20 缩放 */
+function pickSessionN(n){
+  const t = todayTaskNow();
+  if(!t.at){ renderTodayCard(); return; }
+  st.todayTask.n = SESSION_N(n);
+  save(); renderTodayCard();
+  toast('已选 ' + st.todayTask.n + ' 题档 · 碎片时间也算完成今日约定');
+}
+function startTodayTask(n){
   const t = todayTaskNow();
   setSubject(t.subj);                 // 先切科目，保证题池与模块对得上
-  startDrill(t.mod, 'normal', {fromPlan:true});
+  startDrill(t.mod, 'normal', {fromPlan:true, n:n});   // 0.13：不传 n 时默认 20 题，行为不变
 }
 /* 闭环⑤ 通关战报：做完的那一轮，回首页留下痕迹 */
 function againFromReport(){
@@ -4784,7 +5831,7 @@ function reportHTML(){
   const mo = modById(r.mod);
   const when = hrs < 1 ? '刚刚' : (hrs < 2 ? '1 小时前' : Math.round(hrs) + ' 小时前');
   return '<div class="reportbar">'
-    + '<div class="rb-top">📣 上一轮战报<span class="rb-time">' + when + '</span></div>'
+    + '<div class="rb-top">' + (r.partial ? '📣 这一轮先到这儿' : '📣 上一轮战报') + '<span class="rb-time">' + when + '</span></div>'
     + '<div class="rb-body">消灭 <b>' + (r.killed || 0) + '</b> 道错题 · 掌握 <b>' + (r.mastered || 0) + '</b> 题 · 用时 <b>' + (r.min || 1) + '</b> 分钟'
     + (mo ? '<br><span class="rb-mod">' + mo.ico + ' ' + escapeHtml(mo.name) + '</span>' : '') + '</div>'
     + (r.say ? '<div class="rb-say">' + escapeHtml(r.say) + '</div>' : '')
@@ -4797,18 +5844,25 @@ function renderTodayCard(){
   const t = todayTaskNow();
   const mo = modById(t.mod) || {name:'今日任务', ico:'🎯'};
   const subj = SUBJECTS.find(s => s.id === t.subj) || SUBJECTS[0];
-  const N = 20;
+  /* 0.13 微会话三档：只有 5 分钟也能开始，任意档都算完成今日约定 */
+  const N = SESSION_N(t.n);
+  const mins = {5:5, 10:12, 20:25}[N];
+  const picker = '<div class="tc-nbox"><span class="tc-nlab">今天有多少时间？</span>'
+    + SESSION_N_LIST.map(n => '<span class="tc-n' + (n === N ? ' on' : '') + '" onclick="pickSessionN(' + n + ')">' + SESSION_N_TXT[n] + '</span>').join('')
+    + '</div>';
   box.innerHTML = '<div class="todaycard' + (t.done ? ' tcdone' : '') + '">'
     + '<div class="tc-top"><span class="tc-tag">' + (t.done ? '✅ 今日已完成' : '🎯 今天只做这一件事') + '</span>'
     + '<span class="tc-subj">' + subj.ico + ' ' + escapeHtml(subj.name) + '</span></div>'
     + '<div class="tc-main">' + mo.ico + ' ' + escapeHtml(mo.name) + '</div>'
-    + '<div class="tc-why">' + escapeHtml(t.why || '') + ' · ' + N + ' 题 · 约 ' + Math.max(5, N) + ' 分钟</div>'
+    + '<div class="tc-why">' + escapeHtml(t.why || '') + ' · ' + N + ' 题 · 约 ' + mins + ' 分钟</div>'
     + (t.done
       ? '<div class="tc-done">这一关已经拿下啦，剩下的时间交给错题清零和休息 🌙</div>'
-        + '<div class="row2 mt10"><button class="btn ghost" onclick="startTodayTask()">再刷一轮同考点</button>'
+        + '<div class="row2 mt10"><button class="btn ghost" onclick="startTodayTask(' + N + ')">再刷一轮同考点</button>'
         + '<button class="btn ghost" onclick="regenTodayTask()">再练一个别的模块</button></div>'
-      : '<button class="btn gold mt10" style="width:100%" onclick="startTodayTask()">▶ 开始（管家已排好）</button>'
-        + '<div class="tc-foot">不用挑科目、不用选模块，点一下就行 · <span class="tc-swap" onclick="regenTodayTask()">今天不想做这个？换一个</span></div>')
+      : picker
+        + '<button class="btn gold mt10" style="width:100%" onclick="startTodayTask(' + N + ')">▶ 开始（' + N + ' 题 · 管家已排好）</button>'
+        + '<div class="tc-foot">不用挑科目、不用选模块，点一下就行 · <span class="tc-swap" onclick="regenTodayTask()">换一个</span>'
+        + ' · <span class="tc-swap" onclick="deferTodayTask()">今天先暂缓</span></div>')   /* 2.9：「暂缓」而非「放弃」 */
     + '</div>'
     + reportHTML();
 }
@@ -4847,7 +5901,7 @@ function renderMateInvite(){
   box.innerHTML = '<div class="mateinvite">'
     + '<div class="mi-top">💌 今日陪练邀请</div>'
     + '<div class="mi-body"><img src="' + m.img + '" onerror="this.style.display=\'none\'">'
-    + '<div class="mi-txt">' + escapeHtml(m.name) + ' 的主场是 <span class="mi-focus">' + escapeHtml(focusLabel(m.id)) + '</span>，想陪你练一轮。'
+    + '<div class="mi-txt">' + escapeHtml(m.name) + ' 今天来陪你练 <span class="mi-focus">' + escapeHtml(focusLabel(m.id)) + '</span>，想陪你练一轮。'
     + (missed ? '今天这科你还没碰呢～' : '再练一轮，手感更稳。')
     + '<br><span style="color:var(--sub);font-size:11.5px">我们一起练了 ' + (b.q || 0) + ' 题 · 通关 ' + (b.clear || 0) + ' 次</span></div></div>'
     + '<button class="btn gold sm mt10" style="width:100%" onclick="studyMateHome(\'' + m.id + '\')">💞 去 ' + escapeHtml(focusLabel(m.id)) + ' 陪 TA 练一轮</button>'
@@ -4860,7 +5914,7 @@ function mateBalanceHTML(){
     const b = bondOf(m.id), lv = affLv(st.aff[m.id] || 0);
     const f = focusOf(m.id);
     const state = f === 'all' ? '全科' : (done[f] ? '✅ 今日已陪' : '⏳ 今日待陪');
-    return '· ' + m.name + '（主场 <b style="color:var(--gold)">' + focusLabel(m.id) + '</b>）· ' + state
+    return '· ' + m.name + '（陪练科目 <b style="color:var(--gold)">' + focusLabel(m.id) + '</b>）· ' + state
       + ' · 羁绊 ' + LVNAMES[lv - 1] + '（共练 ' + (b.q || 0) + ' 题 / 通关 ' + (b.clear || 0) + ' 次）';
   });
   const invite = mateInvitePick();
@@ -4894,7 +5948,7 @@ function renderDiag(){
     '<div class="card"><div style="font-size:12.5px;line-height:1.8;color:var(--sub)">📝 <b>当日学习总结复盘</b><br>'+diagSummary(doneN,doneC,weak,unl)+'</div></div>';
 }
 function diagSummary(n,c,weak,unl){
-  if(!n) return '今天还没动笔。打开自习室，先做 20 题摸底，管家才能给你精准画像。';
+  if(!n) return '今天还没开始，先做 5 题试试水温，管家就能慢慢认识你。';
   let s = '今日效率不错，练了 '+n+' 题。';
   if(weak.length) s += ' 薄弱环节集中在 '+weak[0].m.name+' 等，建议明早优先安排。';
   if(unl.length) s += ' 还有 '+unl.length+' 个模块完全没碰，别拖到考前。';
@@ -5039,7 +6093,483 @@ function renderArc(){
     '<input id="arcFile" type="file" accept="application/json" style="display:none" onchange="importArchive(this)"></div>';
 }
 function exportArchive(){ const blob=new Blob([JSON.stringify(st)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='chengkao-archive-'+todayStr(0)+'.json'; a.click(); toast('已导出备份 ✅'); }
-function importArchive(inp){ const f=inp.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{ Object.assign(st, JSON.parse(r.result)); save(); toast('已恢复存档 ✅ 刷新后生效'); }catch(e){ toast('文件格式不对'); } }; r.readAsText(f); }
+/* 0.7 导入必须走与 load() 相同的 normalize()，否则字段缺失会静默污染运行时 */
+function importArchive(inp){
+  const f = inp.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try{
+      const o = JSON.parse(r.result);
+      const s = normalize(o);
+      Object.keys(s).forEach(k => { st[k] = s[k]; });
+      save();
+      toast('已恢复存档 ✅ 刷新后生效');
+    }catch(e){ toast('文件格式不对'); }
+  };
+  r.readAsText(f);
+}
+
+/* =================== v3.1.0 P1 · AI 学习管家 Agent 闭环 ===================
+   流水线：感知 agPerceive → 规划 agPlan(rule) → 执行 agAct(唯一出口) → 反思 agReflect(写 st.mem)
+   本期**全程 rule-only、零 AI 依赖**：无 Key / 熔断 / 超配额时功能一块不缺。
+   LLM 微调分支留到 P2（agPlan 内预留入口，本期不接线）。 */
+
+/* ---- 件4 记忆分层 st.mem：{sem:{}, epi:[], pro:{}} ---- */
+const MEM_EPI_MAX = 120, MEM_SEM_MAX = 30;
+function memEnsure(){
+  if(!st.mem) st.mem = {sem:{}, epi:[], pro:{}};
+  if(!st.mem.sem || typeof st.mem.sem !== 'object') st.mem.sem = {};
+  if(!Array.isArray(st.mem.epi)) st.mem.epi = [];
+  if(!st.mem.pro || typeof st.mem.pro !== 'object') st.mem.pro = {};
+  return st.mem;
+}
+/* episodic：每日战报，环形 120 条 */
+function memEpi(item){
+  const m = memEnsure();
+  m.epi.push(Object.assign({at:Date.now(), d:todayStr(0)}, item || {}));
+  if(m.epi.length > MEM_EPI_MAX) m.epi.shift();
+  return m.epi.length;
+}
+/* semantic：模块掌握度趋势（按天去重，保留 30 天） */
+function memSem(mid, mastery){
+  if(!mid) return;
+  const m = memEnsure();
+  const cell = m.sem[mid] || (m.sem[mid] = {h:[]});
+  const td = todayStr(0), last = cell.h[cell.h.length - 1];
+  const v = Math.round(Number(mastery) || 0);
+  if(!last || last.d !== td) cell.h.push({d:td, v:v});
+  else last.v = v;
+  if(cell.h.length > MEM_SEM_MAX) cell.h.shift();
+}
+/* 趋势：今日值 - 3 日前值（正数=在涨） */
+function memTrend(mid){
+  const c = (memEnsure().sem || {})[mid];
+  if(!c || !c.h.length) return null;
+  const now = c.h[c.h.length - 1].v;
+  const old = c.h.length >= 4 ? c.h[c.h.length - 4].v : c.h[0].v;
+  return {now:now, prev:old, slope:now - old};
+}
+/* procedural：从 st.sessions / st.records 归纳用户画像——这是 C3「12h 课表脱离现实」的 cure，
+   genDailyPlan 一行不改，改由 rule 决策消费画像（建议档位、夜间上限、偏爱科目、活跃时段） */
+function proLearn(){
+  const m = memEnsure(), pro = m.pro;
+  const ss = (st.sessions || []).slice(-14);
+  if(ss.length >= 3){
+    const ns = ss.map(s => s.n || 0).filter(x => x > 0).sort((a, b) => a - b);
+    const mid = ns.length ? ns[Math.floor(ns.length / 2)] : 0;
+    pro.sessionLen = mid <= 6 ? 5 : (mid <= 14 ? 10 : 20);       // 建议的微会话档位
+    const recent = ss.slice(-3).map(s => s.n || 0);
+    if(recent.length === 3 && recent.every(x => x > 0 && x <= 12)) pro.nightCapMin = 30;
+  }
+  const cnt = {};
+  Object.keys(st.records || {}).forEach(k => { const r = st.records[k]; if(r && r.subj) cnt[r.subj] = (cnt[r.subj] || 0) + 1; });
+  const top = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a])[0];
+  if(top) pro.preferSubj = top;
+  const hrs = (m.epi || []).map(x => new Date(x.at || Date.now()).getHours());
+  if(hrs.length >= 5){
+    const night = hrs.filter(h => h >= 20 || h < 7).length;
+    pro.activeHours = (night / hrs.length >= 0.6) ? 'night' : 'day';
+  }
+  return pro;
+}
+
+/* ---- 1.2 工具注册表 TOOLS：能力有名字、有前置、有效果，才可能被调度 ---- */
+const TOOLS = {
+  today_task:      {name:'today_task',      desc:'开今日唯一任务卡那一轮',   when:'今日任务还没做',
+                    pre:() => !!(st.todayTask && st.todayTask.d === todayStr(0)),
+                    run:c => { startTodayTask(c && c.n); return true; }},
+  start_drill:     {name:'start_drill',     desc:'开指定模块的练习',       when:'知道要练哪个模块',
+                    pre:c => !!(c && c.mod),                       why:'缺少模块 id',
+                    run:c => { startDrill(c.mod, c.mode || 'normal', {n:c.n}); return true; }},
+  weak_drill:      {name:'weak_drill',      desc:'开最薄弱模块的专项',      when:'有薄弱模块且今日任务已完成',
+                    pre:() => (weakModules() || []).length > 0,      why:'当前没有薄弱模块',
+                    run:() => { weakDrill(); return true; }},
+  weak_drill_mod:  {name:'weak_drill_mod',  desc:'开指定模块的薄弱专项',     when:'点名要练某个模块',
+                    pre:c => !!(c && c.mod),                       why:'缺少模块 id',
+                    run:c => { weakDrillMod(c.mod); return true; }},
+  review_wrong:    {name:'review_wrong',    desc:'清到期错题（SRS due）',   when:'有到期错题',
+                    pre:() => dueWrongList().length > 0,            why:'还没有到期的错题',
+                    run:() => { reviewDue(); return true; }},
+  replan_today:    {name:'replan_today',    desc:'只重排还没到点的时段',     when:'计划被打乱、需要重排',
+                    pre:() => true,
+                    run:() => { const r = replanToday(); return !!r; }},
+  regen_variant:   {name:'regen_variant',   desc:'给某道题出一道变式',      when:'想加练同一考点',
+                    pre:c => !!(c && c.q),                         why:'缺少原题',
+                    run:async c => { await aiGenVariant(c.q); return true; }},
+  inject_game_pool:{name:'inject_game_pool',desc:'把薄弱考点注入小游戏题池',  when:'要用小游戏练薄弱点',
+                    pre:() => (weakFocusMods() || []).length > 0,   why:'当前没有薄弱模块可注入',
+                    run:c => { weakInjectPool(c && c.limit); return true; }},
+  force_rest:      {name:'force_rest',      desc:'进入强制休息（防透支）',    when:'连续学习超时',
+                    pre:() => true,
+                    run:() => { restGuard(true); return true; }}
+};
+function canRun(name, ctx){
+  const t = TOOLS[name];
+  if(!t) return {ok:false, why:'未知能力：' + name};
+  if(typeof t.pre === 'function'){
+    let ok = false;
+    try{ ok = !!t.pre(ctx || {}); }catch(e){ ok = false; }
+    if(!ok) return {ok:false, why:t.why || '前置条件不满足'};
+  }
+  return {ok:true};
+}
+
+/* ---- 1.3 Agent 主循环（rule 版） ---- */
+const AG = {log:[], ctx:null, last:0, autoAt:0};
+const AG_LOG_MAX = 80;
+function agLog(rec){
+  AG.log.push(Object.assign({at:Date.now(), tm:new Date().toTimeString().slice(0, 5), src:'规则'}, rec || {}));
+  if(AG.log.length > AG_LOG_MAX) AG.log.shift();
+}
+/* v3.4.0：最近一道答错的题（不新增写入点，从 st.records 里按 last 取最大 —— 答案路径零改动） */
+function lastWrongRec(){
+  let best = null;
+  const rs = st.records || {};
+  Object.keys(rs).forEach(k => {
+    const r = rs[k];
+    if(!r || r.ok !== 0) return;
+    if(!best || (r.last || 0) > (best.last || 0)) best = { id:k, m:r.m, subj:r.subj, last:r.last || 0, n:r.n || 0 };
+  });
+  return best;
+}
+/* v3.4.0：计划偏差感知 —— 已过点但没开始的时段数 + 还没到点的可重排时段数 */
+function planDeviation(){
+  const p = (st.butler && st.butler.plan) || null;
+  const blocks = (p && p.blocks) || [];
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  return {
+    missed: blocks.filter(b => b.st === 'missed').length,
+    pending: blocks.filter(b => b.st === 'pending' && toMin(b.start) > nowMin).length,
+    overdue: blocks.filter(b => b.st === 'pending' && toMin(b.start) <= nowMin).length
+  };
+}
+function agPerceive(){
+  const h = new Date().getHours();
+  const blk = planBlockNow() || {};
+  const wk = weakModules() || [];
+  const wkIds = wk.slice(0, 3).map(x => (x.m && x.m.id) || x);
+  const dev = planDeviation();
+  const lw = lastWrongRec();
+  const tr = wkIds.length ? memTrend(wkIds[0]) : null;
+  const todayDone = !!(st.todayTask && st.todayTask.d === todayStr(0) && st.todayTask.done);
+  const sc = document.querySelector('.screen.active');
+  const screen = sc ? sc.id : '';
+  const lwq = lw ? qById(lw.id) : null;
+  return {
+    hour:h,
+    slot: h < 11 ? '上午' : (h < 14 ? '午间' : (h < 18 ? '下午' : (h < 22 ? '晚间' : '深夜'))),
+    screen: screen,
+    onGames: screen === 's-games' || screen === 's-arcade',
+    subj: (blk.subj && blk.subj !== 'all') ? blk.subj : (st.todayTask && st.todayTask.subj) || 'math',
+    due: dueWrongList().length,
+    weak: wkIds,
+    weakFocus: weakFocusMods(),
+    /* 单模块「明显更弱」判据：最弱比次弱还低 ≥12 个百分点（acc 都是百分数） */
+    weakTop: wkIds[0] || null,
+    weakGap: wk.length >= 2 ? Math.round(wk[1].s.acc - wk[0].s.acc) : 0,
+    weakTrend: tr ? tr.slope : null,
+    today: (st.todayTask && st.todayTask.d === todayStr(0)) ? (st.todayTask.done ? 'done' : 'todo') : 'none',
+    todayDone: todayDone,
+    planMissed: dev.missed, planPending: dev.pending, planOverdue: dev.overdue,
+    lastWrong: (lw && lwq) ? { id:lw.id, mod:lw.m, modName:modName(lw.m), at:lw.last, n:lw.n, q:lwq } : null,
+    aiOk: aiCheck().ok,
+    dqDone: st.dq ? DQ_DEFS.filter(t => st.dq.claim[t.k]).length : 0,
+    dqAll: DQ_DEFS.length,
+    pro: proLearn(),
+    rest: !!(st.restUntil && Date.now() < st.restUntil)
+  };
+}
+/* ruleIntent：永远可用的规划分支。消费画像（C3 cure）：深夜/短会话画像自动降档 */
+/* ---------- 2.1 agPlan 的 LLM 微调分支 ----------
+   设计原则（红线 R5：AI 不可用时功能不缺块）：
+   · agPlanRule 永远先算出**保底决策**，LLM 只做「覆盖」不做「结构」；
+   · 独立熔断 AIQP（与主链路 AIQ 物理隔离）—— 3.5s 微调频繁超时绝不许把聊天/讲题一起熔断；
+   · dailyCallCap = 3 次/天；
+   · 白名单护栏：LLM 返回的 tool 必须 ∈ Object.keys(TOOLS)，否则整条丢弃用 rule 结果；
+   · 默认关闭（st.planLLM = false），管家页一键开关；任何一条失败路径都静默回落，不弹错、不 loading。 */
+const AIQP = { fail:0, openUntil:0, calls:0, day:'' };
+const AG_LLM_TIMEOUT = 3500, AG_LLM_DAILY_CAP = 3;
+/* v3.4.0：规则**可达性契约** —— TOOLS 注册的 9 个能力必须全部可被本函数派发，
+   否则注册表里就是死分支（v3.1.0 实测 9 个里只有 5 个可达：weak_drill_mod /
+   replan_today / inject_game_pool / regen_variant 从未被派出过）。
+   两条硬约束：
+     ① 本函数**纯读 ctx**、不产生副作用（便于用合成 ctx 做覆盖测试）；
+     ② 派出的 tool 必须能过 canRun（旧版在 due=0 时仍派 review_wrong、在无薄弱模块时派
+        start_drill，结果每次都被拒，决策流水里全是「已拒绝：前置条件不满足」）。 */
+function pickModForSubj(subj){
+  try{
+    const l = (roiList(subj) || []).filter(r => !isExtMod(r.mo.id));
+    if(l.length) return l[0].mo.id;                       // 该科 ROI 最高的非超纲模块
+  }catch(e){}
+  const fb = ALL_MODS.filter(m => subjOfMod(m.id) === subj && !isExtMod(m.id));
+  return fb.length ? fb[0].id : null;
+}
+function agPlanRule(ctx){
+  ctx = ctx || agPerceive();
+  const pro = ctx.pro || {};
+  const n = pro.sessionLen;
+  if(ctx.rest)                          return {tool:'force_rest',      why:'你已连续学习很久，先休息，进度不会跑掉'};
+  if(ctx.today === 'todo')              return {tool:'today_task',      why:'今日唯一任务还没做，先拿下它', n:n};
+  /* 计划被事情冲掉 ≥2 个时段 → 只重排「还没到点」的块（红线：绝不推翻已过时段） */
+  if(ctx.planMissed >= 2 && ctx.planPending >= 1)
+                                        return {tool:'replan_today',    why:'有 ' + ctx.planMissed + ' 个时段被冲掉了，把还没到点的重排一下'};
+  if(ctx.due >= 5)                      return {tool:'review_wrong',    why:'有 ' + ctx.due + ' 道错题到期了，趁热清掉'};
+  if(ctx.dqDone >= ctx.dqAll && ctx.due > 0)
+                                        return {tool:'review_wrong',    why:'今日约定已清空，剩下的时间给到期错题'};
+  /* 人已经在记忆游乐场，手里又有薄弱点 → 把薄弱考点直接注入小游戏题池 */
+  if(ctx.onGames && ctx.weakTop && ctx.weakFocus && ctx.weakFocus.length)
+                                        return {tool:'inject_game_pool', why:'用小游戏把「' + modName(ctx.weakTop) + '」再过一遍', limit:6};
+  /* 刚错的题 + AI 确实可用 → 出同考点变式（AI 不可用时不派发：缺 AI 不能变成缺块，红线 R5） */
+  if(ctx.aiOk && ctx.lastWrong && ctx.lastWrong.q)
+                                        return {tool:'regen_variant',   why:'刚错的「' + (ctx.lastWrong.modName || '这道题') + '」，换个数再走一遍', q:ctx.lastWrong.q};
+  /* 最弱比次弱还低 ≥12 分 → 点名开专项；否则走一般薄弱专项 */
+  if(ctx.weakTop && ctx.weakGap >= 12)  return {tool:'weak_drill_mod',  why:'「' + modName(ctx.weakTop) + '」比其它薄弱块还低 ' + ctx.weakGap + ' 分，单独开一轮', mod:ctx.weakTop, n:n};
+  if(ctx.weak && ctx.weak.length)       return {tool:'weak_drill',      why:'薄弱模块：' + ctx.weak.map(modName).join('、'), n:n};
+  /* 兜底：按课表时段推进，并给出该科 ROI 最高的模块（保证 start_drill 的 pre 一定成立） */
+  return {tool:'start_drill', why:'按课表时段推进「' + subjectName(ctx.subj) + '」', mod:pickModForSubj(ctx.subj), n:n};
+}
+function agPlan(ctx){ return agPlanRule(ctx); }     // 同步入口不变（agTick 保持同步，UI 永不等待）
+function agPlanLLMEnabled(){ return !!(st.planLLM); }
+function agPlanAvailable(){
+  if(!agPlanLLMEnabled()) return false;
+  if(AIQP.day !== todayStr(0)){ AIQP.day = todayStr(0); AIQP.calls = 0; AIQP.fail = 0; }
+  if(AIQP.calls >= AG_LLM_DAILY_CAP) return false;
+  if(Date.now() < AIQP.openUntil) return false;                      // 独立熔断窗口内
+  return true;
+}
+/* 只返回「建议的 tool 名」，且必须通过白名单 + canRun 双重校验；否则返回 null 交由 rule 兜底 */
+async function agPlanLLMTry(ctx, base){
+  if(!agPlanAvailable()) return null;
+  const names = Object.keys(TOOLS);
+  const msgs = [
+    { role:'system', content:'你是学习管家。只输出一个 JSON：{"tool":"工具名","why":"不超过 20 字的理由"}。工具名必须来自这个列表：' + names.join(', ') + '。不要输出其他任何内容。' },
+    { role:'user', content:'当前状态：时段' + (ctx.slot || '-') + '；今日任务' + (ctx.today === 'done' ? '已完成' : '待办')
+      + '；今日约定 ' + ctx.dqDone + '/' + ctx.dqAll + '；到期错题 ' + ctx.due + ' 道；薄弱模块 '
+      + (ctx.weak && ctx.weak.length ? ctx.weak.map(modName).join('、') : '无') + '；规则版建议：' + base.tool + '。请给出你的选择。' }
+  ];
+  try{
+    AIQP.calls++;
+    const text = await aiCall(msgs, { timeout: AG_LLM_TIMEOUT, json: true, max_tokens: 60 });
+    let j = null;
+    try{ j = JSON.parse(text); }catch(e){ j = null; }
+    const tool = j && j.tool;
+    if(!tool || names.indexOf(tool) < 0) return null;               // 幻觉 tool：整条丢弃
+    if(tool === base.tool) return null;                            // 与 rule 相同：无需覆盖
+    const chk = canRun(tool, Object.assign({}, ctx, { n:(ctx.pro || {}).sessionLen }));
+    if(!chk.ok) return null;                                       // 前置条件不满足：丢弃
+    return { tool: tool, why: String(j.why || 'AI 微调建议').slice(0, 30) };
+  }catch(e){
+    AIQP.fail++;
+    if(AIQP.fail >= 3){ AIQP.openUntil = Date.now() + 60000; AIQP.fail = 0; }
+    return null;
+  }
+}
+/* 唯一执行出口：任何能力都必须过 canRun，非法调用一律拒绝并留痕 */
+function agAct(name, ctx){
+  const chk = canRun(name, ctx);
+  if(!chk.ok){ agLog({k:'act', tool:name, ok:false, txt:'已拒绝：' + chk.why}); return {ok:false, why:chk.why}; }
+  let res = null;
+  try{ res = TOOLS[name].run(ctx || {}); }
+  catch(e){ agLog({k:'act', tool:name, ok:false, txt:'执行出错：' + ((e && e.message) || e)}); return {ok:false, why:String((e && e.message) || e)}; }
+  if(res && typeof res.then === 'function') res.then(() => agLog({k:'act', tool:name, ok:true, txt:'已执行'}), e => agLog({k:'act', tool:name, ok:false, txt:'异步失败'}));
+  else agLog({k:'act', tool:name, ok:true, txt:'已执行'});
+  return {ok:true, res:res};
+}
+/* 反思：把「决策 + 结果 + 掌握度」写进 st.mem。
+   opt.auto 的自动轻感知**不写 episodic**——否则每 60 秒一次的自动 tick 会把「活跃时段」
+   统计（proLearn 按 epi 时间戳算夜间占比）彻底污染成噪音。 */
+function agReflect(dec, res, opt){
+  if(!(opt && opt.auto)) memEpi({tool:dec && dec.tool, why:dec && dec.why, ok:!!(res && res.ok), slot:(AG.ctx && AG.ctx.slot) || ''});
+  try{
+    const d = S.drill;
+    if(d && d.mod) memSem(d.mod, (d.right || 0) / Math.max(1, d.baseLen || d.list.length) * 100);
+  }catch(e){}
+  save();
+}
+/* exec=true 才真的执行动作；默认只做「感知 → 规划」并留痕，便于 UI 无副作用地展示 */
+/* v3.4.0：opt.auto = 自动轻感知（由屏幕切换/一轮结束/可见性恢复触发）。
+   auto 模式**只感知+规划+留痕，绝不执行**——自动替用户开一轮练习属于越界（首屏唯一指令优先）。 */
+function agTick(exec, opt){
+  const auto = !!(opt && opt.auto);
+  const ctx = agPerceive(); AG.ctx = ctx; AG.last = Date.now();
+  agLog({k:'perceive', txt:ctx.slot + ' · 到期 ' + ctx.due + ' 道 · 薄弱 ' + (ctx.weak.length ? ctx.weak.map(modName).join('/') : '无')
+    + ' · 今日' + (ctx.today === 'done' ? '已完成' : (ctx.today === 'todo' ? '待办' : '未下发'))
+    + (ctx.planMissed ? ' · 计划偏差 ' + ctx.planMissed + ' 块' : '')
+    + (auto ? ' · 自动' : ''), auto:auto});
+  const dec = agPlan(ctx);
+  agLog({k:'plan', tool:dec.tool, txt:dec.why, auto:auto});
+  let res = {ok:null, why:'仅规划未执行'};
+  if(exec && !auto){
+    const c = Object.assign({}, dec, {n:dec.n, mod:dec.mod || (ctx.weak && ctx.weak[0]) || undefined});
+    res = agAct(dec.tool, c);
+  }
+  agReflect(dec, res, opt);
+  /* 2.1 LLM 微调：只在开关打开时异步尝试，命中有效建议才补一条 {src:'AI'} 留痕并重渲染。
+     关键：UI 永不等待（同步返回 rule 结果），超时/熔断/无 Key/幻觉 tool 五条路径全部静默回落。 */
+  if(!auto && agPlanAvailable()){
+    agPlanLLMTry(ctx, dec).then(sug => {
+      if(!sug) return;
+      agLog({k:'plan', tool:sug.tool, why:sug.why, src:'AI', txt:sug.why});
+      try{ const sc = document.querySelector('.screen.active'); if(sc && sc.id === 's-butler') renderAgentLog(); }catch(e){}
+    }).catch(() => {});
+  }
+  return {ctx:ctx, dec:dec, res:res};
+}
+/* v3.4.0：自动触发（节流 60s）。幂等、可重入、异常一律吞掉——管家挂掉不许影响学习主流程。 */
+const AG_TICK_MIN_MS = 60000;
+function agAutoTick(force){
+  try{
+    const t = Date.now();
+    if(!force && t - (AG.autoAt || 0) < AG_TICK_MIN_MS) return null;
+    AG.autoAt = t;
+    const r = agTick(false, {auto:1});
+    /* 只有「用户正停在 🧭 决策 tab」时才刷新留痕，否则会把管家的其它 tab 顶掉 */
+    const sc = document.querySelector('.screen.active');
+    const ab = document.querySelector('#btabs button[data-bt="agent"]');
+    if(sc && sc.id === 's-butler' && ab && ab.classList.contains('on')) renderAgentLog();
+    return r;
+  }catch(e){ return null; }
+}
+function agRun(){ return agTick(true); }
+/* 2.1 开关 + 独立熔断/配额状态（供 🧭 决策 tab 展示） */
+function togglePlanLLM(){
+  st.planLLM = !st.planLLM; save();
+  toast(st.planLLM ? 'LLM 微调已开启（每天最多 ' + AG_LLM_DAILY_CAP + ' 次，超时自动回落规则）' : 'LLM 微调已关闭 · 全程走规则，功能不缺一块');
+  try{ renderAgentLog(); }catch(e){}
+}
+function agLLMStatusText(){
+  if(!st.planLLM) return '已关闭';
+  if(AIQP.day !== todayStr(0) || AIQP.calls < AG_LLM_DAILY_CAP){
+    if(Date.now() < AIQP.openUntil) return '熔断中（' + Math.ceil((AIQP.openUntil - Date.now())/1000) + 's 后重试）';
+    return '已开启 · 今日用 ' + (AIQP.day === todayStr(0) ? AIQP.calls : 0) + '/' + AG_LLM_DAILY_CAP;
+  }
+  return '已开启 · 今日额度已用完';
+}
+
+/* ---- 1.1 计划快照与重排：让「重排不推翻已过时段」成为机械保证 ---- */
+function planSnap(){
+  if(!st.butler) st.butler = {weights:{math:1, pol:1, eng:1}, wDone:{}};
+  let p = st.butler.plan;
+  const td = todayStr(0);
+  if(!p || p.d !== td || !p.blocks || !p.blocks.length){
+    p = st.butler.plan = {d:td, seq:0, planMin:0, blocks:[]};
+    genDailyPlan().filter(b => b.type === 'study').forEach(b => {
+      p.seq++;
+      p.blocks.push(Object.assign({}, b, {id:'b' + p.seq, seq:p.seq, st:'pending'}));
+    });
+    p.planMin = p.blocks.reduce((a, b) => a + (b.dur || 0), 0);
+  }
+  sweepExpiredBlocks();
+  return p;
+}
+/* 过期的 pending 块置 missed —— 只改状态，严禁改 start/dur（红线 R2） */
+function sweepExpiredBlocks(){
+  const p = st.butler && st.butler.plan;
+  if(!p || !p.blocks) return 0;
+  const now = new Date().getHours() * 60 + new Date().getMinutes();
+  let n = 0;
+  p.blocks.forEach(b => { if(b.st === 'pending' && toMin(b.start) + (b.dur || 0) <= now){ b.st = 'missed'; n++; } });
+  return n;
+}
+/* 练习结束：按当前时间反查所属块并打卡（复活死字段 wDone 作为块级打卡表） */
+function markBlockHit(realMin){
+  const p = planSnap();
+  const now = new Date().getHours() * 60 + new Date().getMinutes();
+  const hit = p.blocks.filter(b => b.st === 'pending' && toMin(b.start) <= now).pop()
+           || p.blocks.filter(b => b.st !== 'hit').pop();
+  if(!hit) return null;
+  hit.st = 'hit';
+  hit.realMin = realMin || hit.dur || 0;
+  if(!st.butler.wDone) st.butler.wDone = {};
+  st.butler.wDone[hit.id] = {at:Date.now(), min:hit.realMin};
+  save();
+  return hit;
+}
+/* 只重排 start > now 的块：总学习分钟严格守恒（只平移不压缩），已过时段一行动不得 */
+function replanToday(){
+  const p = planSnap();
+  const now = new Date().getHours() * 60 + new Date().getMinutes();
+  const pend = p.blocks.filter(b => b.st === 'pending' && toMin(b.start) > now);
+  if(!pend.length) return {moved:0, min:0, why:'没有可重排的未到点时段'};
+  const beforeMin = pend.reduce((a, b) => a + (b.dur || 0), 0);
+  let t = now + 5;
+  pend.forEach(b => {
+    b.start = pad(Math.floor(t / 60)) + ':' + pad(t % 60);
+    b.replanned = 1;
+    t += (b.dur || 0) + 5;
+  });
+  const afterMin = pend.reduce((a, b) => a + (b.dur || 0), 0);
+  save();
+  agLog({k:'act', tool:'replan_today', ok:true, txt:'重排 ' + pend.length + ' 个未到点时段（' + beforeMin + '→' + afterMin + ' 分钟，守恒）'});
+  return {moved:pend.length, min:afterMin, conserved:afterMin === beforeMin};
+}
+
+/* ---- 1.5 决策留痕：管家「🧭 决策」tab ---- */
+const AG_K_TXT = {perceive:'👁 感知', plan:'🧭 决策', act:'⚡ 执行'};
+function renderAgentLog(){
+  const box = document.getElementById('butlerBody'); if(!box) return;
+  const p = planSnap();
+  const hit = p.blocks.filter(b => b.st === 'hit').length;
+  const pend = p.blocks.filter(b => b.st === 'pending').length;
+  const missed = p.blocks.filter(b => b.st === 'missed').length;
+  const pro = proLearn();
+  const profile = '<div class="card"><div class="ai-t">🧠 它记住了你<small>记忆分层 · 本地归纳</small></div>'
+    + '<div style="font-size:12.5px;color:var(--sub);line-height:1.8">'
+    + '建议单次时长：<b style="color:var(--cyan)">' + (pro.sessionLen ? pro.sessionLen + ' 题档' : '还在观察') + '</b>'
+    + (pro.nightCapMin ? ' · 夜间上限 <b style="color:var(--cyan)">' + pro.nightCapMin + ' 分钟</b>' : '')
+    + (pro.preferSubj ? ' · 常练 <b style="color:var(--cyan)">' + subjectName(pro.preferSubj) + '</b>' : '')
+    + (pro.activeHours ? ' · 活跃时段 <b style="color:var(--cyan)">' + (pro.activeHours === 'night' ? '夜间' : '白天') + '</b>' : '')
+    + '<br>战报记忆 <b style="color:var(--cyan)">' + (memEnsure().epi || []).length + '</b> 条 · 掌握度趋势 <b style="color:var(--cyan)">' + Object.keys(memEnsure().sem || {}).length + '</b> 个模块'
+    + '</div></div>';
+  const planCard = '<div class="card"><div class="ai-t">🗓️ 今日计划快照<small>可跟踪 · 可重排</small></div>'
+    + '<div style="font-size:12.5px;color:var(--sub);line-height:1.8">共 ' + p.blocks.length + ' 个学习块 / ' + p.planMin + ' 分钟 · '
+    + '已完成 <b style="color:#8fe8b8">' + hit + '</b> · 待做 ' + pend + ' · 已过 ' + missed + '</div>'
+    + '<div class="row2 mt10"><button class="btn ghost" onclick="replanToday();renderAgentLog()">🔄 重排未到点时段</button>'
+    + '<button class="btn ghost" onclick="agTick(false);renderAgentLog()">👁 重新感知</button></div></div>';
+  const tools = Object.keys(TOOLS).map(k => {
+    const t = TOOLS[k], ok = canRun(k, {}).ok;
+    return '<div class="slot"><span class="tm">' + (ok ? '✅' : '⛔') + '</span><span class="sb">' + escapeHtml(t.desc) + '</span><span class="en">' + escapeHtml(t.when || '') + '</span></div>';
+  }).join('');
+  const toolsCard = '<div class="card"><div class="ai-t">🧰 能力清单<small>' + Object.keys(TOOLS).length + ' 个 tool · 前置校验</small></div><div style="margin-top:6px">' + tools + '</div></div>';
+  /* 2.1 LLM 微调开关：默认关闭；开启后也只做「覆盖建议」，超时/熔断自动回落规则（红线 R5） */
+  const llmCard = '<div class="card"><div class="ai-t">🧠 LLM 规划微调<small>可选 · 默认关闭</small></div>'
+    + '<div style="font-size:12.5px;color:var(--sub);line-height:1.8">状态：<b style="color:var(--cyan)">' + escapeHtml(agLLMStatusText()) + '</b><br>'
+    + '关闭时全程走规则，功能一块不缺。开启后 AI 只在规则结论之上给「覆盖建议」（3.5 秒超时、每天最多 ' + AG_LLM_DAILY_CAP + ' 次、独立熔断，幻觉工具名一律丢弃）。</div>'
+    + '<button class="btn ' + (st.planLLM ? 'ghost' : '') + '" style="width:100%;margin-top:8px" onclick="togglePlanLLM()">'
+    + (st.planLLM ? '关掉它，全走规则' : '开启 LLM 微调') + '</button></div>';
+  const rows = AG.log.slice().reverse().slice(0, 24).map(r =>
+    '<div class="aglog"><span class="agk">' + (AG_K_TXT[r.k] || '·') + '</span>'
+    + '<span class="agt">' + escapeHtml(r.txt || '') + '</span>'
+    + '<span class="agsrc">' + escapeHtml(r.src || '规则') + '</span>'
+    + '<span class="agtime">' + escapeHtml(r.tm || '') + '</span>'
+    + (r.tool ? '<span class="agtool">' + escapeHtml(r.tool) + '</span>' : '') + '</div>').join('');
+  const logCard = '<div class="card"><div class="ai-t">🧭 决策流水<small>感知 → 决策 → 执行</small></div>'
+    + (rows || '<div style="font-size:12px;color:var(--sub);padding:8px 0">还没有决策记录，点下面的按钮让它先感知一次。</div>')
+    + '<div class="row2 mt10"><button class="btn magenta" onclick="agRun();renderAgentLog()">⚡ 让它现在替我走一步</button>'
+    + '<button class="btn ghost" onclick="agTick(false);renderAgentLog()">只看不动</button></div>'
+    + '<div style="font-size:11.5px;color:var(--sub);line-height:1.6;margin-top:8px">默认<b>全部由本地规则产出</b>（离线可用、不消耗 AI 额度）；开启 LLM 微调后，AI 参与的条目会标注「AI」来源，失败则静默回落到规则。</div></div>';
+  /* v3.4.0：掌握度趋势 —— memTrend 从「定义了零调用」接进决策页。
+     只显示有 ≥2 天记录的模块；涨得最慢的排最前，并明说下一轮会优先排它（让语义记忆真的参与决策）。 */
+  const sem = memEnsure().sem || {};
+  const trows = Object.keys(sem).map(k => {
+    const t = memTrend(k); if(!t) return null;
+    return { k:k, now:t.now, slope:t.slope, days:(sem[k].h || []).length };
+  }).filter(Boolean).filter(t => t.days >= 2).sort((a, b) => a.slope - b.slope);
+  const trendCard = trows.length
+    ? '<div class="card"><div class="ai-t">📈 掌握度趋势<small>最近一次 vs 3 天前 · 本地归纳</small></div>'
+      + trows.slice(0, 6).map(t => {
+          const up = t.slope > 0, flat = t.slope === 0;
+          const col = up ? '#8fe8b8' : (flat ? 'var(--sub)' : '#f0a0b8');
+          return '<div class="slot"><span class="tm" style="color:' + col + '">' + (up ? '↑' : (flat ? '→' : '↓')) + Math.abs(t.slope) + '</span>'
+            + '<span class="sb">' + escapeHtml(modName(t.k)) + '</span>'
+            + '<span class="en">现在 ' + t.now + '% · ' + t.days + ' 天记录</span></div>';
+        }).join('')
+      + (trows[0].slope < 0 ? '<div style="font-size:11.5px;color:var(--sub);margin-top:8px">「' + escapeHtml(modName(trows[0].k)) + '」在往下走，下一轮会优先排它。</div>' : '')
+      + '</div>'
+    : '';
+  box.innerHTML = profile + planCard + trendCard + logCard + toolsCard + llmCard;
+}
 
 /* ---------- 管家入口 ---------- */
 function renderButler(){ butlerTab('dash'); }
@@ -5048,19 +6578,51 @@ function butlerTab(t){
   if(t==='dash') renderDash();
   else if(t==='plan') renderPlan();
   else if(t==='diag') renderDiag();
+  else if(t==='agent') renderAgentLog();
   else if(t==='sprint') renderSprint15();
   else if(t==='arc') renderArc();
+}
+/* 0.4 AI 配额与预算可视化 + 0.1 BYOK（自带 Key）入口 */
+function byokSave(){
+  const el = document.getElementById('byokInput'); if(!el) return;
+  const v = el.value.trim();
+  SF.key = v;                      // setter 写入 localStorage['ck_sfkey']，index.html 内不含密钥
+  AIQ.openUntil = 0; AIQ.fail = 0;
+  toast(v ? '已保存你自己的 Key ✅' : '已清除 Key，转为离线模式');
+  if(typeof renderButler === 'function') renderButler();
+}
+function byokClear(){
+  const el = document.getElementById('byokInput'); if(el) el.value = '';
+  SF.key = ''; toast('已清除 Key，AI 功能转为离线模式');
+  if(typeof renderButler === 'function') renderButler();
 }
 function aiPanelHTML(){
   const s = st.aiStats || {api:0, hit:0};
   const total = s.api + s.hit;
   const pct = total ? Math.round(s.hit / total * 100) : 0;
-  const cachedN = Object.values(st.variants || {}).reduce((a, b) => a + b.length, 0);
-  return '<div class="card aipanel"><div class="ai-t">🤖 AI 节能面板<small>变式题缓存 · 省成本</small></div>'
+  const cachedN = Object.values(st.variants || {}).reduce((a, b) => a + (b ? b.length : 0), 0);
+  const has = !!SF.key;
+  const left = Math.max(0, AI_LIMIT.dayCalls - (AIQ.day === aiDay() ? AIQ.calls : 0));
+  const cb = Date.now() < AIQ.openUntil;
+  const badge = !has ? '<span style="font-size:11px;padding:2px 8px;border-radius:8px;background:rgba(255,209,102,.16);color:#ffd166">🔌 离线模式 · 未配置 Key</span>'
+    : cb ? '<span style="font-size:11px;padding:2px 8px;border-radius:8px;background:rgba(255,209,102,.16);color:#ffd166">🔌 离线模式 · 服务熔断中</span>'
+    : left ? '<span style="font-size:11px;padding:2px 8px;border-radius:8px;background:rgba(143,232,184,.16);color:#8fe8b8">🟢 在线 · 今日剩 ' + left + ' 次</span>'
+    : '<span style="font-size:11px;padding:2px 8px;border-radius:8px;background:rgba(255,209,102,.16);color:#ffd166">🔌 离线模式 · 今日额度用完</span>';
+  const kb = Math.round((s.tok || 0) / 1000);
+  return '<div class="card aipanel"><div class="ai-t">🤖 AI 节能面板<small>配额 · 缓存 · 自带 Key</small></div>'
+    + '<div style="display:flex;align-items:center;gap:8px;margin:6px 0 10px">' + badge
+    + '<span style="font-size:11px;color:var(--sub)">今日已用 ' + (AIQ.day === aiDay() ? AIQ.calls : 0) + '/' + AI_LIMIT.dayCalls + ' 次 · 约 ' + kb + 'K tokens · 离线降级 ' + (s.deg || 0) + ' 次</span></div>'
     + '<div class="kpi"><div class="k"><b>' + s.api + '</b><span>API 实际调用</span></div>'
     + '<div class="k"><b>' + s.hit + '</b><span>缓存命中复用</span></div>'
     + '<div class="k"><b>' + pct + '%</b><span>调用节省</span></div></div>'
-    + '<div style="font-size:12px;color:var(--sub);line-height:1.7;margin-top:6px">已缓存变式 <b style="color:var(--cyan)">' + cachedN + '</b> 道，单考点封顶 ' + VARIANT_CAP + ' 道。命中缓存时零 API 消耗、零等待，弱网 / 限流下练习不受影响，也避免无限刷变式挤占配额。</div></div>';
+    + '<div style="font-size:12px;color:var(--sub);line-height:1.7;margin-top:6px">已缓存变式 <b style="color:var(--cyan)">' + cachedN + '</b> 道，单考点封顶 ' + VARIANT_CAP + ' 道。命中缓存零 API 消耗、零等待；弱网 / 限流下练习不受影响。</div>'
+    + '<div style="margin-top:10px;padding-top:10px;border-top:1px dashed rgba(255,255,255,.12)">'
+    + '<div style="font-size:12px;font-weight:800;margin-bottom:6px">🔑 自带 Key（BYOK）<small style="font-weight:500;color:var(--sub)"> · 只存在你本机浏览器</small></div>'
+    + '<div style="display:flex;gap:6px"><input id="byokInput" type="password" placeholder="' + (has ? '已配置 Key（重新输入可覆盖）' : 'sk-…（留空即用离线模式）') + '" value="" '
+    + 'style="flex:1;min-width:0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:8px;color:var(--txt);padding:7px 9px;font-size:12px">'
+    + '<button class="btn sm" onclick="byokSave()">保存</button><button class="btn sm ghost" onclick="byokClear()">清除</button></div>'
+    + '<div style="font-size:11px;color:var(--sub);line-height:1.6;margin-top:6px">没有 Key 也能用：AI 相关功能会走<b>离线模式</b>（规则实现），功能不缺失、不会卡在加载中。配置了 Key 则按 40 次/天、30K tokens/天、5 次/分钟自动限流。</div>'
+    + '</div></div>';
 }
 
 /* ---------- 英语阅读 2D 动画小课堂 ---------- */
@@ -5147,9 +6709,49 @@ function animeFinish(){
 }
 function startReadQuiz(){ const r=ALLQ.filter(q=>q.m==='e4' && q.t==='choice'); if(!r.length){ toast('没有阅读题可练'); return; } const list=shuffle(r).slice(0,6); S.drill={mod:'e4', list, i:0, right:0, total:r.length, label:'📖 阅读配套练习', mode:'readanime', isWrong:false}; go('s-drill'); renderDrill(); toast('📖 配套练习：错题自动进错题本'); }
 
+/* =================== 2.8 PWA 注册 + 新版本提示条 ===================
+   专家裁决：必须配「版本更新提示条」，否则用户会永久卡在旧版（离线优先的经典陷阱）。
+   实现要点：install 不 skipWaiting；检测到 waiting worker 才提示；点击才 SKIP_WAITING + reload。 */
+function showPwaUpdateBar(){
+  if(document.getElementById('pwaBar')) return;
+  const bar = document.createElement('div');
+  bar.id = 'pwaBar';
+  bar.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:9999;display:flex;align-items:center;gap:10px;'
+    + 'padding:10px 14px;background:linear-gradient(120deg,#3a1c50,#2a1840);border-bottom:1px solid rgba(255,209,102,.4);'
+    + 'font-size:12.5px;font-weight:800;color:#ffd166';
+  bar.innerHTML = '<span style="flex:1">🆕 新版本已就绪</span>'
+    + '<button class="btn sm" id="pwaReload">刷新</button>'
+    + '<span style="cursor:pointer;opacity:.7" id="pwaLater">稍后</span>';
+  document.body.appendChild(bar);
+  document.getElementById('pwaLater').onclick = () => bar.remove();
+  document.getElementById('pwaReload').onclick = () => {
+    try{ if(window.__ckSWWaiting) window.__ckSWWaiting.postMessage({ type:'SKIP_WAITING' }); }catch(e){}
+    setTimeout(() => location.reload(), 120);
+  };
+}
+function bindPWA(){
+  if(!('serviceWorker' in navigator)) return;
+  if(location.protocol !== 'http:' && location.protocol !== 'https:') return;
+  navigator.serviceWorker.register('sw.js', { scope:'./' }).then(reg => {
+    if(reg.waiting && navigator.serviceWorker.controller){ window.__ckSWWaiting = reg.waiting; showPwaUpdateBar(); }
+    reg.addEventListener('updatefound', () => {
+      const nw = reg.installing; if(!nw) return;
+      nw.addEventListener('statechange', () => {
+        if(nw.state === 'installed' && navigator.serviceWorker.controller){ window.__ckSWWaiting = nw; showPwaUpdateBar(); }
+      });
+    });
+  }).catch(() => { /* 注册失败（file:// 或旧浏览器）不影响主功能 */ });
+}
+
 /* =================== 启动 =================== */
 restoreDrill();          // 恢复上次中断的刷题进度（如有）
 renderHome();
+try{ bindPWA(); }catch(e){}
+/* v3.4.0 首屏减负：首绘完成后空闲预取两份非关键题库（空闲优先，最迟 1.2 秒兜底） */
+try{
+  if(window.requestIdleCallback) requestIdleCallback(prefetchBanks, { timeout:1200 });
+  else setTimeout(prefetchBanks, 800);
+}catch(e){ setTimeout(prefetchBanks, 800); }
 </script>
 <script>
 /* =================== 记忆游乐场 · 10 个小游戏 =================== */
@@ -5175,9 +6777,22 @@ function openGame(id){
   stopGameTimer();
   GAME_INJECT = {n:0};                       // 闭环②：重置本局"弱点注入"计数
   go('s-arcade');
-  g.start(document.getElementById('gameBody'));
-  const gs = document.getElementById('gSub');
-  if(gs && GAME_INJECT.n) gs.textContent = g.sub + ' · 🎯 含 ' + GAME_INJECT.n + ' 题你的薄弱考点';
+  const body = document.getElementById('gameBody');
+  const launch = () => {
+    g.start(body);
+    const gs = document.getElementById('gSub');
+    if(gs && GAME_INJECT.n) gs.textContent = g.sub + ' · 🎯 含 ' + GAME_INJECT.n + ' 题你的薄弱考点';
+  };
+  /* v3.4.0：速记图猜考点依赖 kaodian 资料库（已改按需加载）→ 未就绪先加载，到位后再开，失败也不白屏 */
+  if(id === 'pic' && !bankReady('kaodian')){
+    if(body) body.innerHTML = '<div class="card"><div class="empty" style="padding:24px 0">📚 速记资料库正在加载…</div></div>';
+    ensureBank('kaodian').then(ok => {
+      if(ok) launch();
+      else if(body) body.innerHTML = '<div class="card"><div class="empty" style="padding:24px 0">资料库暂时取不到，去「考点速记」页再试一次～</div></div>';
+    });
+    return;
+  }
+  launch();
 }
 function bestUp(key, val){
   st.gameBest = st.gameBest || {};
@@ -5633,32 +7248,38 @@ const GACHA_POOL = [
   {id:'l3', mate:'luo', r:'r4', text:'「喂——你、你干嘛老盯着我看！」'},
   {id:'l4', mate:'luo', r:'r3', text:'「错一次记一笔，要还的哦。」'},
   {id:'c1', mate:'cheng', r:'r3', text:'「（银线轻绕）记住，链式法则。」'},
-  {id:'c2', mate:'cheng', r:'r4', text:'「积分是送分王，我陪你把它拿满。」'},
+  {id:'c2', mate:'cheng', r:'r4', text:'「（银线轻绕）导数是你的提分刀，我陪你磨快它。」'},   /* 1.12 串角订正：积分是晴的领域（m3），澄主场是微分（m2） */
   {id:'c3', mate:'cheng', r:'r5', text:'「你的每一步推导，我都看在眼里。」'},
   {id:'c4', mate:'cheng', r:'r3', text:'「别怕，一步一步来，我在。」'},
-  {id:'q1', mate:'qing', r:'r3', text:'「概率站在你这边——今天也是。」'},
-  {id:'q2', mate:'qing', r:'r4', text:'「喵，公式最少的模块，最好拿分。」'},
-  {id:'q3', mate:'qing', r:'r3', text:'「你的正确率，我偷偷记在小本本上了。」'},
-  {id:'q4', mate:'qing', r:'r5', text:'「达标了的话……摸摸头，奖励你的。」'},
+  {id:'q1', mate:'qing', r:'r3', text:'「别怕那个 ∫，它是来给你送礼物的。」'},        /* 1.12 串角订正：原句是夜喵的概率台词 */
+  {id:'q2', mate:'qing', r:'r4', text:'「积分是送分王，我陪你把它拿满。」'},           /* 1.12 串角订正：原句带「喵」是夜喵口头禅 */
+  {id:'q3', mate:'qing', r:'r3', text:'「你的每一步推导，我偷偷记在小本本上了。」'},
+  /* 1.12 + 红线 R6 订正：原句「达标了的话……摸摸头，奖励你的」把关怀做成奖品，带交易钩子 */
+  {id:'q4', mate:'qing', r:'r5', text:'「不管今天做对几道，我都在这儿。慢慢来就好。」'},
   {id:'z1', mate:'ziyuan', r:'r4', text:'「（慵懒）求谁的偏导，其他字母都是常数。」'},
   {id:'z2', mate:'ziyuan', r:'r3', text:'「暗月照着你刷的每一道题。」'},
   {id:'z3', mate:'ziyuan', r:'r3', text:'「我只说一次：别急，看这句。」'},
   {id:'z4', mate:'ziyuan', r:'r5', text:'「考完之后，月塔的风铃想见你。」'},
   {id:'y1', mate:'ye', r:'r3', text:'「（打哈欠）我算过了，这题稳了。」'},
-  {id:'y2', mate:'ye', r:'r4', text:'「夜翼替你巡过考场了，没有陷阱。」'},
+  {id:'y2', mate:'ye', r:'r4', text:'「（尾巴圈住卷子）我替你巡过一遍了，没有陷阱。」'},   /* 1.12 串角订正：夜翼是洛的称号 */
   {id:'y3', mate:'ye', r:'r3', text:'「概率论，白捡的分，捡好。」'},
   {id:'y4', mate:'ye', r:'r5', text:'「晚安。梦里也要背公式哦。」'}
 ];
 function gameGacha(body){
   if(st.gacha === undefined){ st.gacha = {}; save(); }
+  /* 1.15 扭蛋重新绑定学习行为：免费抽的条件从「日历翻页」改为「今天完成了唯一任务」，
+     让奖励挂在行为上而不是挂在时间上（动机设计专家：streak/日历是欠条，行为反馈才是动力） */
+  const taskDoneToday = !!(st.todayTask && st.todayTask.d === todayStr() && st.todayTask.done);
   const freeToday = st.gachaDay !== todayStr();
+  function freeAvail(){ return st.gachaDay !== todayStr() && taskDoneToday; }
   function render(){
     const owned = Object.keys(st.gacha).length;
+    const free = freeAvail();
     body.innerHTML = `<div class="card" style="text-align:center">
-      <div style="font-size:13px;color:var(--sub)" id="gInfo">心动币 <b class="hl" style="font-size:17px">${st.coins || 0}</b> · 图鉴 ${owned}/${GACHA_POOL.length}${st.gachaDay !== todayStr() ? ' · <b style="color:#e8536f">今日首次免费！</b>' : ''}</div>
+      <div style="font-size:13px;color:var(--sub)" id="gInfo">心动币 <b class="hl" style="font-size:17px">${st.coins || 0}</b> · 图鉴 ${owned}/${GACHA_POOL.length}${free ? ' · <b style="color:#e8536f">今天的任务完成了，这抽免费</b>' : ''}</div>
       <div class="rank" id="gachaStage" style="min-height:74px;display:flex;align-items:center;justify-content:center">🎰</div>
-      <div class="row2"><button class="btn magenta" id="gDraw">${st.gachaDay === todayStr() ? '🎰 抽一发（30 币）' : '🎁 免费抽一发'}</button><button class="btn ghost" id="gColl">打开图鉴</button></div>
-      <div style="font-size:12px;color:var(--sub);margin-top:8px">完成每日任务 +50 币 · 小游戏结算都发币</div>
+      <div class="row2"><button class="btn magenta" id="gDraw">${free ? '🎁 今日任务完成 · 免费抽一张' : '🎰 抽一发（30 币）'}</button><button class="btn ghost" id="gColl">打开图鉴</button></div>
+      <div style="font-size:12px;color:var(--sub);margin-top:8px">${taskDoneToday ? '完成每日任务 +50 币 · 小游戏结算都发币' : '完成今天的唯一任务，就能免费抽一张 · 或玩一局小游戏赚币'}</div>
     </div>
     <div class="card" id="gachaColl" style="display:none"><div style="font-weight:700;margin-bottom:8px">📖 语音卡图鉴</div><div class="gacha-grid" id="gachaGrid"></div></div>`;
     document.getElementById('gDraw').onclick = draw;
@@ -5678,12 +7299,12 @@ function gameGacha(body){
     });
   }
   function draw(){
-    const free = st.gachaDay !== todayStr();
-    if(!free && (st.coins || 0) < 30){ toast('心动币不足 · 完成每日任务或玩一局小游戏赚币'); return; }
+    const free = freeAvail();
+    if(!free && (st.coins || 0) < 30){ toast('心动币不足 · 完成今天的唯一任务或玩一局小游戏赚币'); return; }
     if(free) st.gachaDay = todayStr(); else st.coins -= 30;
     const roll = Math.random();
     st.gachaPity = (st.gachaPity || 0) + 1;
-    const pity = st.gachaPity >= 12;                     // 12 抽保底：必出命定卡
+    const pity = st.gachaPity >= 8;                      // 8 抽保底：必出命定卡（原 12 抽对碎片用户太长）
     const wantR = pity ? 'r5' : roll < 0.08 ? 'r5' : roll < 0.35 ? 'r4' : 'r3';
     if(wantR === 'r5') st.gachaPity = 0;
     let card = shuffle(GACHA_POOL.filter(c => c.r === wantR))[0];
@@ -5705,6 +7326,7 @@ function gameGacha(body){
 (function(){
   var b = document.getElementById('bootMask');
   if(b && b.parentNode) b.parentNode.removeChild(b);
+  try{ if(typeof bindLifecycleGuards === 'function') bindLifecycleGuards(); }catch(e){ console.warn(e); }
 })();
 </script>
 </body>

@@ -1,0 +1,26 @@
+{
+  "name": "心动成考 · 乙女陪练",
+  "short_name": "心动成考",
+  "description": "成人高考专升本备考陪练：乙女向角色陪伴 + 2327 道题库 + 考点 ROI 择题 + 离线可用",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#150d24",
+  "theme_color": "#150d24",
+  "lang": "zh-CN",
+  "icons": [
+    {
+      "src": "assets/xue.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/ziyuan.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "maskable"
+    }
+  ]
+}

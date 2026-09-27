@@ -50,15 +50,19 @@ const { chromium } = require('playwright');
   const dq = await page.evaluate(() => DQ_DEFS.map(t => t.goal).join(','));
   T('每日任务门槛 12/8/3', dq === '12,8,3', dq);
 
-  // 7. 断签宽容：lastDay=前天 → streak 只 -1
+  // 7. 断签宽容：lastDay=前天 → 有护盾则 streak 保住（护盾 -1）；无护盾才只 -1
   const tolerant = await page.evaluate(() => {
-    st.lastDay = todayStr(2); st.streak = 5; save();
+    st.lastDay = todayStr(2); st.streak = 5; st.shield = 2; st.dq = null; save();
     dqOnAnswer(true, 1);
-    const r = st.streak;
-    st.lastDay = todayStr(); st.streak = 5; save(); // 还原
-    return r;
+    const shielded = { streak: st.streak, shield: st.shield };
+    st.lastDay = todayStr(2); st.streak = 5; st.shield = 0; st.dq = null; save();
+    dqOnAnswer(true, 1);
+    const bare = st.streak;
+    st.lastDay = todayStr(); st.streak = 5; st.shield = 2; save(); // 还原
+    return { shielded, bare };
   });
-  T('断签宽容(前天→4)', tolerant === 4, 'got=' + tolerant);
+  T('断签护盾(前天→5 且护盾-1)', tolerant.shielded.streak === 5 && tolerant.shielded.shield === 1, JSON.stringify(tolerant.shielded));
+  T('无护盾时断签宽容(前天→4)', tolerant.bare === 4, 'got=' + tolerant.bare);
 
   // 8. tutor 答对不再进错题本，且 XP 满额
   const tutorOk = await page.evaluate(() => {

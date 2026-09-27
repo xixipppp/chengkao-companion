@@ -24,6 +24,11 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Static checks (内联脚本语法 + 重名/悬空自检)
+        run: |
+          node tools/syntax_check.js
+          node tools/dup_check.js
+
       - name: Install Playwright (chromium)
         run: |
           npm install playwright
