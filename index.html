@@ -2047,7 +2047,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.4.3';   // 同步 GitHub Release 标签（v3.4.2 = 效率与体验；v3.4.3 = 题库抽检三连修：答案判分 bug×2 + p6 错分 20 题归位 + passage 缺失显式降级）
+const APP_VER = 'v3.4.4';   // 同步 GitHub Release 标签（v3.4.3 = 题库抽检三连修；v3.4.4 = AI 分科修复：人设/变式/弱卷 prompt 全三科化）
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
@@ -3279,7 +3279,7 @@ async function aiTask(task, messages, opts){
 
 /* 0.5 prompt 瘦身：人设 + 讲题结构 + 字数上限三段，去掉重复的角色背景叙述（每轮省 ~90 tokens） */
 function aiPrompt(m){
-  return `你是「${m.name}」，${m.title}，恋爱养成游戏《成考高数(二)速通》可攻略角色，也是学员的高数陪练。人设：${m.desc}\n用这个人设的口吻说话，可带撩人与暧昧，核心是帮学员学成考高数(二)（极限、导数、积分、多元微分、概率）。讲题顺序：一句思路提示 → 关键步骤 → 一句易错点。简洁、少 emoji。闲聊 ≤120 字，讲题 ≤200 字。`;
+  return `你是「${m.name}」，${m.title}，恋爱养成游戏《成考高数(二)速通》可攻略角色，也是学员的成考陪练。人设：${m.desc}\n用这个人设的口吻说话，可带撩人与暧昧，核心是帮学员备战成人高考专升本三科——政治、英语、高等数学二（极限、导数、积分、多元微分、概率）。学员问哪科就讲哪科，不要硬扯回数学。讲题顺序：一句思路提示 → 关键步骤 → 一句易错点。简洁、少 emoji。闲聊 ≤120 字，讲题 ≤200 字。`;
 }
 /* 0.5 对话历史裁剪：只保留 system + 最近 6 轮，每条截断 400 字（成本与延迟双降，防 hist 无限膨胀） */
 const HIST_KEEP = 6, HIST_MAX = 400;
@@ -4404,7 +4404,7 @@ async function aiGenVariant(q){
   const mate = getMate(MOD2MATE[q.m]);
   const solPlain = String(q.sol || '').replace(/<[^>]+>/g, ' ');
   const sys = aiPrompt(mate) + '\n\n【当前任务】你现在是出题老师。无论对方说什么，你只输出一个 JSON 对象，禁止输出任何解释、寒暄或 markdown 代码块标记。';
-  const req = '请模仿下面这道成考高数(二)真题，出一道同考点的全新变式题（换数字、换情境，考点和难度不变）。\n'
+  const req = '请模仿下面这道成考专升本「' + subjectName(subjOfMod(q.m)) + '」真题，出一道同考点的全新变式题（换数字、换情境，考点和难度不变，科目必须与真题一致）。\n'
     + '原题：' + q.q + '\n'
     + (q.t === 'choice' ? '原选项：' + q.o.join(' | ') + '\n' : '')
     + '原答案：' + ansText(q) + '\n'
@@ -4648,7 +4648,7 @@ async function genWeakPaper(btn){
   if(!st.wrong.length){ toast('错题本是空的，先去自习室刷题吧'); return; }
   btn.disabled = true; btn.textContent = '✍️ AI 正在按你的弱点出卷…';
   const build = j => {
-    if(!j || !j.q || !j.m || !MODULES.some(x => x.id === j.m)) return null;
+    if(!j || !j.q || !j.m || !ALL_MODS.some(x => x.id === j.m)) return null;
     if(j.t === 'choice' && Array.isArray(j.o) && j.o.length >= 3 && j.o.length <= 6 && typeof j.a === 'number' && j.a >= 0 && j.a < j.o.length)
       return { t:'choice', m:j.m, vi:true, q:String(j.q), o:j.o.map(String), a:j.a, sol:String(j.sol || '') };
     if(j.t === 'fill' && Array.isArray(j.ans) && j.ans.length)
@@ -4656,10 +4656,14 @@ async function genWeakPaper(btn){
     return null;
   };
   let list = [], offline = false;
-  const samples = st.wrong.slice(0, 8).map(w => '【' + w.m + '】' + w.q).join('\n');
+  const samples = st.wrong.slice(0, 8).map(w => '【' + (modName(w.m) || w.m) + '】' + w.q).join('\n');
+  /* 模块代码图例按错题实际覆盖的科目动态生成（错题含政治/英语时，图例必须带出 p/e 模块，
+     否则 AI 只能把非数学错题硬塞进 m1-m5，且旧版 MODULES 校验会把弱卷题全部丢弃） */
+  const legend = [...new Set(st.wrong.slice(0, 8).map(w => w.m).filter(Boolean))]
+    .map(id => id + '=' + (modName(id) || id)).join(' ');
   const r = await aiTask('weakpaper', [
-    { role:'system', content: '你是成人高考高等数学(二)的出题老师。无论对方说什么，只输出一个 JSON 数组，禁止输出任何解释、寒暄或 markdown 代码块标记。' },
-    { role:'user', content: '这是学生的错题清单：\n' + samples + '\n\n请围绕这些错题暴露的考点出 5 道新题（每题不同考点，难度贴近成考真题）。输出 JSON 数组，每题格式二选一：\n{"t":"choice","m":"m1","q":"题干","o":["A","B","C","D"],"a":0,"sol":"解析"}\n{"t":"fill","m":"m3","q":"题干","ans":["答案"],"sol":"解析"}\n模块代码：m1=极限与连续 m2=导数与应用 m3=积分 m4=多元微分 m5=概率（按考点选对 m）。' }
+    { role:'system', content: '你是成人高考专升本（政治、英语、高等数学二）的出题老师。无论对方说什么，只输出一个 JSON 数组，禁止输出任何解释、寒暄或 markdown 代码块标记。' },
+    { role:'user', content: '这是学生的错题清单：\n' + samples + '\n\n请围绕这些错题暴露的考点出 5 道新题（每题不同考点、与原题同科目，难度贴近成考真题）。输出 JSON 数组，每题格式二选一：\n{"t":"choice","m":"模块代码","q":"题干","o":["A","B","C","D"],"a":0,"sol":"解析"}\n{"t":"fill","m":"模块代码","q":"题干","ans":["答案"],"sol":"解析"}\n模块代码（必须严格从这份图例里选，按每题考点归属）：' + legend }
   ], { json:true, ck: ack('weak', strHash(st.wrong.slice(0,8).map(w=>w.id).join(','))), ctx:{} });
   if(r.src === 'ai'){
     const arr = extractJSON(r.text);
