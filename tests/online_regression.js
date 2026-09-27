@@ -78,6 +78,7 @@ const CHANNEL = process.env.TEST_CHANNEL || (process.env.CI ? undefined : 'msedg
     return {
       nav: document.querySelectorAll('[onclick^="go("]').length,
       ver: (document.getElementById('appVer') || {}).textContent || '',
+      appVer: (typeof APP_VER !== 'undefined') ? APP_VER : '',
       hero: home.innerText.length > 200,
       hasAnimeEntry: home.innerText.indexOf('动画') >= 0,
       hasButlerEntry: home.innerText.indexOf('管家') >= 0,
@@ -86,7 +87,8 @@ const CHANNEL = process.env.TEST_CHANNEL || (process.env.CI ? undefined : 'msedg
     };
   });
   T('B1', '导航入口≥30', b.nav >= 30, 'nav=' + b.nav);
-  T('B2', '版本号显示 v3.4.0', b.ver.trim() === 'v3.4.0', JSON.stringify(b.ver));
+  /* v3.4.1：版本断言不再硬编码——显示值必须等于页面内 APP_VER 且与 sw.js CACHE_PREFIX 同源（防发版漏改测试） */
+  T('B2', '版本号显示与 APP_VER 一致', b.ver.trim() === b.appVer, JSON.stringify({ shown: b.ver, appVer: b.appVer }));
   T('B3', '主页内容渲染正常', b.hero);
   T('B4', '「更多」展开后主页含英语动画课堂入口', b.hasAnimeEntry, 'fold=' + b.foldClosed + '→' + b.foldOpened + ' btn=' + b.foldLabel);
   T('B5', '「更多」展开后主页含AI学习管家入口', b.hasButlerEntry);
