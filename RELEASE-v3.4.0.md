@@ -106,7 +106,8 @@
 
 ## 六、已知问题 / 遗留
 
-- **推送仍缺 PAT**：本地已领先远端（线上仍是 v2.4.0）。三条通路全堵（`git push` 本机无凭据、无 `GH_TOKEN`、GitHub 连接器对该仓库只读 403）。
+- ~~**推送仍缺 PAT**~~ → **已解决（2026-09-27）**：GitHub `main` = `59f6712`，Release v3.4.0 已发布；线上 `chengkao.xixipp.cloud` 实测 `APP_VER = v3.4.0`，线上 UAT **215 / 215 全绿**。用 `tools/publish.js`（Git Data API 原子提交）推送，并做了**树级核对**：远端 tree 与本地 `HEAD^{tree}` 均为 `37578a7b`，**227 个 blob 逐字节一致**。
+- **推送链路顺带修掉 2 个真实缺陷**（`tools/publish.js`）：① `execSync` 拉起 cmd.exe 被环境拦截 → 改用 `spawnSync(shell:false)` + 参数数组，git 恢复可用，中文文件名也不再受命令行转义影响；② 原先直接读工作区字节推，`core.autocrlf=true` 下工作区是 CRLF 而 git 对象是 LF，导致 GitHub 收到 CRLF 版本（正常 `git push` 不会）→ 改为优先取 `git cat-file blob HEAD:<path>`。首次推送后靠树级比对才发现 4 个文件不一致，已按 git 对象重推修正。
 - **Q1 未闭环**：旧 API Key 仍在 git 历史里，需在 siliconflow 侧**吊销**；清 git 历史（filter-repo + force push）属不可逆操作，须与之**成对**执行。
 - **p3 模块考纲**需人工核验（需考纲原文，非代码问题）。
 - 后续候选：`proLearn()` 目前按 `epi` 时间戳推活跃时段，样本 <5 条时不下结论（可再加显式反馈入口）。
