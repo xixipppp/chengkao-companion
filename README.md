@@ -3,7 +3,7 @@
 > 成人高考（专升本）备考陪练单页应用 —— 用乙女向角色陪伴 + AI 靶向提分，把「刷题、错题、复盘」变成有人陪你打完的一场恋爱式闯关。
 
 [![线上体验](https://img.shields.io/badge/在线体验-chengkao.xixipp.cloud-ff8ad1)](https://chengkao.xixipp.cloud)
-[![Release](https://img.shields.io/badge/release-v3.4.2-ffd166)](https://github.com/xixipppp/chengkao-companion/releases)
+[![Release](https://img.shields.io/badge/release-v3.4.3-ffd166)](https://github.com/xixipppp/chengkao-companion/releases)
 ![纯静态](https://img.shields.io/badge/build-none%20(static)-7ed957)
 
 ---

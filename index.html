@@ -2047,7 +2047,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.4.2';   // 同步 GitHub Release 标签（v3.4.1 = 质量地基；v3.4.2 = 效率与体验：save 防抖落盘 + 题库渲染全面转义 + diff/hint 规则回填 + 计时器时间戳化）
+const APP_VER = 'v3.4.3';   // 同步 GitHub Release 标签（v3.4.2 = 效率与体验；v3.4.3 = 题库抽检三连修：答案判分 bug×2 + p6 错分 20 题归位 + passage 缺失显式降级）
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
@@ -4134,7 +4134,18 @@ function passageOf(q){
   return window.SUBJ_PASSAGES[(q.paper || '') + '|' + q.passage] || window.SUBJ_PASSAGES[q.passage] || null;
 }
 function passageBox(q){
-  const t = passageOf(q); if(!t) return null;
+  const t = passageOf(q);
+  /* v3.4.3 P1：题目带 passage 引用但原文未收录（全真模拟一~六 cloze/reading 共 36 篇待补录），
+     原来静默返回 null，屏幕上只剩「第30空」+ 几个单词，用户不知道缺了原文。
+     改为显式降级提示：告知原文缺失 + 给出可操作的作答策略，绝不留白装没事。 */
+  if(!t){
+    if(!q || !q.passage) return null;
+    const d = document.createElement('div'); d.className = 'passbox missing';
+    d.innerHTML = '<div style="padding:10px 12px;font-size:12.5px;line-height:1.7;color:var(--sub)">'
+      + '📄 <b style="color:var(--gold)">本篇原文暂未收录</b>（该卷原文待补录）。'
+      + '可先凭技巧作答：完形看上下文复现与逻辑连接词，阅读先看题干再回原文定位——此题解析里有完整思路 👇</div>';
+    return d;
+  }
   const d = document.createElement('details'); d.className = 'passbox'; d.open = false;
   d.innerHTML = '<summary>📄 阅读原文 · 点开再读（看完可收起）</summary><div class="ptx">' + escapeHtml(t).replace(/\n/g, '<br>') + '</div>';
   return d;

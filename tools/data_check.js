@@ -189,5 +189,28 @@ if (kd && Array.isArray(kd.KAODIAN)) {
                 : P('F10', 'hint 全覆盖');
 }
 
+/* ---------- F11 passage 原文解析率（v3.4.3 P1：全真模拟一~六 36 篇原文待补录，防回归） ---------- */
+{
+  const SP = (subj && subj.SUBJ_PASSAGES) || {};
+  const passageOf = q => SP[(q.paper || '') + '|' + q.passage] || SP[q.passage] || null;
+  const withP = ALL.filter(q => q && q.subj === 'eng' && q.passage);
+  const hit = withP.filter(passageOf).length;
+  const BASELINE = 169;   // v3.4.3 基线（36 篇待补录，补录后应单调上升）
+  hit < BASELINE ? F('F11', 'passage 可解析数 ' + hit + ' 低于基线 ' + BASELINE + '（数据回退！）')
+                 : W('F11', 'passage 可解析 ' + hit + '/' + withP.length + '（' + (hit / withP.length * 100).toFixed(0) + '%）· 缺 ' + (withP.length - hit) + ' 篇原文待补录');
+}
+
+/* ---------- F12 sol「故选X」字母与答案索引一致（v3.4.3 P2：eng2018_056/eng2025_056 事故门禁） ---------- */
+{
+  const LET = 'ABCDEFGH';
+  const bad = ALL.filter(q => {
+    if (!q || q.t !== 'choice' || !q.sol) return false;
+    const m = String(q.sol).match(/故选\s*[:：]?\s*([A-H])\b/);
+    return m && LET.indexOf(m[1]) !== q.a;
+  });
+  bad.length ? F('F12', 'sol 故选字母与答案不一致 ' + bad.length + ' 题：' + bad.slice(0, 5).map(q => q.id).join(','))
+             : P('F12', 'sol 故选字母与答案全部一致');
+}
+
 console.log('\ndata_check: ' + (fail ? ('FAIL ' + fail + ' 项') : 'PASS') + (warn ? '（WARN ' + warn + ' 项）' : ''));
 process.exit(fail ? 1 : 0);
