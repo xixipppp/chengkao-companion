@@ -21,9 +21,11 @@ const { chromium } = require('playwright');
   const bootGone = await page.evaluate(() => !document.getElementById('bootMask'));
   T('启动遮罩自动移除', bootGone);
 
-  // 2. 首页渲染（题量随补库增长：2319 → 2326 → 2327）
-  const homeOk = await page.evaluate(() => typeof ALLQ !== 'undefined' && ALLQ.length === 2327 && document.querySelector('.screen.active'));
-  T('首页渲染 + ALLQ 2327', homeOk);
+  // 2. 首页渲染（题量随补库增长：2319 → 2326 → 2327 → 2331；v3.4.5 加 4 题未同步断言曾致 CI 红 → 改与数据源动态比对）
+  const homeOk = await page.evaluate(() => typeof ALLQ !== 'undefined'
+    && ALLQ.length === QUESTIONS.length + EXTRA.length + SUBJ_BANK.length
+    && document.querySelector('.screen.active'));
+  T('首页渲染 + ALLQ 与数据源一致', homeOk);
 
   // 3. 考前冲刺页不再空白（P0）
   await page.evaluate(() => go('s-sprint'));
