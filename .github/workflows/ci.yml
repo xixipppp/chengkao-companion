@@ -25,12 +25,14 @@ jobs:
           python-version: '3.12'
 
       # v3.4.1：静态门禁扩到四件套——新增版本号一致性（ver_check）与题库数据契约（data_check）
-      - name: Static checks (内联脚本语法 + 重名/悬空自检 + 版本一致性 + 题库数据契约)
+      - name: Static checks (内联脚本语法 + 重名/悬空自检 + 版本一致性 + 题库数据契约 + 2D讲解时长预算)
         run: |
           node tools/syntax_check.js
           node tools/dup_check.js
           node tools/ver_check.js
           node tools/data_check.js
+          # v3.5.0：2D 讲解引擎时长预算跑批（全库 2265 题必须落在 30~60 秒，越界则 exit 1）
+          node tools/anim2d_dur_check.js
 
       # v3.4.1：playwright 版本锁定（package.json）+ 浏览器缓存，告别每次全量下载 170MB
       - name: Cache Playwright browsers
@@ -57,7 +59,9 @@ jobs:
           curl -s http://127.0.0.1:8900/index.html | grep -q "心动成考" || { echo "8900 端口内容不符"; exit 1; }
 
           fail=0
-          for t in offline_test audit_fix_test conv_test games_test gap2_test legacy_fix_test perf_test phase1_visual_test tree_test notes_test; do
+          # v3.5.0：anim2d_test 是纯 node 单测（不依赖浏览器），校验 2D 讲解引擎的时长/结构/不编造
+          # v3.5.2：passage_smoke 纯 node 单测，校验各卷英文原文解析率（防真题原文数据回归）
+          for t in offline_test audit_fix_test conv_test games_test gap2_test legacy_fix_test perf_test phase1_visual_test tree_test notes_test anim2d_test passage_smoke; do
             echo "=== $t ==="
             timeout 300 node "tests/$t.js" && echo "$t PASS ✅" || { echo "$t FAIL ❌"; fail=1; }
           done
