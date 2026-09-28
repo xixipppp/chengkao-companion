@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>语音朗读自检</title>
+<style>
+  *{box-sizing:border-box;-webkit-text-size-adjust:100%}
+  body{font:16px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;padding:16px;background:#0f1220;color:#e8ecf5}
+  h1{font-size:20px;margin:0 0 4px}
+  .sub{color:#8b93a7;font-size:13px;margin:0 0 16px}
+  .card{background:#1a1f33;border:1px solid #2a3050;border-radius:12px;padding:14px;margin-bottom:12px}
+  .k{color:#8b93a7;font-size:13px}
+  .v{font-size:15px;margin-top:2px;word-break:break-all}
+  .ok{color:#3ddc84}.bad{color:#ff6b6b}.warn{color:#ffd166}
+  button{display:block;width:100%;padding:14px;margin:8px 0;font-size:16px;border:0;border-radius:10px;background:#3b6cff;color:#fff;font-weight:600}
+  button:active{opacity:.8}
+  #log{background:#0b0e1a;border-radius:10px;padding:12px;font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;color:#aeb6cf;max-height:260px;overflow:auto}
+  .ua{font-size:12px;color:#6b7390;word-break:break-all}
+</style>
+</head>
+<body>
+<h1>🔊 语音朗读自检</h1>
+<p class="sub">在手机上打开本页，逐项点按钮，结果会告诉你"为什么读不了"。</p>
+
+<div class="card">
+  <div class="k">浏览器环境</div>
+  <div class="v ua" id="ua">检测中…</div>
+</div>
+
+<div class="card">
+  <div class="k">① 系统朗读(speechSynthesis)支持</div>
+  <div class="v" id="r-syn">检测中…</div>
+  <div class="k" style="margin-top:8px">可用语音数 / 中文语音</div>
+  <div class="v" id="r-voices">检测中…</div>
+</div>
+
+<button id="b1">② 点我朗读一句中文（测试系统朗读）</button>
+<button id="b2">③ 点我听一声"叮"（测试音效引擎）</button>
+<button id="b3">④ 重新加载语音列表</button>
+
+<div class="card">
+  <div class="k">实时日志</div>
+  <div id="log"></div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const log = (m,cls)=>{ const d=$('#log'); const t=document.createElement('div'); if(cls)t.className=cls; t.textContent='• '+m; d.appendChild(t); d.scrollTop=d.scrollHeight; };
+const ua = navigator.userAgent;
+$('#ua').textContent = ua;
+const isWX = /MicroMessenger/i.test(ua);
+log('UA: '+(isWX?'微信内置浏览器':'非微信')+' | '+( /iPhone|iPad/i.test(ua)?'iOS':/Android/i.test(ua)?'Android':'其它'));
+
+const syn = ('speechSynthesis' in window) && window.speechSynthesis;
+$('#r-syn').innerHTML = syn ? '<span class="ok">✅ 支持 speechSynthesis</span>' : '<span class="bad">❌ 不支持（无系统朗读，只能靠云端 TTS）</span>';
+if(!syn) log('本浏览器无 speechSynthesis → 朗读必须配云端 TTS 接口', 'bad');
+
+function showVoices(){
+  if(!syn){ $('#r-voices').textContent='—'; return; }
+  let vs = speechSynthesis.getVoices();
+  const zh = vs.filter(v=>/zh|cmn|Chinese/i.test(v.lang||v.name));
+  $('#r-voices').innerHTML = `共 <b>${vs.length}</b> 个 / 中文 <b>${zh.length}</b> 个` + (zh.length?` <span class="ok">(${zh.map(v=>v.lang).slice(0,3).join(',')})</span>`:'<span class="warn">（无中文语音）</span>');
+  log(`语音列表更新：共 ${vs.length} 个，中文 ${zh.length} 个`);
+}
+showVoices();
+if(syn) speechSynthesis.onvoiceschanged = ()=>{ log('触发 voiceschanged'); showVoices(); };
+
+$('#b1').onclick = ()=>{
+  if(!syn){ log('无系统朗读，无法测试①', 'bad'); return; }
+  log('开始合成中文朗读…');
+  const u = new SpeechSynthesisUtterance('这是一条语音朗读测试，如果你能听到，说明系统朗读正常。');
+  u.lang='zh-CN'; u.rate=1; u.pitch=1;
+  let started=false;
+  u.onstart=()=>{ started=true; log('✅ onstart：开始播放','ok'); };
+  u.onend=()=>{ log('✅ onend：播放结束','ok'); };
+  u.onerror=(e)=>{ log('❌ onerror：'+(e&&e.error||'未知错误'),'bad'); };
+  try{ speechSynthesis.cancel(); speechSynthesis.speak(u); }catch(err){ log('❌ speak 抛异常：'+err.message,'bad'); }
+  setTimeout(()=>{ if(!started) log('⚠️ 3 秒内未触发 onstart —— 该浏览器有 API 但不出声（典型微信 X5 缺陷）','warn'); },3000);
+};
+
+$('#b2').onclick = async ()=>{
+  try{
+    const AC = window.AudioContext||window.webkitAudioContext;
+    if(!AC){ log('❌ 无 AudioContext，音效不可用','bad'); return; }
+    const ctx = new AC();
+    if(ctx.state==='suspended') await ctx.resume();
+    const o=ctx.createOscillator(), g=ctx.createGain();
+    o.frequency.value=880; o.type='sine'; g.gain.value=0.001;
+    o.connect(g); g.connect(ctx.destination);
+    const t=ctx.currentTime;
+    g.gain.setValueAtTime(0.001,t); g.gain.exponentialRampToValueAtTime(0.3,t+0.02); g.gain.exponentialRampToValueAtTime(0.001,t+0.35);
+    o.start(t); o.stop(t+0.36);
+    log('✅ 音效引擎可用（听到"叮"=正常）','ok');
+  }catch(e){ log('❌ 音效测试异常：'+e.message,'bad'); }
+};
+
+$('#b3').onclick = ()=>{ if(syn){ speechSynthesis.getVoices(); showVoices(); log('已重新请求语音列表'); } else log('无系统朗读'); };
+
+log('自检页就绪。先点 ② 测系统朗读；若❌或无中文语音，朗读只能靠"云端 TTS"。');
+</script>
+</body>
+</html>
