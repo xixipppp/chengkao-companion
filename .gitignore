@@ -2,6 +2,9 @@
 tests/_*.png
 tests/_*.html
 
+# v3.5.0 · 2D 动画离线渲染产物（逐帧 jpg / 合成 mp4），体积大，不入库
+tests/_anim2d_out/
+
 # 临时推送/发布脚本
 _push*.js
 _release*.js

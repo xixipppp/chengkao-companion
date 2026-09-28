@@ -11,3 +11,10 @@
 *.png binary
 *.webp binary
 *.wasm binary
+
+# v3.5.0 实测修正：上面这组 `text` 规则会在提交时把内容统一成 LF，
+# 而仓库历史 blob（index.html / tests/*.js / 验收测试报告.md）实际都是 CRLF，
+# 结果是只要碰这些文件就产生整文件假 diff（index.html 一次 7435 行）。
+# 改为**完全不做换行转换、按字节入库**（最后一条生效，覆盖上面的 text 规则），
+# 新文件保持写入时的行尾，老文件与历史 blob 一致 —— 真正达成 v3.4.1 想要的效果。
+* -text
