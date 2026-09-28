@@ -3,7 +3,7 @@
 > 成人高考（专升本）备考陪练单页应用 —— 用乙女向角色陪伴 + AI 靶向提分，把「刷题、错题、复盘」变成有人陪你打完的一场恋爱式闯关。
 
 [![线上体验](https://img.shields.io/badge/在线体验-chengkao.xixipp.cloud-ff8ad1)](https://chengkao.xixipp.cloud)
-[![Release](https://img.shields.io/badge/release-v3.5.2-ffd166)](https://github.com/xixipppp/chengkao-companion/releases)
+[![Release](https://img.shields.io/badge/release-v3.5.3-ffd166)](https://github.com/xixipppp/chengkao-companion/releases)
 ![纯静态](https://img.shields.io/badge/build-none%20(static)-7ed957)
 
 ---
@@ -196,6 +196,7 @@ TEST_URL=https://chengkao.xixipp.cloud/index.html node tests/online_regression.j
 | **v3.5.0** | **三科题目 2D 动画讲解短片**：任意一道题一键生成 30~60 秒竖屏讲解短片（片头题卡 → 题干浮现 → 选项飞入 → 排除法打叉 → 答案揭晓 → 解析分步推演 → 结尾记忆点）；三科差异化画面（政治=概念关系图，英语=词句聚光扫描，高数=坐标系/切线/面积动画）；可暂停/拖动进度/倍速，也可导出成视频文件。 |
 | **v3.5.1** | **仓库优化（无功能变更）**：补 `eng2019` 真题原文缺口（`reading_3` 配对 2019 真题 eng2019_048~051，解析率 379→383/383）；清理本地 193MB 测试产物（`tests/` 192MB→200KB）；三处版本一致。 |
 | **v3.5.2** | **历年英语真题原文补全**：把 2014–2024 共 11 个年度专升本英语真题的完形填空 + 阅读理解原文（计 420 篇）逐字 OCR 转录并回填 `SUBJ_PASSAGES`，真题卷「有题无文」历史缺口清零（`data_check` F11 = 740/740，缺 0 篇）；顺手修正 `eng2019_042` 解析过短（3 字→251 字）。缓存前缀 `ck-v3.5.2` 强制刷新。 |
+| **v3.5.3** | **修复英语语音朗读无法播放**：根因是 `speak()` 内 `speechSynthesis.cancel()` 紧跟 `speak()` 的 Chromium 竞态（整句被吞）；改为「仅在有语音在播时才 cancel，并把新句延后一拍」；启动即预热 `getVoices()`（监听 `voiceschanged`）， utterance 持引用防 GC，出错（如 `onerror`）给明确 toast 不再静默。回归测试 G3 从「只查 API 存在」升级为「真实调用 `speak()` 并校验触发播放、不抛错」，防止此类回归再漏网。缓存前缀 `ck-v3.5.3`。 |
 | **v3.3.0** | **P3 应用效率（第三轮专家会议主线）**：① **3D 引擎按需动态加载**（`__ckLoadMV` + `import()`，首屏不再静态拉 model-viewer 1.07MB + draco，绝大多数用户根本不会点进 3D 页）；② **派生指标 memo**（`__statVer` 存档版本失效 + `__statCache`，`modStats()` 原本每次全库 filter，被 `roiList/dynamicWeights/weakModules/agPerceive` 层层重复调用）；③ **O(1) 题目索引 `qById`**（替换 7 处 `ALLQ.find`，原为 O(错题数 × 2327)）；④ **`DUP_REAL` 惰性化**（加载期省两次全库 O(N) 建键）。 |
 | **v3.2.0** | **P1 收尾 + P2 纵深**（依据《专家会议纪要-v3.2-P2P3收官》5 专家独立读码）：<br>**择题智能化**——`KAODIAN` 考点分值表（**对 2014-2025 十二年真卷实测统计**，非估值；实测推翻专家「m5 概率 14 分」的估计，真值仅 3.6 分）+ ROI v2（把学习成本放进分母）+ 三科动态权重 `dynamicWeights()`（`SUBJ_MIN_SHARE=0.20` 硬下限防偏科）+ **剔除超纲 p4 史纲/p6 思修**（真卷出现 0 次）+ SM-2 简化卡片调度（新卡 EF 起点 2.3、上限 2.5；答错只重置次数、**不惩罚 EF**）<br>**体验去压迫**——首屏降噪（hero 320→150px、去重 CTA、低优先区块折叠）+ 新用户三步上手（考期/时长/时段 → `st.profile`，修 `sprintState()` 默认考期 +10 天致阶段失真）+ 体面退出（`pauseForToday()` + partial 战报，中途退出也有凭证）+ 去内疚文案（连续天数改口径「本周学了 N 天」）+ 扭蛋重绑学习行为（保底 12→8）+ 暂缓区 + 每日小事件 + 动机锚点 `st.why`<br>**人格上线**——好感双轨 `st.aff`/`st.care`（答错给关怀但**不进等级/结局**）+ `AFF_T` 下调 + `migrateAff()`（等级只升不降）+ 情境台词矩阵 `LINES2` + 羁绊名场面卡 `st.mem[id]` + 回归问候分档 + 人设×科目措辞订正与扭蛋串角订正<br>**工程纵深**——多层缓存（激活原本零调用的 `aiCacheGet/Set` + 分层 key）+ 变式池封顶 60（不再挤占主存档）+ `aiTask` 补记失败原因 + `agPlan` LLM 微调（独立熔断 `AIQP` / 每日 3 次 / 工具白名单护栏 / **默认关闭**）+ PWA（`manifest.json` + `sw.js` 三层缓存 + 版本更新提示条）+ 交错练习与难度自适应。回归断言 173 → **209**。 |
 | **v3.1.0** | **Agent 闭环成型 P1**（rule-only，零 AI 依赖，断网功能一块不缺）：① **记忆分层 `st.mem`**（`sem` 掌握度趋势 / `epi` 战报环形 120 条 / `pro` 用户画像，`proLearn()` 从 `st.sessions` 归纳「建议档位 / 夜间上限 / 常练科目 / 活跃时段」，老存档零迁移）；② **工具注册表 `TOOLS`**（9 个 tool，各带 `name/desc/when/pre/run`，`canRun()` 统一前置校验，不满足即拒绝）；③ **Agent 主循环 `AG`**（`agPerceive → agPlan(rule) → agAct(唯一出口) → agReflect`，带决策留痕 `AG.log`）；④ **管家新增「🧭 决策」tab**（感知/决策/执行流水 + 能力清单 + 「让它现在替我走一步」）；⑤ **计划快照与重排**（`planSnap` 幂等、`sweepExpiredBlocks` 过期置 missed 且不改 start/dur、`markBlockHit` 块级打卡、`replanToday` 只重排未到点时段且总分钟守恒）。回归断言 158 → **173**。 |

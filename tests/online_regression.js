@@ -188,22 +188,31 @@ const CHANNEL = process.env.TEST_CHANNEL || (process.env.CI ? undefined : 'msedg
 
   /* ---------- G. 英语语音朗读 ---------- */
   sect('G. 英语题目语音朗读');
-  const g = await page.evaluate(() => {
+  const g = await page.evaluate(async () => {
     const q = ALLQ.filter(x => x.subj === 'eng' && x.t === 'choice')[0];
     S.drill = { mod: 'all', list: [q], i: 0, right: 0, isWrong: false, label: '语音核对', mode: 'normal',
       cleared: {}, pendingWrong: 0, totalWrong: 0, wrongN: {}, ansLog: {} };
     go('s-drill'); renderDrill();
     const sec = document.getElementById('s-drill');
+    let threw = false, spokeStart = false, voiceCount = 0;
+    try { voiceCount = (window.speechSynthesis && window.speechSynthesis.getVoices().length) || 0; } catch (e) {}
+    try {
+      if (typeof speak === 'function') speak('Regression voice test.'); else threw = 'no-fn';
+    } catch (e) { threw = e.message; }
+    // 等一小会，观察 speechSynthesis 是否进入 speaking 状态（证明真触发了播放）
+    await new Promise(r => setTimeout(r, 300));
+    try { spokeStart = !!(window.speechSynthesis && window.speechSynthesis.speaking); } catch (e) {}
     return {
       speechApi: !!(typeof window.speechSynthesis !== 'undefined' && typeof window.SpeechSynthesisUtterance !== 'undefined'),
       hasMini: sec.querySelectorAll('.ttsmini').length,
       hasSpeak: typeof speak === 'function',
-      hasToggle: typeof toggleTts === 'function'
+      hasToggle: typeof toggleTts === 'function',
+      threw, spokeStart, voiceCount
     };
   });
   T('G1', 'Web Speech API 可用', g.speechApi === true);
   T('G2', '英语题选项带朗读喇叭(.ttsmini)', g.hasMini > 0, 'mini=' + g.hasMini);
-  T('G3', 'speak / toggleTts 语音接口存在', g.hasSpeak && g.hasToggle);
+  T('G3', 'speak 入口可调用且不抛错、真实触发播放', g.hasSpeak && g.hasToggle && g.threw === false && (g.spokeStart === true || g.voiceCount === 0), 'threw=' + g.threw + ' speaking=' + g.spokeStart + ' voices=' + g.voiceCount);
 
   /* ---------- H. 10 个小游戏 ---------- */
   sect('H. 小游戏（10 个全流程）');

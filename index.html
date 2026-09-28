@@ -2049,7 +2049,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.5.2';   // 同步 GitHub Release 标签（v3.4.3 = 题库抽检三连修；v3.4.4 = AI 分科修复；v3.4.5 = 英语全真模拟一~六原文补录；v3.5.0 = 三科题目 2D 动画讲解短片；v3.5.1 = 仓库优化：补 eng2019 真题原文缺口 + 清理本地 193MB 测试产物；v3.5.2 = 历年英语真题原文补全：2014–2024 计 11 个年度完形+阅读 420 篇原文回填 + 修 eng2019_042 解析过短）
+const APP_VER = 'v3.5.3';   // 同步 GitHub Release 标签（v3.4.3 = 题库抽检三连修；v3.4.4 = AI 分科修复；v3.4.5 = 英语全真模拟一~六原文补录；v3.5.0 = 三科题目 2D 动画讲解短片；v3.5.1 = 仓库优化：补 eng2019 真题原文缺口 + 清理本地 193MB 测试产物；v3.5.2 = 历年英语真题原文补全：2014–2024 计 11 个年度完形+阅读 420 篇原文回填 + 修 eng2019_042 解析过短；v3.5.3 = 修复英语语音朗读无法播放（消除 Chromium cancel/speak 竞态 + 预热 voices + 出错有提示））
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
@@ -2553,31 +2553,51 @@ const TTS = {
   get on(){ return st.ttsOn !== false; },
   get rate(){ return st.ttsRate || 0.92; }
 };
+let _ttsVoices = [];
+function _refreshVoices(){
+  try { _ttsVoices = (window.speechSynthesis && window.speechSynthesis.getVoices()) || []; } catch(e){ _ttsVoices = []; }
+}
 function ttsOk(){ return typeof window !== 'undefined' && window.speechSynthesis && window.SpeechSynthesisUtterance; }
 function ttsVoice(lang){
   if(!ttsOk()) return null;
-  const vs = window.speechSynthesis.getVoices() || [];
   const want = (lang || 'en').slice(0, 2).toLowerCase();
+  const vs = _ttsVoices.length ? _ttsVoices : (window.speechSynthesis.getVoices() || []);
   return vs.find(v => (v.lang || '').toLowerCase().replace('_','-').startsWith(want === 'en' ? 'en-gb' : want))
       || vs.find(v => (v.lang || '').toLowerCase().startsWith(want)) || null;
 }
+let _ttsUtter = null; // 持引用，防止 GC 把 utternce 回收导致静音/截断
 function speak(text, opt){
   opt = opt || {};
   if(!TTS.on){ if(opt.toast !== false) toast('语音已关闭，可在「我的」里打开 🔊'); return; }
-  if(!ttsOk()){ toast('当前浏览器不支持语音朗读'); return; }
+  if(!ttsOk()){ if(opt.toast !== false) toast('当前浏览器不支持语音朗读'); return; }
   const t = String(text || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
   if(!t) return;
+  const say = () => {
+    try{
+      const u = new SpeechSynthesisUtterance(t);
+      u.lang = opt.lang || (isEnText(t) ? 'en-US' : 'zh-CN');
+      u.rate = opt.rate || TTS.rate;
+      u.pitch = opt.pitch || 1;
+      const v = ttsVoice(u.lang); if(v) u.voice = v;
+      u.onerror = (e) => { if(opt.toast !== false) toast('语音播放失败：' + (e.error || '未知')); };
+      _ttsUtter = u; // 防 GC
+      window.speechSynthesis.speak(u);
+    }catch(e){ if(opt.toast !== false) toast('语音播放失败：' + e.message); }
+  };
   try{
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(t);
-    u.lang = opt.lang || (isEnText(t) ? 'en-US' : 'zh-CN');
-    u.rate = opt.rate || TTS.rate;
-    u.pitch = opt.pitch || 1;
-    const v = ttsVoice(u.lang); if(v) u.voice = v;
-    window.speechSynthesis.speak(u);
-  }catch(e){}
+    // 修复 Chromium「cancel 紧跟 speak 导致整句被吞」的竞态：
+    // 仅在有语音在播/排队时才 cancel，并把新句延后一拍（让 cancel 生效），否则直接播。
+    if(window.speechSynthesis.speaking || window.speechSynthesis.pending){
+      window.speechSynthesis.cancel();
+      setTimeout(say, 80);
+    } else {
+      say();
+    }
+  }catch(e){ say(); }
 }
 function stopSpeak(){ try{ if(ttsOk()) window.speechSynthesis.cancel(); }catch(e){} }
+// 启动即预热 voices：Chromium 首次 getVoices() 返回空，需等 voiceschanged 事件
+if(ttsOk()){ _refreshVoices(); try{ window.speechSynthesis.onvoiceschanged = _refreshVoices; }catch(e){} }
 function isEnText(s){
   const t = String(s || '');
   const en = (t.match(/[A-Za-z]/g) || []).length;
