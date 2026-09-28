@@ -1259,18 +1259,28 @@ const CHANNEL = process.env.TEST_CHANNEL || (process.env.CI ? undefined : 'msedg
   const v13 = await page.evaluate(() => {
     st.butler.plan = null;
     const p = planSnap();
+    // 夹具时间随"现在"推算（旧版写死 00:10，凌晨 00:00~00:40 跑测试时它还是未来块，语义翻转导致假失败）
+    const pad = n => String(n).padStart(2, '0');
+    const hm = m => pad(Math.floor(m / 60) % 24) + ':' + pad(m % 60);
+    const now = new Date();
+    const mod = now.getHours() * 60 + now.getMinutes();
+    // 已过块 = 完全结束（start+dur < now）。replanToday 对"进行中"的块不置 missed
+    const past = (mod >= 20) ? mod - 20 : 0;
+    const dur1 = (mod >= 20) ? 10 : Math.max(1, mod - 1);
+    const f1 = Math.min(mod + 5, 1439);             // 未到点块 1
+    const f2 = Math.min(mod + 15, 1439);            // 未到点块 2
     p.blocks = [
-      { id: 'x1', seq: 1, start: '00:10', dur: 30, subj: 'math', st: 'pending', label: 'a' },
-      { id: 'x2', seq: 2, start: '23:30', dur: 40, subj: 'pol', st: 'pending', label: 'b' },
-      { id: 'x3', seq: 3, start: '23:50', dur: 20, subj: 'eng', st: 'pending', label: 'c' }
+      { id: 'x1', seq: 1, start: hm(past), dur: dur1, subj: 'math', st: 'pending', label: 'a' },
+      { id: 'x2', seq: 2, start: hm(f1), dur: 40, subj: 'pol', st: 'pending', label: 'b' },
+      { id: 'x3', seq: 3, start: hm(f2), dur: 20, subj: 'eng', st: 'pending', label: 'c' }
     ];
     st.butler.plan.blocks = p.blocks;
     const r = replanToday();
     const b1 = p.blocks[0];
-    return { moved: r.moved, conserved: r.conserved, min: r.min, x1: b1.st, x1start: b1.start };
+    return { moved: r.moved, conserved: r.conserved, min: r.min, x1: b1.st, x1start: b1.start, x1startExp: hm(past) };
   });
   T('V13', 'replanToday 只重排未到点块 + 总分钟守恒 + 已过块不动',
-    v13.moved === 2 && v13.conserved === true && v13.min === 60 && v13.x1 === 'missed' && v13.x1start === '00:10', JSON.stringify(v13));
+    v13.moved === 2 && v13.conserved === true && v13.min === 60 && v13.x1 === 'missed' && v13.x1start === v13.x1startExp, JSON.stringify(v13));
 
   const v14 = await page.evaluate(() => {
     st.butler.plan = null; planSnap();

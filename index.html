@@ -2067,7 +2067,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.6.0';   // 同步 GitHub Release 标签（v3.5.3 = 修复英语语音朗读无法播放；v3.6.0 = 音频 overhaul：自建 Web Audio 音效引擎（答对/答错/游戏/升级/抽卡全有声）+ 全科目题目朗读 + 动画讲解朗读 + 移动端 TTS 加固（iOS 长句分段/voiceschanged 重试/首手势预热）+ 无系统朗读浏览器的云端 TTS 兜底）
+const APP_VER = 'v3.6.1';   // 同步 GitHub Release 标签（v3.6.0 = 音频 overhaul：SFX 引擎 + 全科目朗读 + 移动端 TTS 加固 + 云端兜底；v3.6.1 = 修复首次点朗读弹「朗读失败：interrupted」——预热清理定时器误杀正式朗读，另加 cancel→speak 错拍与 interrupted/canceled 静音）
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
@@ -2679,7 +2679,7 @@ function _utter(text, opt, done){
       u.rate = opt.rate || TTS.rate; u.pitch = opt.pitch || 1;
       const v = ttsVoice(u.lang); if(v) u.voice = v;
       u.onend = finish;
-      u.onerror = (e) => { if(opt.toast !== false) toast('朗读失败：' + (e.error || '未知')); finish(); };
+      u.onerror = (e) => { const er = (e && e.error) || ''; if(er !== 'interrupted' && er !== 'canceled' && opt.toast !== false) toast('朗读失败：' + (er || '未知')); finish(); };
       _ttsUtter = u; window.speechSynthesis.speak(u);
     }catch(e){ if(opt.toast !== false) toast('朗读失败：' + e.message); finish(); }
   };
@@ -2708,10 +2708,12 @@ function speak(text, opt){
     if(!_ttsWarned){ _ttsWarned = true; toast('该浏览器暂无系统朗读，已启用提示音效 🔊（「我的」里可配置云端朗读）'); }
     SFX.play('click'); return;
   }
-  try{ window.speechSynthesis.cancel(); }catch(e){}
+  let _wasSpeaking = false;
+  try{ _wasSpeaking = !!(window.speechSynthesis.speaking || window.speechSynthesis.pending); window.speechSynthesis.cancel(); }catch(e){}
   _ttsQueue = []; _ttsBusy = false;
   _chunk(t, opt.lang).forEach(c => _ttsQueue.push({text:c, opt}));
-  _flush();
+  // 安卓 X5/部分 WebView：cancel() 后同一拍立刻 speak() 会把新 utterance 打成 interrupted，错开一拍再播
+  if(_wasSpeaking) setTimeout(_flush, 80); else _flush();
 }
 function stopSpeak(){ try{ if(ttsOk()) window.speechSynthesis.cancel(); }catch(e){} _ttsQueue = []; _ttsBusy = false; }
 // 启动即预热 voices：Chromium/iOS 首次 getVoices() 返回空，需等 voiceschanged 事件
@@ -2774,10 +2776,10 @@ window.anim2dNarrate = function(spec){
     if(ttsOk()){
       try{ window.speechSynthesis.cancel(); window.speechSynthesis.getVoices(); }catch(e){}
       try{ // iOS：用一句极短静音朗读「预热」语音通道（不发声，仅解锁）
+        // 注意：不要在 60ms 后 cancel 它！那个定时 cancel 会把紧随其后的正式朗读打成 interrupted
         const u = new SpeechSynthesisUtterance(' '); u.volume = 0; u.rate = 10;
         u.onend = ()=>{}; u.onerror = ()=>{};
-        window.speechSynthesis.speak(u);
-        setTimeout(() => { try{ window.speechSynthesis.cancel(); }catch(e){} }, 60);
+        window.speechSynthesis.speak(u); // volume=0 且仅一个空格，会立即自然结束，无需 cancel
       }catch(e){}
     }
     window.removeEventListener('pointerdown', kick);
