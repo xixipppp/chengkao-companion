@@ -3,7 +3,7 @@
 > 成人高考（专升本）备考陪练单页应用 —— 用乙女向角色陪伴 + AI 靶向提分，把「刷题、错题、复盘」变成有人陪你打完的一场恋爱式闯关。
 
 [![线上体验](https://img.shields.io/badge/在线体验-chengkao.xixipp.cloud-ff8ad1)](https://chengkao.xixipp.cloud)
-[![Release](https://img.shields.io/badge/release-v3.4.4-ffd166)](https://github.com/xixipppp/chengkao-companion/releases)
+[![Release](https://img.shields.io/badge/release-v3.5.0-ffd166)](https://github.com/xixipppp/chengkao-companion/releases)
 ![纯静态](https://img.shields.io/badge/build-none%20(static)-7ed957)
 
 ---
@@ -36,6 +36,7 @@
 - 选择题 / 填空客观题自动判分，详解与解题步骤。
 - **英语题目语音朗读**（Web Speech API，支持慢速，题干预选项均可朗读）。
 - **数学分步讲题**：每一步都配一道 ABCD 检测，答对才放行下一步，把「看懂」变成「会做」。
+- **🎬 2D 动画题目讲解（v3.5.0）**：任意一道题一键生成 30~60 秒竖屏讲解短片 —— 片头题卡 → 题干浮现 → 选项飞入 → 排除法打叉 → 答案揭晓 → 解析分步推演 → 结尾记忆点。三科差异化画面：政治=概念关系图，英语=词句聚光扫描，高数=坐标系/切线/面积动画。可暂停/拖动进度/倍速，也可导出成视频文件。
 
 ### 2. 2026 黄金考点汇编
 - 解析《黄金考点汇编》PDF，结构化沉淀 **388 个考点**（政治 294 · 高数二 68 · 英语 26）。

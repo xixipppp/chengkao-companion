@@ -1199,12 +1199,14 @@
      · boot 完成后空闲预取（有 SW 预缓存时是本地读，几乎零延迟）
      · 进入用到它们的页面/游戏时兜底 ensure，未就绪先给加载态，到位后就地重绘
      · 两个文件仍在 sw.js 的 PRECACHE_URLS 里 → 断网照样可用 */
-const BANK_SRC = { kaodian:'data/kaodian.js', goldpoints:'data/goldpoints.js' };
-const BANK_TAG = { kaodian:'考点速记资料库', goldpoints:'黄金考点' };
+/* v3.5.0：anim2d（2D 动画讲解引擎）只服务于「🎬 2D动画讲解」播放器，不参与 ALLQ 构建 → 同样按需异步加载 */
+const BANK_SRC = { kaodian:'data/kaodian.js', goldpoints:'data/goldpoints.js', anim2d:'data/anim2d.js' };
+const BANK_TAG = { kaodian:'考点速记资料库', goldpoints:'黄金考点', anim2d:'2D 动画讲解引擎' };
 const __bankP = {};
 function bankReady(name){
   if(name === 'kaodian') return !!window.KAODIAN;
   if(name === 'goldpoints') return !!(window.GOLD_POINTS && window.GOLD_POINTS.data);
+  if(name === 'anim2d') return !!(window.Anim2D && window.Anim2D.build && window.Anim2D.open);
   return true;
 }
 function ensureBank(name){
@@ -2047,7 +2049,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.4.4';   // 同步 GitHub Release 标签（v3.4.3 = 题库抽检三连修；v3.4.4 = AI 分科修复：人设/变式/弱卷 prompt 全三科化）
+const APP_VER = 'v3.5.0';   // 同步 GitHub Release 标签（v3.4.3 = 题库抽检三连修；v3.4.4 = AI 分科修复；v3.4.5 = 英语全真模拟一~六原文补录；v3.5.0 = 三科题目 2D 动画讲解短片）
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
@@ -3970,6 +3972,7 @@ function replayAnswered(q){
     row.appendChild(dg);
   }
   body.appendChild(row);
+  body.appendChild(anim2dBtn(q));                      // v3.5.0 · 2D 动画讲解
   const nb = document.createElement('button'); nb.className = 'btn ghost mt10'; nb.textContent = '下一题 ▶';
   nb.onclick = () => { S.drill.i++; renderDrill(); };
   body.appendChild(nb);
@@ -4135,9 +4138,11 @@ function passageOf(q){
 }
 function passageBox(q){
   const t = passageOf(q);
-  /* v3.4.3 P1：题目带 passage 引用但原文未收录（全真模拟一~六 cloze/reading 共 36 篇待补录），
-     原来静默返回 null，屏幕上只剩「第30空」+ 几个单词，用户不知道缺了原文。
-     改为显式降级提示：告知原文缺失 + 给出可操作的作答策略，绝不留白装没事。 */
+  /* v3.4.3 P1：题目带 passage 引用但原文未收录 —— 原来静默返回 null，屏幕上只剩「第30空」
+     + 几个单词，用户不知道缺了原文。改为显式降级提示：告知原文缺失 + 给出可操作作答策略。
+     v3.4.5：全真模拟一~六 36 篇原文全部收录（SUBJ_PASSAGES 32→68 键，解析率 45%→100%）。
+     其中模拟（二）缺失的第6页由用户照片补录，44-47 题（reading_3）一并补入题库并标注
+     mock-copy→eng2019_048~051（该篇与 2019 真题同源，答案已对官方逐题核验）。此分支仅作兜底。 */
   if(!t){
     if(!q || !q.passage) return null;
     const d = document.createElement('div'); d.className = 'passbox missing';
@@ -4149,6 +4154,35 @@ function passageBox(q){
   const d = document.createElement('details'); d.className = 'passbox'; d.open = false;
   d.innerHTML = '<summary>📄 阅读原文 · 点开再读（看完可收起）</summary><div class="ptx">' + escapeHtml(t).replace(/\n/g, '<br>') + '</div>';
   return d;
+}
+/* =================== v3.5.0 · 2D 动画题目讲解 ===================
+   任意一道题 → 程序化生成 30~60 秒竖屏讲解短片：
+   片头题卡 → 题干浮现 → 选项飞入 → 排除法打叉 → 答案揭晓 → 解析分步推演 → 结尾记忆点
+   三科差异化舞台：政治=概念关系图，英语=词句聚光扫描，高数=坐标系/切线/面积动画。
+   引擎 data/anim2d.js 按需异步加载（不进 ALLQ、不占首屏），离线由 sw.js 预缓存兜底。 */
+function anim2dBtn(q, cls, label){
+  const b = document.createElement('button');
+  b.className = cls || 'btn gold mt10';
+  b.textContent = label || '🎬 2D 动画讲解（自动生成讲解短片）';
+  b.onclick = () => openAnim2D(q, b);
+  return b;
+}
+function openAnim2D(q, btn){
+  if(!q){ toast('这道题信息不全，暂时没法生成动画讲解'); return; }
+  let old = '';
+  const restore = () => { if(btn){ btn.disabled = false; btn.textContent = old || '🎬 2D 动画讲解'; } };
+  if(btn){ old = btn.textContent; btn.disabled = true; btn.textContent = '🎬 正在生成动画讲解…'; }
+  ensureBank('anim2d').then(ok => {
+    restore();
+    if(!ok || !window.Anim2D){ toast('动画讲解引擎没加载上，联网后重试一次就好'); return; }
+    try{
+      Anim2D.ver = (typeof APP_VER !== 'undefined' ? APP_VER : '');
+      if(!Anim2D.open(q)) toast('这个浏览器不支持动画播放');
+    }catch(e){
+      console.warn('[anim2d]', e);
+      toast('动画生成失败：' + (e && e.message ? e.message : '未知错误'));
+    }
+  });
 }
 function drillFeedback(q, ok){
   const body = document.getElementById('drillBody'), mate = getMate(MOD2MATE[q.m]);
@@ -4194,6 +4228,7 @@ function drillFeedback(q, ok){
     row.appendChild(dg);
   }
   body.appendChild(row);
+  body.appendChild(anim2dBtn(q));                      // v3.5.0 · 2D 动画讲解
   const vb = document.createElement('button'); vb.className = 'btn magenta mt10'; vb.textContent = '🎲 AI 出道变式题（同考点新题）';
   vb.onclick = () => genVariantFlow(q, body, vb);
   body.appendChild(vb);
@@ -5617,6 +5652,13 @@ function renderMe(){
         let srs = '';
         if(w.srs && w.srs.due) srs = w.srs.due <= now ? '<span class="srsbadge due">🔴 该复习</span>' : '<span class="srsbadge wait">⏳ ' + Math.ceil((w.srs.due - now) / 864e5) + '天后</span>';
         d.innerHTML = `<div class="q">${escapeHtml(w.q)}</div><div class="a">答案：${escapeHtml(w.a)}</div><div class="m">${escapeHtml(w.m)}${srs}</div>`;
+        /* v3.5.0 · 2D 动画讲解：错题本只存摘要，回题库取完整题面（选项/解析）再生成 */
+        const fq = (typeof ALLQ !== 'undefined') ? ALLQ.find(x => x.id === w.id) : null;
+        if(fq){
+          const ab = anim2dBtn(fq, 'btn ghost sm mt10', '🎬 2D 动画讲解');
+          ab.onclick = e => { e.stopPropagation(); openAnim2D(fq, ab); };
+          d.appendChild(ab);
+        }
         wl.appendChild(d);
       });
     });
