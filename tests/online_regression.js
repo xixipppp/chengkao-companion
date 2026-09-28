@@ -214,6 +214,26 @@ const CHANNEL = process.env.TEST_CHANNEL || (process.env.CI ? undefined : 'msedg
   T('G2', '英语题选项带朗读喇叭(.ttsmini)', g.hasMini > 0, 'mini=' + g.hasMini);
   T('G3', 'speak 入口可调用且不抛错、真实触发播放', g.hasSpeak && g.hasToggle && g.threw === false && (g.spokeStart === true || g.voiceCount === 0), 'threw=' + g.threw + ' speaking=' + g.spokeStart + ' voices=' + g.voiceCount);
 
+  /* v3.6.0：音效引擎 + 全科目朗读 + 动画讲解朗读 + 云端兜底 */
+  const g2 = await page.evaluate(() => {
+    const out = { sfx: false, sfxThrew: false, chunk: 0, cloud: false, narrate: false, pol: 0, math: 0 };
+    try { out.sfx = (typeof window.SFX === 'object' && typeof window.SFX.play === 'function'); window.SFX.play('correct'); window.SFX.play('win'); window.SFX.play('coin'); window.SFX.play('levelup'); } catch(e){ out.sfxThrew = e.message; }
+    try { out.chunk = (typeof _chunk === 'function') ? _chunk('第一句。第二句较长需要切分。第三句继续验证分段。第四句确保足够长触发多段。', 'zh-CN').length : -1; } catch(e){}
+    try { out.cloud = (typeof st.cloudTts === 'object' && 'enabled' in st.cloudTts); } catch(e){}
+    try { out.narrate = (typeof window.anim2dNarrate === 'function'); } catch(e){}
+    try {
+      const pol = ALLQ.find(x => x.subj === 'pol' && x.t === 'choice');
+      const mth = ALLQ.find(x => x.subj === 'math' && x.t === 'choice');
+      function cnt(q){ S.drill = { mod:'all', list:[q], i:0, right:0, isWrong:false, label:'g2', mode:'normal', cleared:{}, pendingWrong:0, totalWrong:0, wrongN:{}, ansLog:{} }; go('s-drill'); renderDrill(); return document.getElementById('s-drill').querySelectorAll('.ttsbar').length; }
+      out.pol = cnt(pol); out.math = cnt(mth);
+    } catch(e){}
+    return out;
+  });
+  T('G4', '音效引擎 SFX 存在且播放不抛错', g2.sfx && g2.sfxThrew === false, 'threw=' + g2.sfxThrew);
+  T('G5', '长中文按句分段（语音不截断）', g2.chunk > 1, 'chunks=' + g2.chunk);
+  T('G6', '云端朗读配置结构 + anim2dNarrate 入口', g2.cloud && g2.narrate);
+  T('G7', '政治/高数题也带朗读按钮（全科目朗读）', g2.pol > 0 && g2.math > 0, 'pol=' + g2.pol + ' math=' + g2.math);
+
   /* ---------- H. 10 个小游戏 ---------- */
   sect('H. 小游戏（10 个全流程）');
   const h0 = await page.evaluate(() => { go('s-games'); return { cards: document.querySelectorAll('#gameList .gcard').length }; });

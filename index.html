@@ -1104,15 +1104,31 @@
       </div>
     </div>
     <div class="card">
-      <div style="font-weight:900;margin-bottom:8px">🔊 英语语音朗读</div>
+      <div style="font-weight:900;margin-bottom:8px">🔊 语音与音效</div>
       <div style="font-size:12px;color:var(--sub);line-height:1.7;margin-bottom:10px">
-        英语题目与选项都带小喇叭，点一下即可朗读，支持慢速。练听力 + 记单词两不误。
+        英语题目与选项都带小喇叭；现在<b>所有科目题目</b>都能朗读，动画讲解也有「朗读讲解」，答对/答错、游戏、升级、抽卡都有提示音。
       </div>
       <div class="row2">
-        <button class="btn ghost" id="ttsToggle" onclick="toggleTts()">🔊 已开启</button>
+        <button class="btn ghost" id="ttsToggle" onclick="toggleTts()">🔊 朗读已开启</button>
         <button class="btn ghost" id="ttsRateBtn" onclick="cycleTtsRate()">语速 0.92x</button>
       </div>
-      <button class="btn ghost mt10" onclick="testTts()">▶️ 试听一句</button>
+      <div class="row2 mt10">
+        <button class="btn ghost" id="sfxToggle" onclick="toggleSfx()">🔔 音效已开启</button>
+        <button class="btn ghost" id="cloudTtsBtn" onclick="toggleCloudTts()">☁️ 云端朗读关</button>
+      </div>
+      <div id="cloudTtsBox" style="display:none;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)">
+        <div style="font-size:11.5px;color:var(--sub);line-height:1.6;margin-bottom:6px">
+          部分手机浏览器（如微信内置浏览器）没有系统朗读。可填一个 TTS 接口做兜底：接口返回音频即可。
+          地址里写 <code>{text}</code> 和 <code>{lang}</code> 走 GET；否则 POST JSON <code>{text,lang}</code>，返回音频或 <code>{audio:base64,mime}</code>。留空则只用提示音效。
+        </div>
+        <input id="ctEndpoint" placeholder="TTS 接口地址（如 https://你的域名/tts?text={text}&lang={lang}）" style="width:100%;padding:8px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--txt);font-size:12px;margin-bottom:6px;box-sizing:border-box">
+        <input id="ctToken" placeholder="Token（可选，作为 Authorization: Bearer）" style="width:100%;padding:8px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--txt);font-size:12px;margin-bottom:6px;box-sizing:border-box">
+        <div class="row2">
+          <button class="btn ghost sm" onclick="saveCloudTts()">保存</button>
+          <button class="btn ghost sm" onclick="testCloudTts()">试听</button>
+        </div>
+      </div>
+      <button class="btn ghost mt10" onclick="testTts()">▶️ 试听系统朗读</button>
     </div>
     <div class="card">
       <div class="row2" style="text-align:center">
@@ -1964,7 +1980,9 @@ function blank(){ return {name:'女主', xp:0, correct:0, total:0,
   /* 1.11 关怀轨（不参与等级/结局/SKILLS）、1.9 用户画像、2.9 暂缓区、2.11 内在动机锚点 */
   care:{}, profile:null, deferList:[], why:'', lastEventDay:'',
   /* v3.1.0 P1 件4 记忆分层：新增「单个顶层 key」即可让老存档自动升级（load 会补默认值） */
-  mem:{sem:{}, epi:[], pro:{}}}; }
+  mem:{sem:{}, epi:[], pro:{}},
+  /* v3.6.0 音效与云端朗读默认 */
+  sfxOn:true, cloudTts:{enabled:false, endpoint:'', token:''}}; }
 /* 0.7 归一化：load() 与 importArchive() 共用，杜绝两条路径补字段不一致 */
 function normalize(s){
   const b = blank();
@@ -2049,7 +2067,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.5.3';   // 同步 GitHub Release 标签（v3.4.3 = 题库抽检三连修；v3.4.4 = AI 分科修复；v3.4.5 = 英语全真模拟一~六原文补录；v3.5.0 = 三科题目 2D 动画讲解短片；v3.5.1 = 仓库优化：补 eng2019 真题原文缺口 + 清理本地 193MB 测试产物；v3.5.2 = 历年英语真题原文补全：2014–2024 计 11 个年度完形+阅读 420 篇原文回填 + 修 eng2019_042 解析过短；v3.5.3 = 修复英语语音朗读无法播放（消除 Chromium cancel/speak 竞态 + 预热 voices + 出错有提示））
+const APP_VER = 'v3.6.0';   // 同步 GitHub Release 标签（v3.5.3 = 修复英语语音朗读无法播放；v3.6.0 = 音频 overhaul：自建 Web Audio 音效引擎（答对/答错/游戏/升级/抽卡全有声）+ 全科目题目朗读 + 动画讲解朗读 + 移动端 TTS 加固（iOS 长句分段/voiceschanged 重试/首手势预热）+ 无系统朗读浏览器的云端 TTS 兜底）
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
@@ -2097,6 +2115,7 @@ function rankUpCheck(oldXp, newXp){
   if(b > a) setTimeout(() => showRankUp(RANKS[b]), 350);
 }
 function showRankUp(r){
+  SFX.play('levelup');
   const ov = document.createElement('div');
   ov.style.cssText = 'position:fixed;top:0;right:0;bottom:0;left:0;z-index:9999;display:grid;place-items:center;background:rgba(20,8,16,.72);animation:popIn .3s ease';
   ov.innerHTML = `<div style="text-align:center;padding:34px 44px;border-radius:22px;background:${r.bg};color:${r.c};animation:popIn .45s cubic-bezier(.2,1.6,.4,1)">
@@ -2108,6 +2127,7 @@ function showRankUp(r){
   document.body.appendChild(ov);
 }
 function popReward(txt, color){
+  SFX.play('coin');
   const d = document.createElement('div');
   d.className = 'popx';
   d.textContent = txt;
@@ -2134,6 +2154,8 @@ const DQ_DEFS = [
   {k:'m', ico:'🔥', n:'打出 3 连击',          goal:3,  get:s => s.mc, xp:50, coins:20}
 ];
 function dqOnAnswer(ok, combo){
+  // 答对/答错提示音（Web Audio，移动端全支持）；连击额外叠加一段
+  if(ok) SFX.play(combo >= 3 ? 'combo' : 'correct'); else SFX.play('wrong');
   dqEnsure();
   const wasFirst = st.dq.p === 0;
   st.dq.p++;
@@ -2548,12 +2570,71 @@ function toast(msg){
 function pick(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
 function shuffle(a){ return a.slice().sort(() => Math.random() - 0.5); }
 
-/* =================== 英语语音朗读（Web Speech API） =================== */
+/* =================== 音效引擎（Web Audio · 零素材） ===================
+   所有提示音、答对/答错、游戏、升级、金币、特效都由它用振荡器实时合成，
+   不依赖任何音频文件、也不依赖系统 TTS —— 只要浏览器支持 Web Audio（移动端全支持），
+   且在「首次用户手势」后被解锁，就能响。这是「一点声音都没有」的根本解法。 */
+const SFX = (function(){
+  let ctx = null, unlocked = false;
+  function ensure(){
+    if(ctx) return ctx;
+    try{ const AC = window.AudioContext || window.webkitAudioContext; if(!AC) return null; ctx = new AC(); }
+    catch(e){ ctx = null; }
+    return ctx;
+  }
+  function unlock(){ const c = ensure(); if(c && c.state === 'suspended'){ try{ c.resume(); }catch(e){} } unlocked = true; }
+  function env(type, f0, f1, t0, dur, vol){
+    const c = ctx; if(!c) return;
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f0, t0);
+    if(f1 && f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t0 + dur);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(vol, t0 + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g).connect(c.destination); o.start(t0); o.stop(t0 + dur + 0.03);
+  }
+  function noise(t0, dur, vol, hp){
+    const c = ctx; if(!c) return;
+    const n = Math.floor(c.sampleRate * dur);
+    const buf = c.createBuffer(1, n, c.sampleRate), d = buf.getChannelData(0);
+    for(let i=0;i<n;i++) d[i] = (Math.random()*2-1) * (1 - i/n);
+    const src = c.createBufferSource(); src.buffer = buf;
+    const g = c.createGain(); g.gain.value = vol;
+    const f = c.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = hp || 800;
+    src.connect(f).connect(g).connect(c.destination); src.start(t0); src.stop(t0 + dur + 0.02);
+  }
+  const S = {
+    correct(){ const t=ctx.currentTime; env('sine',660,t,0.13,0.22); env('sine',880,t+0.09,0.16,0.18); env('sine',1175,t+0.19,0.22,0.15); },
+    wrong(){ const t=ctx.currentTime; env('sawtooth',230,t,0.18,0.13,140); noise(t,0.12,0.05,1200); },
+    click(){ const t=ctx.currentTime; env('square',440,t,0.05,0.06,0.07); },
+    tap(){ const t=ctx.currentTime; env('triangle',700,t,0.04,0.05,0.05); },
+    coin(){ const t=ctx.currentTime; env('square',988,t,0.07,0.12,0.10); env('square',1319,t+0.07,0.12,0.08); },
+    win(){ const t=ctx.currentTime; [523,659,784,1047].forEach((f,i)=>env('triangle',f,t+i*0.10,0.24,0.15)); env('sine',1319,t+0.44,0.5,0.10); },
+    levelup(){ const t=ctx.currentTime; [392,523,659,784,1047].forEach((f,i)=>env('sine',f,t+i*0.08,0.30,0.13)); },
+    combo(n){ const t=ctx.currentTime; const base=660+Math.min(8,(n||1))*38; env('sine',base,t,0.12,0.14); env('sine',base*1.5,t+0.08,0.12,0.10); },
+    special(){ const t=ctx.currentTime; [784,988,1319,1568].forEach((f,i)=>env('sine',f,t+i*0.05,0.18,0.09)); },
+    heart(){ const t=ctx.currentTime; env('sine',880,t,0.12,0.10); env('sine',1175,t+0.08,0.16,0.08); },
+    open(){ const t=ctx.currentTime; env('sine',523,t,0.10,0.09); env('sine',784,t+0.06,0.14,0.09); }
+  };
+  function play(name){
+    if(st.sfxOn === false) return;
+    const c = ensure(); if(!c) return;
+    if(c.state === 'suspended'){ try{ c.resume(); }catch(e){} }
+    const fn = S[name]; if(!fn) return;
+    try{ fn(); }catch(e){}
+  }
+  return { unlock, play, ensure,
+    get on(){ return st.sfxOn !== false; },
+    setOn(v){ st.sfxOn = !!v; } };
+})();
+window.SFX = SFX;
+
+/* =================== 中英语音朗读（Web Speech API，含移动端加固 + 云端兜底） =================== */
 const TTS = {
   get on(){ return st.ttsOn !== false; },
   get rate(){ return st.ttsRate || 0.92; }
 };
-let _ttsVoices = [];
+let _ttsVoices = [], _ttsUtter = null, _ttsQueue = [], _ttsBusy = false, _ttsWarned = false;
 function _refreshVoices(){
   try { _ttsVoices = (window.speechSynthesis && window.speechSynthesis.getVoices()) || []; } catch(e){ _ttsVoices = []; }
 }
@@ -2565,44 +2646,150 @@ function ttsVoice(lang){
   return vs.find(v => (v.lang || '').toLowerCase().replace('_','-').startsWith(want === 'en' ? 'en-gb' : want))
       || vs.find(v => (v.lang || '').toLowerCase().startsWith(want)) || null;
 }
-let _ttsUtter = null; // 持引用，防止 GC 把 utternce 回收导致静音/截断
-function speak(text, opt){
-  opt = opt || {};
-  if(!TTS.on){ if(opt.toast !== false) toast('语音已关闭，可在「我的」里打开 🔊'); return; }
-  if(!ttsOk()){ if(opt.toast !== false) toast('当前浏览器不支持语音朗读'); return; }
-  const t = String(text || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-  if(!t) return;
-  const say = () => {
-    try{
-      const u = new SpeechSynthesisUtterance(t);
-      u.lang = opt.lang || (isEnText(t) ? 'en-US' : 'zh-CN');
-      u.rate = opt.rate || TTS.rate;
-      u.pitch = opt.pitch || 1;
-      const v = ttsVoice(u.lang); if(v) u.voice = v;
-      u.onerror = (e) => { if(opt.toast !== false) toast('语音播放失败：' + (e.error || '未知')); };
-      _ttsUtter = u; // 防 GC
-      window.speechSynthesis.speak(u);
-    }catch(e){ if(opt.toast !== false) toast('语音播放失败：' + e.message); }
-  };
-  try{
-    // 修复 Chromium「cancel 紧跟 speak 导致整句被吞」的竞态：
-    // 仅在有语音在播/排队时才 cancel，并把新句延后一拍（让 cancel 生效），否则直接播。
-    if(window.speechSynthesis.speaking || window.speechSynthesis.pending){
-      window.speechSynthesis.cancel();
-      setTimeout(say, 80);
-    } else {
-      say();
-    }
-  }catch(e){ say(); }
-}
-function stopSpeak(){ try{ if(ttsOk()) window.speechSynthesis.cancel(); }catch(e){} }
-// 启动即预热 voices：Chromium 首次 getVoices() 返回空，需等 voiceschanged 事件
-if(ttsOk()){ _refreshVoices(); try{ window.speechSynthesis.onvoiceschanged = _refreshVoices; }catch(e){} }
 function isEnText(s){
   const t = String(s || '');
   const en = (t.match(/[A-Za-z]/g) || []).length;
   return en > 0 && en / Math.max(1, t.length) > 0.25;
 }
+function _clean(t){ return String(t || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(); }
+/* iOS 限制：单句最长约 15 秒，超出会被静默截断。先按句切，再按长度兜底切段。 */
+function _chunk(text, lang){
+  const en = isEnText(text);
+  const max = en ? 320 : (lang && lang.indexOf('zh') >= 0 ? 110 : 160);
+  let parts = [];
+  try { parts = text.split(/(?<=[。！？!?；;])/); } catch(e){ try { parts = text.split(/(?:。|！|？|!|\?|；|;)/); } catch(e2){ parts = [text]; } }
+  const out = [];
+  parts.forEach(p => {
+    p = p.trim(); if(!p) return;
+    while(p.length > max){
+      let cut = p.lastIndexOf(en ? ' ' : '，', max);
+      if(cut <= 0) cut = max;
+      out.push(p.slice(0, cut).trim()); p = p.slice(cut).trim();
+    }
+    if(p) out.push(p);
+  });
+  return out.length ? out : [text];
+}
+function _utter(text, opt, done){
+  const finish = () => { try{ done && done(); }catch(e){} };
+  const fire = () => {
+    try{
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = opt.lang || (isEnText(text) ? 'en-US' : 'zh-CN');
+      u.rate = opt.rate || TTS.rate; u.pitch = opt.pitch || 1;
+      const v = ttsVoice(u.lang); if(v) u.voice = v;
+      u.onend = finish;
+      u.onerror = (e) => { if(opt.toast !== false) toast('朗读失败：' + (e.error || '未知')); finish(); };
+      _ttsUtter = u; window.speechSynthesis.speak(u);
+    }catch(e){ if(opt.toast !== false) toast('朗读失败：' + e.message); finish(); }
+  };
+  // 部分移动端首次 getVoices() 为空，等 voiceschanged 后再播；最多等 300ms 兜底直接播
+  if(!(window.speechSynthesis.getVoices() || []).length){
+    let fired = false;
+    const onv = () => { if(fired) return; fired = true; try{ window.speechSynthesis.onvoiceschanged = null; }catch(e){} fire(); };
+    try{ window.speechSynthesis.onvoiceschanged = onv; }catch(e){}
+    setTimeout(() => { if(!fired){ fired = true; fire(); } }, 300);
+  } else fire();
+}
+function _flush(){
+  if(_ttsBusy) return;
+  const it = _ttsQueue.shift();
+  if(!it) return;
+  _ttsBusy = true;
+  _utter(it.text, it.opt, () => { _ttsBusy = false; _flush(); });
+}
+function speak(text, opt){
+  opt = opt || {};
+  if(!TTS.on){ if(opt.toast !== false) toast('语音已关闭，可在「我的」里打开 🔊'); return; }
+  const t = _clean(text); if(!t) return;
+  // 真·无系统朗读的浏览器：走云端 TTS 兜底（用户可在「我的」配置）
+  if(!ttsOk()){
+    if(st.cloudTts && st.cloudTts.enabled && st.cloudTts.endpoint){ cloudSpeak(t, opt); return; }
+    if(!_ttsWarned){ _ttsWarned = true; toast('该浏览器暂无系统朗读，已启用提示音效 🔊（「我的」里可配置云端朗读）'); }
+    SFX.play('click'); return;
+  }
+  try{ window.speechSynthesis.cancel(); }catch(e){}
+  _ttsQueue = []; _ttsBusy = false;
+  _chunk(t, opt.lang).forEach(c => _ttsQueue.push({text:c, opt}));
+  _flush();
+}
+function stopSpeak(){ try{ if(ttsOk()) window.speechSynthesis.cancel(); }catch(e){} _ttsQueue = []; _ttsBusy = false; }
+// 启动即预热 voices：Chromium/iOS 首次 getVoices() 返回空，需等 voiceschanged 事件
+if(ttsOk()){ _refreshVoices(); try{ window.speechSynthesis.onvoiceschanged = _refreshVoices; }catch(e){} }
+/* 云端 TTS 兜底：把文字发给用户自建/第三方 TTS 接口，拿回音频播放（接口约定尽量通用）：
+     - endpoint 含 {text}/{lang} → 直接 GET 替换后请求；
+     - 否则 POST JSON {text,lang}，期望返回音频二进制，或 {audio:base64, mime}。
+   任何失败都静默降级为音效，绝不阻塞做题。 */
+function cloudSpeak(text, opt){
+  opt = opt || {};
+  const cfg = st.cloudTts || {};
+  if(!cfg.endpoint){ if(!_ttsWarned){ _ttsWarned = true; toast('云端朗读未配置，已用提示音效 🔊'); } SFX.play('click'); return; }
+  const lang = opt.lang || (isEnText(text) ? 'en-US' : 'zh-CN');
+  const useGet = cfg.endpoint.indexOf('{text}') >= 0;
+  const url = useGet ? cfg.endpoint.replace('{text}', encodeURIComponent(text)).replace('{lang}', encodeURIComponent(lang)) : cfg.endpoint;
+  const headers = { 'Content-Type': 'application/json' };
+  if(cfg.token) headers['Authorization'] = 'Bearer ' + cfg.token;
+  const play = (blobUrl) => { try{ const a = new Audio(blobUrl); a.play().catch(()=>{}); }catch(e){ SFX.play('click'); } };
+  try{
+    if(useGet){
+      fetch(url, {headers}).then(r => r.blob()).then(b => play(URL.createObjectURL(b))).catch(()=>{ SFX.play('click'); });
+    } else {
+      fetch(url, {method:'POST', headers, body: JSON.stringify({text, lang})}).then(r => {
+        const ct = (r.headers && r.headers.get && r.headers.get('content-type')) || '';
+        if(ct.indexOf('application/json') >= 0){
+          return r.json().then(j => {
+            if(j && j.audio){ const b = new Blob([_b64ToBin(j.audio)], {type: j.mime || 'audio/mp3'}); play(URL.createObjectURL(b)); }
+            else SFX.play('click');
+          });
+        }
+        return r.blob().then(b => play(URL.createObjectURL(b)));
+      }).catch(()=>{ SFX.play('click'); });
+    }
+  }catch(e){ SFX.play('click'); }
+}
+function _b64ToBin(b64){
+  try{ const s = atob(b64); const u = new Uint8Array(s.length); for(let i=0;i<s.length;i++) u[i] = s.charCodeAt(i); return u; }
+  catch(e){ return new ArrayBuffer(0); }
+}
+window.cloudSpeak = cloudSpeak;
+
+/* 动画讲解全文朗读：题干 + 选项 + 正确答案 + 解析逐步推演 */
+window.anim2dNarrate = function(spec){
+  if(!spec) return;
+  let s = (spec.stem || '') + '。';
+  if(spec.isChoice && spec.opts && spec.opts.length){
+    s += '选项。' + spec.opts.map((o, i) => String.fromCharCode(65 + i) + '，' + o).join('。') + '。';
+  }
+  s += '正确答案，' + (spec.answer || '') + '。';
+  if(spec.steps && spec.steps.length) s += '解析。' + spec.steps.join('。') + '。';
+  speak(s, {lang: spec.subj === 'eng' ? 'en-US' : 'zh-CN'});
+};
+
+/* 首次用户手势：解锁 Web Audio + 预热系统朗读（iOS 必须，否则首次朗读被吞） */
+(function(){
+  let done = false;
+  function kick(){
+    if(done) return; done = true;
+    try{ SFX.unlock(); }catch(e){}
+    if(ttsOk()){
+      try{ window.speechSynthesis.cancel(); window.speechSynthesis.getVoices(); }catch(e){}
+      try{ // iOS：用一句极短静音朗读「预热」语音通道（不发声，仅解锁）
+        const u = new SpeechSynthesisUtterance(' '); u.volume = 0; u.rate = 10;
+        u.onend = ()=>{}; u.onerror = ()=>{};
+        window.speechSynthesis.speak(u);
+        setTimeout(() => { try{ window.speechSynthesis.cancel(); }catch(e){} }, 60);
+      }catch(e){}
+    }
+    window.removeEventListener('pointerdown', kick);
+    window.removeEventListener('touchstart', kick);
+    window.removeEventListener('keydown', kick);
+    window.removeEventListener('click', kick);
+  }
+  window.addEventListener('pointerdown', kick, {once:true});
+  window.addEventListener('touchstart', kick, {once:true});
+  window.addEventListener('keydown', kick, {once:true});
+  window.addEventListener('click', kick, {once:true});
+})();
 /* 题目旁的语音按钮组：读题 / 慢速 / 停止 */
 function ttsBar(getText, opt){
   opt = opt || {};
@@ -3912,9 +4099,13 @@ function renderDrill(){
   const av = document.createElement('img'); av.className = 'chat-av'; av.src = mate.img; av.onerror = () => av.style.display = 'none';
   const bub = document.createElement('div'); bub.className = 'bubble qbubble';
   const qt = document.createElement('div'); qt.className = 'qtext'; qt.textContent = q.q; bub.appendChild(qt);
-  // 英语题：题目可朗读（读题 / 慢速 / 停止）
+  // 所有题目都支持朗读：读整题（题干 + 选项），中文/英文/数学题皆可读
   const voiceOn = FILTER.subj === 'eng' || q.subj === 'eng' || isEnText(q.q);
-  if(voiceOn) bub.appendChild(ttsBar(() => q.q));
+  bub.appendChild(ttsBar(() => {
+    let s = q.q;
+    if(q.t === 'choice' && Array.isArray(q.o)) s += '。' + q.o.map((o, k) => String.fromCharCode(65 + k) + '，' + o).join('。');
+    return s;
+  }));
   qb.appendChild(av); qb.appendChild(bub); chat.appendChild(qb);
   if(q.t === 'choice'){
     const replies = document.createElement('div'); replies.className = 'chat-replies';
@@ -4216,6 +4407,7 @@ function drillFeedback(q, ok){
     S.drill.graduated = false;
   }
   const homeHit = ok && isHomeSubj(MOD2MATE[q.m], subjOfMod(q.m));
+  if(ok) speak('答对啦', {lang:'zh-CN', toast:false});   // 每答对一题给一句语音鼓励
   const sol = document.createElement('div'); sol.className = 'sol show ' + (ok ? 'good' : 'bad');
   sol.innerHTML = `<div class="h">${ok ? '✅ 答对了' : '❌ 答错了 · 正确答案：' + escapeHtml(ansText(q))}</div>`
     + (homeHit ? `<div class="homebonus">💞 ${mate.name} 的主场共鸣 · 经验 +2</div>` : '') + escapeHtml(q.sol);
@@ -5613,9 +5805,51 @@ function syncTtsUI(){
 }
 function testTts(){ speak('Practice makes perfect. Keep going, you are doing great.', {lang:'en-US'}); }
 
+/* ---- 音效开关 + 云端朗读配置 ---- */
+function toggleSfx(){
+  st.sfxOn = (st.sfxOn === false); save(); syncSfxUI();
+  toast(st.sfxOn !== false ? '音效已开启 🔔' : '音效已关闭 🔕');
+  if(st.sfxOn !== false) SFX.play('click');
+}
+function syncSfxUI(){
+  const b = document.getElementById('sfxToggle');
+  if(b){ b.textContent = (st.sfxOn !== false) ? '🔔 音效已开启' : '🔕 音效已关闭'; b.className = 'btn ' + (st.sfxOn !== false ? 'magenta' : 'ghost'); }
+  const cb = document.getElementById('cloudTtsBtn');
+  if(cb){ const on = !!(st.cloudTts && st.cloudTts.enabled); cb.textContent = on ? '☁️ 云端朗读开' : '☁️ 云端朗读关'; cb.className = 'btn ' + (on ? 'magenta' : 'ghost'); }
+}
+function toggleCloudTts(){
+  const box = document.getElementById('cloudTtsBox'); if(!box) return;
+  const open = box.style.display !== 'none';
+  box.style.display = open ? 'none' : 'block';
+  if(!open){
+    const e = document.getElementById('ctEndpoint'), t = document.getElementById('ctToken');
+    if(e && st.cloudTts) e.value = st.cloudTts.endpoint || '';
+    if(t && st.cloudTts) t.value = st.cloudTts.token || '';
+  }
+}
+function saveCloudTts(){
+  const e = document.getElementById('ctEndpoint'), t = document.getElementById('ctToken');
+  st.cloudTts = st.cloudTts || {};
+  st.cloudTts.endpoint = (e ? e.value : '').trim();
+  st.cloudTts.token = (t ? t.value : '').trim();
+  st.cloudTts.enabled = !!st.cloudTts.endpoint;
+  save(); syncSfxUI();
+  toast(st.cloudTts.enabled ? '云端朗读已启用 ☁️' : '云端朗读已关闭');
+}
+function testCloudTts(){
+  st.cloudTts = st.cloudTts || {};
+  const e = document.getElementById('ctEndpoint'), t = document.getElementById('ctToken');
+  if(e) st.cloudTts.endpoint = e.value.trim();
+  if(t) st.cloudTts.token = t.value.trim();
+  st.cloudTts.enabled = !!st.cloudTts.endpoint; save(); syncSfxUI();
+  if(st.cloudTts.enabled) cloudSpeak('这是一条云端朗读测试。', {lang:'zh-CN'});
+  else toast('先填写接口地址');
+}
+
 function renderMe(){
   const info = levelInfo();
   syncTtsUI();
+  syncSfxUI();
   document.getElementById('meLv').textContent = info.lv;
   document.getElementById('meXp').textContent = info.total;
   document.getElementById('meQ').textContent = st.total;
@@ -6923,6 +7157,7 @@ function gameWrong(q){
 }
 function gameEnd(o){
   stopGameTimer();
+  SFX.play('win'); if(o.coins) SFX.play('coin');
   /* 闭环②：结算时告诉用户「这一局练到了你几个薄弱考点」，让联动被看见 */
   if(GAME_INJECT && GAME_INJECT.n){
     o.lines = (o.lines || []).slice();
@@ -7439,6 +7674,7 @@ function gameGacha(body){
     document.getElementById('gInfo').innerHTML = `心动币 <b class="hl" style="font-size:17px">${st.coins || 0}</b> · 图鉴 ${Object.keys(st.gacha).length}/${GACHA_POOL.length}`;
     document.getElementById('gDraw').textContent = '🎰 抽一发（30 币）';
     popReward(card.r === 'r5' ? '★ 命定卡！' : card.r === 'r4' ? '✦ 心动卡！' : '获得语音卡', '#d4a017');
+    SFX.play(card.r === 'r5' ? 'special' : 'coin');
   }
   render();
 }

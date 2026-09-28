@@ -72,6 +72,11 @@ jobs:
           TEST_URL=http://127.0.0.1:8900/index.html timeout 600 node tests/online_regression.js \
             && echo "online_regression PASS ✅" || { echo "online_regression FAIL ❌"; fail=1; }
 
+          # v3.6.0：audio_smoke 校验音效引擎 + 全科目朗读 + 移动端 TTS 加固 + 云端兜底
+          echo "=== audio_smoke（本地服务版） ==="
+          TEST_URL=http://127.0.0.1:8900/index.html timeout 300 node tests/audio_smoke.js \
+            && echo "audio_smoke PASS ✅" || { echo "audio_smoke FAIL ❌"; fail=1; }
+
           exit $fail
 
       # v3.4.1：失败留证——上传测试截图/产物

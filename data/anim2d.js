@@ -1095,11 +1095,12 @@
     var spd = btn('1.0×', function(){ cycleSpeed(); }, true);
     var rep = btn('↻ 重播', function(){ seek(0); playIt(); }, true);
     var exp = btn('⬇ 导出', function(){ exportVideo(); }, true);
+    var nrt = btn('🔊 朗读讲解', function(){ if(window.anim2dNarrate) window.anim2dNarrate(spec); }, true);
     var cls = btn('✕', function(){ close(); }, true);
     bar.appendChild(play); bar.appendChild(rng); bar.appendChild(lab);
     var bar2 = document.createElement('div');
     bar2.style.cssText = 'width:100%;max-width:520px;display:flex;align-items:center;gap:8px';
-    bar2.appendChild(spd); bar2.appendChild(rep); bar2.appendChild(exp);
+    bar2.appendChild(spd); bar2.appendChild(rep); bar2.appendChild(nrt); bar2.appendChild(exp);
     bar2.appendChild(cls);
     ov.appendChild(bar); ov.appendChild(bar2);
     document.body.appendChild(ov);
