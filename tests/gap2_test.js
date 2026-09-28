@@ -12,6 +12,7 @@ const { chromium } = require('playwright');
   const r = await p.evaluate(async () => {
     const out = {};
     out.allq = ALLQ.length;
+    out.expAllq = QUESTIONS.length + EXTRA.length + SUBJ_BANK.length;
     // Q47 数据
     const q47 = ALLQ.find(q => q.id === 'eng2023p3_047');
     out.q47 = q47 ? { a: q47.a, ans: q47.o[q47.a], hasPassage: !!q47.passage } : null;
@@ -41,7 +42,7 @@ const { chromium } = require('playwright');
   // v3.4.1 修复假测试：失败必须计入 fail 并以非 0 退出，否则 CI 永远绿
   let fail = 0;
   const T = (n, ok, extra) => { console.log((ok ? '✅' : '❌') + ' ' + n + (extra !== undefined ? '  → ' + extra : '')); if (!ok) fail++; };
-  T('ALLQ = 2327', r.allq === 2327, r.allq);
+  T('ALLQ = 数据源一致', r.allq === r.expAllq, r.allq);
   T('Q47 存在且答案=D', !!r.q47 && r.q47.a === 3, r.q47 && r.q47.ans);
   T('Q47 带 passage 字段', !!r.q47 && r.q47.hasPassage);
   T('英语2023 短文 5 篇', r.passKeys.length === 5, r.passKeys.join(','));
