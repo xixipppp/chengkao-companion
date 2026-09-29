@@ -548,21 +548,29 @@
     }
     return out === '' || out === '-' ? null : parseFloat(out);
   }
-  /* 从内置口诀库里挑这题的考点口诀（data/mnemonics.js；浏览器里同步加载，node 单测里没有也不报错） */
+  /* 取这题的「考场默念口诀」（v3.10.0 题级：data/stepmnem.js 的 QSTEP，100% 有输出）
+     再补一条考点级口诀（data/mnemonics.js）作为加餐；两个库都缺失时返回空串，场景自动不排 */
   function pickMemo(spec, q){
     try{
-      var R = (typeof window !== 'undefined' && window.MNEM_DATA && window.MNEM_DATA.rules) || null;
-      if(!R || !R.length) return '';
-      var s2 = [spec.stem, (spec.opts || []).join(' '), spec.answer, (spec.steps || []).join(' '), spec.hint, spec.modName]
-        .map(function(x){ return String(x == null ? '' : x); }).join(' ').toLowerCase();
-      var hits = [];
-      for(var i = 0; i < R.length && hits.length < 2; i++){
-        var ks = R[i].k || [];
-        for(var j = 0; j < ks.length; j++){
-          if(s2.indexOf(String(ks[j]).toLowerCase()) >= 0){ hits.push(R[i].t); break; }
+      var out = [];
+      var g = (typeof window !== 'undefined' ? window : (typeof global !== 'undefined' ? global : {}));
+      if(g.QSTEP && g.QSTEP.build){
+        var b = g.QSTEP.build(q);
+        if(b && b.chant) out.push(b.chant);
+      }
+      var R = (g.MNEM_DATA && g.MNEM_DATA.rules) || null;
+      if(R && R.length){
+        var s2 = [spec.stem, (spec.opts || []).join(' '), spec.answer, (spec.steps || []).join(' '), spec.hint, spec.modName]
+          .map(function(x){ return String(x == null ? '' : x); }).join(' ').toLowerCase();
+        for(var i = 0; i < R.length; i++){
+          var ks = R[i].k || [];
+          for(var j = 0; j < ks.length; j++){
+            if(s2.indexOf(String(ks[j]).toLowerCase()) >= 0){ out.push(R[i].t); break; }
+          }
+          if(out.length >= 2) break;
         }
       }
-      return hits.join('\n');
+      return out.join('\n');
     }catch(e){ return ''; }
   }
   /* 富文本一行：把「算式/数字」染成金色、叙述保持白色，支持自动换行 */
@@ -1261,22 +1269,8 @@
       }
     });
 
-    /* --- S2B 破题思路（v3.9.0：提到选项之前 —— 先告诉你这题用什么方法，再看选项） --- */
-    if(hint){
-      push({
-        id: 'hint', name: '破题思路', dur: clamp(1.8 + 0.045 * hint.length, 2.2, 4.6),
-        caps: ['先定方法：' + hint.slice(0, 34), hint.slice(0, 40)],
-        draw: function(ctx, p){
-          chip(ctx, '破 题 思 路', PAD, 250, { size: 28, c: GOLD, c2: '#f59e0b' });
-          var e = clamp(p / .7, 0, 1);
-          var y = STAGE_TOP + 90, w = W - PAD * 2;
-          rr(ctx, PAD, y, w, 540, 32);
-          ctx.fillStyle = hexA(GOLD, .07); ctx.fill();
-          ctx.strokeStyle = hexA(GOLD, .6); ctx.lineWidth = 4; ctx.stroke();
-          para(ctx, hint, PAD + 34, y + 90, w - 68, FS.sol, { weight: 700, color: '#fff', progress: e, stagger: .1, each: .5 });
-        }
-      });
-    }
+    /* v3.9.0 的 S2B「破题思路」场景已并入下方教授讲解的「破题思路」段（题库提示作为第一条），
+       避免出现两个同名场景、也避免同一件事讲两遍。 */
 
     /* --- S3 选项飞入 / 填空题求解卡 --- */
     if(isChoice){
@@ -1355,6 +1349,105 @@
     var solFrom = steps.length ? 'sol' : 'none';
     spec.prov.solFrom = solFrom;
     var hasPlot = !!(spec.plot && spec.plot.fn);
+
+    /* --- S5 教授级六段讲解（v3.10.0）
+           考点定位 → 破题思路 → 为什么这么做 → 分步推演 → 易错警示 → 一句带走
+           内容来自 data/lecture.js；LECTURE 不可用时自动退回原来的解析推演 --- */
+    var lec = null;
+    try{
+      if(typeof LECTURE !== 'undefined' && LECTURE.build){
+        lec = LECTURE.build(q, (typeof QSTEP !== 'undefined' && QSTEP.pick) ? QSTEP.pick(q) : {});
+      }
+    }catch(e){ lec = null; }
+    if(lec && lec.seg && lec.seg.length){
+      /* 题库自带的思路提示并进「破题思路」段，作为第一条线索 */
+      if(hint){
+        for(var li = 0; li < lec.seg.length; li++){
+          if(lec.seg[li].id === 'brk'){ lec.seg[li].lines = ['💡 ' + hint].concat(lec.seg[li].lines); break; }
+        }
+      }
+      var SHORT = {
+        aim:  [GOLD,  '考 点 定 位'],
+        brk:  [S.c,   '破 题 思 路'],
+        why:  [S.c2,  '为 什 么 这 么 做'],
+        lead: [GREEN, '分 步 推 演'],
+        trap: [RED,   '易 错 警 示'],
+        close:[GOLD,  '一 句 带 走']
+      };
+      lec.seg.forEach(function(sg){
+        var cfg = SHORT[sg.id] || [S.c, '讲 解'];
+        var isLead = (sg.id === 'lead');
+        var isClose = (sg.id === 'close');
+        var dur = isLead ? clamp(2.4 + 2.7 * sg.lines.length, 4.2, 28)
+                         : clamp(1.9 + 0.085 * sg.lines.join('').length, 2.2, 6.4);
+        push({
+          id: 'lec_' + sg.id, name: sg.name, dur: dur,
+          caps: sg.lines.slice(0, 8).map(function(x){ return x.slice(0, 40); }),
+          draw: function(ctx, p){
+            chip(ctx, cfg[1], PAD, 250, { size: 28, c: cfg[0], c2: sg.id === 'trap' ? '#ff9ed6' : '#fff' });
+            /* 高数题：推演段把真曲线一直画在上方，边讲边看图 */
+            if(isLead && hasPlot) stage(ctx, spec, clamp(p * 1.2, 0, 1), 1);
+            var n = sg.lines.length;
+            var top = isClose ? 600 : ((isLead && hasPlot) ? 810 : 370);
+            var fs = isClose ? 56 : (isLead ? (hasPlot ? 38 : FS.sol) : FS.sol);
+            var each = Math.min(isLead ? (hasPlot ? 132 : 208) : 226, (CAP_TOP - 120 - top) / Math.max(1, n));
+            /* v3.10.1 分步推演自适应排版：先量出每步占几行，按内容分配高度；放不下就缩字号，
+               保证最后一步不与底部字幕区重叠 */
+            var hts = null, y0s = null;
+            if(isLead){
+              var avail = CAP_TOP - 140 - top;
+              var maxW0 = W - PAD * 2 - 136;
+              for(;;){
+                hts = sg.lines.map(function(ln){
+                  var ls = wrap(ctx, String(ln).replace(/<[^>]+>/g, ' '), maxW0, fs, 700);
+                  return Math.max(1, ls.length) * fs * 1.34 + 26;
+                });
+                var tot = 0; for(var ti = 0; ti < hts.length; ti++) tot += hts[ti];
+                if(tot <= avail || fs <= 26) break;
+                fs -= 2;
+              }
+              y0s = []; var yy = top;
+              for(var yi = 0; yi < hts.length; yi++){ y0s.push(yy); yy += hts[yi]; }
+            }
+            for(var i = 0; i < n; i++){
+              var sp = clamp((p - i * (isLead ? 0.15 : 0.2)) / 0.5, 0, 1);
+              if(sp <= 0) continue;
+              var e = easeOut(sp);
+              var y = isLead ? y0s[i] : top + i * each;
+              var hh = isLead ? hts[i] - 14 : each - 20;
+              ctx.save();
+              ctx.globalAlpha = sp;
+              ctx.translate((1 - e) * 70, 0);
+              if(isClose){
+                var cl = wrap(ctx, sg.lines[i], W - PAD * 2 - 80, fs, 900);
+                for(var c2 = 0; c2 < Math.min(cl.length, 3); c2++){
+                  txt(ctx, cl[c2], W / 2, y + c2 * (fs * 1.34), { size: fs, weight: 900, align: 'center', color: GOLD, stroke: true });
+                }
+                ctx.restore(); continue;
+              }
+              rr(ctx, PAD, y, W - PAD * 2, hh, 22);
+              ctx.fillStyle = sg.id === 'trap' ? hexA(RED, .12) : (sg.id === 'aim' ? hexA(GOLD, .10) : 'rgba(255,255,255,.055)');
+              ctx.fill();
+              ctx.strokeStyle = sg.id === 'trap' ? hexA(RED, .5) : (sg.id === 'aim' ? hexA(GOLD, .45) : 'rgba(255,255,255,.10)');
+              ctx.lineWidth = 3; ctx.stroke();
+              if(isLead && sp < 1){ ctx.strokeStyle = hexA(GOLD, .8); ctx.lineWidth = 4; ctx.stroke(); }  // 正在讲的步骤：金边聚焦
+              var lx = PAD + 40;
+              if(isLead){
+                var bs = Math.min(52, hh - 8);
+                rr(ctx, PAD + 22, y + (hh - bs) / 2, bs, bs, bs / 2);
+                ctx.fillStyle = i === n - 1 ? GREEN : hexA(S.c, .85); ctx.fill();
+                txt(ctx, String(i + 1), PAD + 22 + bs / 2, y + hh / 2 + bs * .24, { size: Math.min(32, bs * .6), weight: 900, align: 'center', color: '#1a0a1e', stroke: false });
+                lx = PAD + 96;
+              }
+              var maxW = W - PAD * 2 - (lx - PAD) - 40;
+              var lh = fs * 1.34;
+              richLine(ctx, sg.lines[i], lx, y + hh / 2 - fs * .5, maxW, fs, 700, Math.min(4, Math.floor(hh / lh) + 1) * lh);
+              ctx.restore();
+            }
+          }
+        });
+      });
+    } else {
     push({
       id: 'solution', name: '解析推演', dur: clamp(2.4 + 2.7 * solSteps.length, 4.0, 22),
       caps: solSteps.length ? solSteps.map(function(s, i){ return '第 ' + (i + 1) + ' 步 · ' + s.slice(0, 34); }) : ['这题暂无文字解析，先记住套路'],
@@ -1399,6 +1492,7 @@
         }
       }
     });
+    }   // ← v3.10.0：LECTURE 不可用时的兜底分支结束
 
     /* --- S6 答案揭晓（v3.9.0：移到解析推演之后 —— 先讲清为什么，再揭晓答案） --- */
     push({
@@ -1438,13 +1532,13 @@
       }
     });
 
-    /* --- S6B 记忆口诀（v3.9.0：内置口诀库直接给，零 API 消耗、断网也在） --- */
+    /* --- S6B 考场默念口诀（v3.10.0：题级短咒，进考场前脑子里过一遍就能用） --- */
     if(spec.memo){
       push({
-        id: 'mnem', name: '记忆口诀', dur: 3.4,
-        caps: [isChoice ? (String.fromCharCode(65 + ai) + '. ' + answer) : ('答案：' + answer)].filter(Boolean),
+        id: 'mnem', name: '考场默念', dur: 4.0,
+        caps: ['考场默念：' + String(spec.memo).split('\n')[0].slice(0, 30)],
         draw: function(ctx, p){
-          chip(ctx, '记 忆 口 诀', PAD, 250, { size: 28, c: GOLD, c2: '#f59e0b' });
+          chip(ctx, '考 场 默 念', PAD, 250, { size: 28, c: GOLD, c2: '#f59e0b' });
           var e = easeOut(clamp(p / .7, 0, 1));
           ctx.save(); ctx.globalAlpha = e;
           var y = 380, w = W - PAD * 2;
@@ -1619,11 +1713,25 @@
     var nrt = btn('🔊 朗读讲解', function(){ if(window.anim2dNarrate) window.anim2dNarrate(spec); }, true);
     var cls = btn('✕', function(){ close(); }, true);
     bar.appendChild(play); bar.appendChild(rng); bar.appendChild(lab);
+    /* v3.10.0：分段导航条 —— 讲解分了六段，点哪段直接跳过去，方便回看没听清的那一段 */
+    var starts = [], accT = 0;
+    spec.scenes.forEach(function(s){ starts.push(accT); accT += s.dur; });
+    var bar3 = document.createElement('div');
+    bar3.style.cssText = 'width:100%;max-width:520px;display:flex;gap:6px;overflow-x:auto;padding:2px 0;scrollbar-width:none';
+    var NAVN = { lec_aim: '①定位', lec_brk: '②破题', lec_why: '③为什么', lec_lead: '④推演', lec_trap: '⑤易错', lec_close: '⑥带走' };
+    var navBtns = spec.scenes.map(function(s, i){
+      var b = document.createElement('button');
+      b.textContent = NAVN[s.id] || s.name || s.id;
+      b.style.cssText = 'flex:0 0 auto;border:0;border-radius:9px;padding:6px 10px;font-size:11.5px;font-weight:800;cursor:pointer;white-space:nowrap;background:#251a3f;color:#b6a6e0;border:1px solid #3a2a5e';
+      b.onclick = function(){ seek(starts[i] + 0.01); playIt(); };
+      bar3.appendChild(b);
+      return b;
+    });
     var bar2 = document.createElement('div');
     bar2.style.cssText = 'width:100%;max-width:520px;display:flex;align-items:center;gap:8px';
     bar2.appendChild(spd); bar2.appendChild(rep); bar2.appendChild(nrt); bar2.appendChild(exp);
     bar2.appendChild(cls);
-    ov.appendChild(bar); ov.appendChild(bar2);
+    ov.appendChild(bar); ov.appendChild(bar3); ov.appendChild(bar2);
     document.body.appendChild(ov);
 
     var speeds = [1, 1.5, 2, 0.75], si = 0;
@@ -1634,10 +1742,28 @@
       var m = Math.floor(s / 60), r = Math.floor(s % 60);
       return m + ':' + (r < 10 ? '0' : '') + r;
     }
+    var curIdx = -1;
+    function markNav(){
+      var i = 0;
+      for(var k = 0; k < starts.length; k++){ if(t >= starts[k]) i = k; }
+      if(i === curIdx) return;
+      curIdx = i;
+      for(var k2 = 0; k2 < navBtns.length; k2++){
+        var on = (k2 === i);
+        navBtns[k2].style.background = on ? 'linear-gradient(135deg,#ffd166,#f59e0b)' : '#251a3f';
+        navBtns[k2].style.color = on ? '#231600' : '#b6a6e0';
+        navBtns[k2].style.borderColor = on ? '#ffd166' : '#3a2a5e';
+      }
+      var el = navBtns[i];
+      if(el && bar3.scrollWidth > bar3.clientWidth){
+        bar3.scrollLeft = Math.max(0, el.offsetLeft - bar3.clientWidth / 2 + el.offsetWidth / 2);
+      }
+    }
     function paint(){
       renderFrame(ctx, spec, t);
       rng.value = Math.round(t / spec.total * 1000);
       lab.textContent = fmt(t) + ' / ' + fmt(spec.total);
+      markNav();
     }
     function loop(ts){
       if(!last) last = ts;

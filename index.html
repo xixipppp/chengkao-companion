@@ -1247,6 +1247,8 @@
 <!-- v3.9.0 · 记忆口诀库（考点级细粒度，约 30KB，人工编写，离线可用）。
      同步加载是有意为之：口诀在答题页每道题的解析下方都要显示，异步会出现「先空后填」的跳动。 -->
 <script src="data/mnemonics.js"></script>
+<script src="data/stepmnem.js"></script>   <!-- v3.10.0 · 题级「做题步骤 + 考场速记口诀」引擎 -->
+<script src="data/lecture.js"></script>    <!-- v3.10.0 · 教授级讲解库（2D 动画六段式讲解内容源） -->
 <!-- v3.4.0 · 首屏减负：data/kaodian.js(501KB 考点速记资料库) 与 data/goldpoints.js(380KB 黄金考点)
      都不参与 ALLQ 构建，只有「考点速记」页与「速记图猜考点」小游戏用到 →
      改为由 ensureBank() 按需异步加载（首屏同步解析体积 2.03MB → 1.15MB，HTML 解析与首绘不再等待）。
@@ -2113,7 +2115,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.9.0';   // 同步 GitHub Release 标签（v3.9.0 = **P2 内容质量**：① 记忆口诀细化到考点级（141 条人工口诀 + 关键词匹配，全库 97% 题命中具体考点，零 API）② 2D 动画「真演算」重制：高数题解析题干函数真画曲线/切线/法线/面积/渐近线，分镜改「破题思路→逐步推演（公式高亮）→答案揭晓→记忆口诀」，砍掉无理由排除法与剧透答案的政治概念图）
+const APP_VER = 'v3.10.0';  // 同步 GitHub Release 标签（v3.10.0 = **P3 教授级讲解**：① 每题新增「做题步骤 + 考场速记口诀」（data/stepmnem.js，用题干真实数据填充，全库 100% 有输出、92% 精准命中题型）② 2D 动画升格为教授六段式讲解（data/lecture.js：考点定位→破题思路→为什么这么做→分步推演→易错警示→一句带走）③ 播放器新增分段导航条可点跳任一段 ④ 分步推演自适应排版不溢出）
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
@@ -4838,11 +4840,40 @@ function qMemoEl(q){
   const cached = (st.mnemQ || {})[q.id];
   /* v3.9.0：优先考点级口诀（mnemFor），旧版模块总纲作为兜底留在函数里 */
   const cur = mnemFor(q);
-  const inner = '<div style="margin-top:8px;padding:8px 11px;border-radius:10px;background:rgba(255,209,102,.08);border:1px dashed rgba(255,209,102,.4);font-size:12.5px;line-height:1.75;white-space:pre-line">'
-    + '<b style="color:#ffd166">🧠 记忆口诀</b>　<span id="qmemoTxt">' + escapeHtml(cached || cur || '这个考点还没收录口诀') + '</span>'
-    + (SF.key && !cached ? ' <button class="btn sm ghost" id="qmemoBtn" style="padding:2px 9px;font-size:11px">✨ AI 编个口诀</button>' : '')
+  /* v3.10.0：题级「做题步骤 + 考场速记口诀」—— 用题干真实数据填充，每题都具体 */
+  let qs = null;
+  try{ if(typeof QSTEP !== 'undefined' && QSTEP.build) qs = QSTEP.build(q); }catch(e){ qs = null; }
+  const chant = (qs && qs.chant) || cur || '先记住这题的考点，再看步骤。';
+  const steps = (qs && qs.steps) || [];
+
+  let inner = '<div style="margin-top:8px;border-radius:12px;overflow:hidden;border:1px solid rgba(255,209,102,.38)">';
+  /* ① 考场速记口诀（最显眼，字号最大，可朗读） */
+  inner += '<div style="padding:9px 11px;background:rgba(255,209,102,.14)">'
+    + '<div style="display:flex;align-items:center;gap:8px">'
+    + '<b style="color:#ffd166;font-size:12.5px">🎵 考场速记</b>'
+    + '<button class="btn sm ghost" id="qchantSay" style="padding:1px 8px;font-size:11px;min-height:26px">🔊 念一遍</button>'
+    + '</div>'
+    + '<div id="qchantTxt" style="margin-top:5px;font-size:13.5px;line-height:1.72;font-weight:800;color:#fff">' + escapeHtml(chant) + '</div>'
     + '</div>';
+  /* ② 做题步骤 */
+  if(steps.length){
+    inner += '<div style="padding:8px 11px;background:rgba(255,255,255,.045);border-top:1px solid rgba(255,255,255,.09)">'
+      + '<b style="font-size:12.5px;color:var(--sub)">📋 做题步骤</b>'
+      + '<div style="margin-top:5px;font-size:12.5px;line-height:1.85">'
+      + steps.map(function(s, i){
+          return '<div style="display:flex;gap:7px;margin-top:3px"><span style="flex:0 0 17px;height:17px;line-height:17px;text-align:center;border-radius:50%;background:rgba(255,209,102,.85);color:#1a0a0e;font-size:10.5px;font-weight:900">' + (i + 1) + '</span>'
+            + '<span style="flex:1">' + escapeHtml(String(s).replace(/^\d+\.\s*/, '')) + '</span></div>';
+        }).join('')
+      + '</div></div>';
+  }
+  /* ③ 考点口诀（v3.9.0 内置库，作为补充，保留 AI 现编入口） */
+  inner += '<div style="padding:7px 11px;background:rgba(255,255,255,.025);border-top:1px solid rgba(255,255,255,.07);font-size:12px;line-height:1.7;white-space:pre-line;color:var(--sub)">'
+    + '<b style="color:#ffd166">🧠 考点口诀</b>　<span id="qmemoTxt">' + escapeHtml(cached || cur || '这个考点还没收录口诀') + '</span>'
+    + (SF.key && !cached ? ' <button class="btn sm ghost" id="qmemoBtn" style="padding:2px 9px;font-size:11px">✨ AI 编个口诀</button>' : '')
+    + '</div></div>';
   wrap.innerHTML = inner;
+  const sayBtn = wrap.querySelector('#qchantSay');
+  if(sayBtn) sayBtn.onclick = () => { try{ speak(chant, { rate: .92 }); }catch(e){} };
   const qb = wrap.querySelector('#qmemoBtn');
   if(qb) qb.onclick = async () => {
     const txt = document.getElementById('qmemoTxt');
