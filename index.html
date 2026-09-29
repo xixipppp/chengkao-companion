@@ -2067,7 +2067,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.6.1';   // 同步 GitHub Release 标签（v3.6.0 = 音频 overhaul：SFX 引擎 + 全科目朗读 + 移动端 TTS 加固 + 云端兜底；v3.6.1 = 修复首次点朗读弹「朗读失败：interrupted」——预热清理定时器误杀正式朗读，另加 cancel→speak 错拍与 interrupted/canceled 静音）
+const APP_VER = 'v3.7.0';   // 同步 GitHub Release 标签（v3.6.1 = 修复朗读 interrupted；v3.7.0 = 实测反馈 P0：AI 连通测试+接口地址可配置 / 填空判分归一化+数学符号键盘 / 复仇战只重做错题 / 结束页战报卡（公式速查+思维导图+每题口诀））
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
@@ -3291,7 +3291,10 @@ function chooseChat(o){
    无 Key 时不报错卡死，统一走确定性降级。
    全部免费模型可换：Qwen/Qwen3-8B（更新更快）、THUDM/GLM-4-9B-0414、deepseek-ai/DeepSeek-R1-0528-Qwen3-8B（数学最强但要先"思考"，响应慢十几秒） */
 const SF = {
-  base:'https://api.siliconflow.cn/v1',
+  /* v3.7.0 接口地址可配置（默认硅基流动）：若服务商不允许浏览器跨域(CORS)或需中转，
+     可在管家页「接口地址」填自建代理（如 Cloudflare Worker），立即生效 */
+  get base(){ try{ return String(localStorage.getItem('ck_sfbase') || '').trim().replace(/\/+$/, '') || 'https://api.siliconflow.cn/v1'; }catch(_){ return 'https://api.siliconflow.cn/v1'; } },
+  set base(v){ try{ v && String(v).trim() ? localStorage.setItem('ck_sfbase', String(v).trim().replace(/\/+$/, '')) : localStorage.removeItem('ck_sfbase'); }catch(_){} },
   model:'Qwen/Qwen2.5-7B-Instruct',
   get key(){ return String(window.CK_AI_KEY || '') || String(localStorage.getItem('ck_sfkey') || ''); },
   set key(v){ try{ v ? localStorage.setItem('ck_sfkey', String(v)) : localStorage.removeItem('ck_sfkey'); }catch(_){} }
@@ -3394,14 +3397,22 @@ function degTutor(c){
     + '易错点：答案「' + ansText(q) + '」附近的符号与区间最容易写错，收笔前回头看一眼。';
 }
 const MNEM_LOCAL = {
-  m1:['夹逼两边挤，等价无穷小来替；洛必达上下导，极限不再是难题。'],
+  m1:['夹逼两边挤，等价无穷小来替；洛必达上下导，极限不再是难题。连续三点齐：极限存在、有定义、恰好相等。'],
   m2:['导数就是变化率，链式一层层剥开；驻点两侧看符号，极值最值自然来。'],
   m3:['定积分，切块加，牛顿莱布尼茨一把抓；换元先看被积式，分部留谁要算计。'],
   m4:['偏导只对一个变量求导，其余全当常数看；全微分是各偏导乘增量再相加。'],
   m5:['概率先定样本空间，再数有利场合；期望是加权平均，方差量离散。'],
   p1:['唯物论讲物质第一性，辩证法讲联系与发展；两大特征三大规律，认识论落脚在实践。'],
-  p3:['八个明确撑起框架，十四个坚持是行动纲领；先记框架后填内容。'],
-  e2:['时态看时间轴，语态看主被动；先看谓语再定从句关系词。']
+  p2:['毛中特抓主线：实事求是、群众路线、独立自主；一个中心两个基本点，本质是解放和发展生产力。'],
+  p3:['十个明确撑起框架，十四个坚持是行动纲领；先记框架后填内容。'],
+  p4:['史纲按时间轴记：旧民主主义 → 新民主主义 → 社会主义改造 → 改革开放；每次转折记「会议 + 意义」。'],
+  p5:['时政看「数字 + 新提法」：几个明确、几大目标；考前一个月集中背，多选宁缺勿滥。'],
+  p6:['思修答理想人生观，法治记「有法可依、依法办事」；道德规范挑「诚实守信」是核心。'],
+  e1:['语音题盯画线字母：先辨元音辅音，再记例外组合；-ed 读 /t/ /d/ /ɪd/ 看清前面音。'],
+  e2:['时态看时间轴，语态看主被动；先看谓语再定从句关系词。'],
+  e3:['完形先通读抓主旨，再逐空选词；瞻前顾后找复现，固定搭配是送分。'],
+  e4:['阅读先读题干划关键词，回原文扫读定位句；答案就在定位句附近，勿凭印象选。'],
+  e5:['补全对话看语境：问什么答什么；礼貌用语记住「感谢—不客气、道歉—没关系」。']
 };
 function degMnemonic(c){
   const ids = c.mods || [];
@@ -3736,6 +3747,8 @@ function saveDrillProgress(){
     weakPaper: !!d.weakPaper, label: d.label || '', mod: d.mod || '', used5050: !!d.used5050,
     mode: d.mode || '', cleared: d.cleared || null, wrongN: d.wrongN || null,
     pendingWrong: d.pendingWrong || 0, totalWrong: d.totalWrong || 0,
+    baseLen: d.baseLen || (d.list ? d.list.length : 0),
+    revengeIds: (d.revengeQ || []).map(q => ({id: q.id, cf: q.__clearFor || ''})),   // v3.7.0 复仇战队列持久化
     clearedAgain: d.clearedAgain || 0, ansLog, cf, lastAns: d.lastAns || '',
     ts: Date.now()
   };
@@ -3754,6 +3767,8 @@ function restoreDrill(silent){
     weakPaper: sv.weakPaper, label: sv.label, used5050: sv.used5050,
     mode: sv.mode || 'normal', cleared: sv.cleared || null,
     wrongN: sv.wrongN || {}, pendingWrong: sv.pendingWrong || 0,
+    baseLen: sv.baseLen || list.length,
+    revengeQ: (sv.revengeIds || []).map(x => { const q = qById(x.id); if(q && x.cf) q.__clearFor = x.cf; return q; }).filter(Boolean),
     totalWrong: sv.totalWrong || 0, clearedAgain: sv.clearedAgain || 0,
     ansLog: sv.ansLog || {}, lastAns: sv.lastAns || '', restored: true};
   if(!silent) setTimeout(() => toast('📎 上次刷到第 ' + (sv.i + 1) + ' 题，进度已帮你记着啦'), 900);
@@ -3900,6 +3915,7 @@ function startDrill(mod, mode, opts){
     cleared: {},        // id -> 1 已掌握（答对过）
     wrongN: {},         // id -> 累计答错次数
     pendingWrong: 0,    // 队列里还欠着几道错题要清零
+    revengeQ: [],       // v3.7.0 复仇战队列：本轮答错的题，首轮结束后只重做这些
     label: curSubject().name + ' · ' + mo + yTag + srcTag,
     startAt: Date.now(),      // 用于通关战报统计用时
     fromPlan: !!opts.fromPlan // 是否由管家「今日唯一任务卡」下发（通关后自动打卡）
@@ -4006,12 +4022,14 @@ function drillClear(d){
     + '<br><span style="color:var(--magenta);font-weight:800">💞 ' + escapeHtml(rMate.name) + ' 好感 +' + affGain + ' · 你们共同的战绩 +1</span>'
     + '</div></div>'
     + '<div class="card" id="mindWrap"><div style="font-weight:900;margin-bottom:10px">🧠 本任务知识点思维导图</div><div id="mindBody"></div></div>'
+    + '<div class="card" style="text-align:left"><div style="font-weight:900;margin-bottom:10px">📋 本任务公式与考点速查</div><div id="clrF"></div></div>'
     + '<div class="card" id="memoWrap"><div style="font-weight:900;margin-bottom:10px">🎵 专属记忆口诀</div><div id="memoBody"><button class="btn magenta" id="memoBtn">✨ 生成记忆口诀</button></div></div>'
     + '<div class="row2 mt10"><button class="btn ghost" id="mindSave">💾 保存导图与口诀</button><button class="btn ghost" id="mindGoNote">📖 去考点速记回看</button></div>'
     + '<button class="btn magenta mt10" onclick="go(\'s-study\')">返回自习室</button>';
   body.innerHTML = '';
   body.appendChild(wrap);
   renderMindMap(document.getElementById('mindBody'), modIds, acc);
+  renderRoundReport(document.getElementById('clrF'), modIds, d);
   document.getElementById('memoBtn').onclick = () => genMnemonic(modIds, document.getElementById('memoBody'), d);
   document.getElementById('mindSave').onclick = () => {
     st.taskMind = st.taskMind || {};
@@ -4025,6 +4043,30 @@ function drillClear(d){
   document.getElementById('mindGoNote').onclick = () => { go('s-note'); noteSrc('gold'); };
   /* v3.4.0：一轮通关 = 画像变化最大的一刻 → 强制让管家重估一次（只感知+规划，不自动执行） */
   try{ agAutoTick(true); }catch(e){}
+}
+/* v3.7.0 战报 · 公式与考点速查：把本轮涉及考点的核心公式直接列出来（数学用 FORMULAS，政英用 FORMULAS_SUBJ） */
+function renderRoundReport(box, modIds, d){
+  if(!box) return;
+  let html = '';
+  (modIds || []).forEach(id => {
+    const mo = modById(id); if(!mo) return;
+    const fl = (typeof FORMULAS !== 'undefined' && FORMULAS[id]) ? FORMULAS[id].slice(0, 4) : [];
+    const sub = (typeof subjOfMod === 'function') ? subjOfMod(id) : '';
+    const fs = fl.length ? fl : (((typeof FORMULAS_SUBJ !== 'undefined') && FORMULAS_SUBJ[sub]) ? FORMULAS_SUBJ[sub].slice(0, 3) : []);
+    const stat = (st.mod || {})[id] || {c: 0, t: 0};
+    const nThis = (d && d.list ? d.list.filter(q => q && q.m === id).length : 0);
+    html += '<div style="margin-bottom:12px"><div style="font-weight:800;font-size:13px;color:#cbb8ee">' + escapeHtml(mo.name)
+      + ' <span style="font-size:11px;color:var(--sub);font-weight:500">本轮 ' + nThis + ' 题 · 累计正确率 ' + (stat.t ? Math.round(stat.c / stat.t * 100) + '%' : '—') + '</span></div>';
+    if(fs.length){
+      html += '<div style="margin-top:6px;display:flex;flex-direction:column;gap:6px">';
+      fs.forEach(fm => {
+        html += '<div style="padding:7px 10px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);font-size:12px;line-height:1.65"><b style="color:#ffd166">' + escapeHtml(fm.t) + '</b>　' + escapeHtml(fm.f) + '<span style="color:var(--sub)">（' + escapeHtml(fm.n || '') + '）</span></div>';
+      });
+      html += '</div>';
+    }
+    html += '</div>';
+  });
+  box.innerHTML = html || '<div style="font-size:12px;color:var(--sub)">本轮暂无考点速查数据</div>';
 }
 function renderMindMap(box, modIds, acc){
   if(!box) return;
@@ -4062,16 +4104,42 @@ function renderDrill(){
   if(!d) return;
   saveDrillProgress();
   if(d.i >= d.list.length){
-    // 错题已全部清零 → 任务真正完成
-    if(d.cleared && d.pendingWrong === 0 && !d.isWrong){ lessonFeedFromDrill(d); drillClear(d); return; }
+    const rv = (d.revengeQ || []).filter(Boolean);
+    const hasRevenge = !!d.cleared && rv.length > 0 && (d.pendingWrong || 0) > 0;
+    if(!hasRevenge && d.cleared && d.pendingWrong === 0 && !d.isWrong){ lessonFeedFromDrill(d); drillClear(d); return; }
     lessonFeedFromDrill(d);
-    const acc = Math.round(d.right / d.list.length * 100);
+    const modIds = [];
+    (d.list || []).forEach(q => { if(q && modIds.indexOf(q.m) < 0) modIds.push(q.m); });
+    if(hasRevenge){
+      /* v3.7.0 复仇战分界页：首轮按原长度结束，错题单独成轮、只重做错题（用户反馈 #4） */
+      const firstWrongN = Object.keys(d.wrongN || {}).length;
+      const base = d.baseLen || d.list.length;
+      const acc = base ? Math.max(0, Math.round((base - Math.min(firstWrongN, base)) / base * 100)) : 100;
+      body.innerHTML = `<div class="card" style="text-align:center">
+        <div style="font-size:36px">🎯</div>
+        <div class="rank">${Object.keys(d.cleared || {}).length}<span style="font-size:22px">/${base}</span></div>
+        <div style="color:var(--sub);margin:8px 0 4px">首轮完成 · 首轮正确率 ${acc}%</div>
+        <div style="color:var(--sub);margin-bottom:14px">还有 <b class="hl">${rv.length}</b> 道错题待消灭 —— 复仇战<b>只重做这几道</b>，答对过的不再出现。</div>
+        <div class="row2"><button class="btn magenta" id="rvGo">⚔️ 复仇战：只做这 ${rv.length} 道</button><button class="btn ghost" id="rvQuit">🏁 结束本轮（错题已进错题本）</button></div>
+        <div style="text-align:left;margin-top:12px" id="drillRankLine"></div></div>`;
+      document.getElementById('rvGo').onclick = () => { d.list = rv; d.revengeQ = []; d.i = 0; d.right = 0; renderDrill(); };
+      document.getElementById('rvQuit').onclick = () => { clearDrillProgress(); toast('错题已收进错题本，明天来验收 👋'); go('s-study'); };
+      renderRankCard('drillRankLine');
+      return;
+    }
+    const acc = d.list.length ? Math.round(d.right / d.list.length * 100) : 0;
     body.innerHTML = `<div class="card" style="text-align:center">
       <div class="rank">${d.right}<span style="font-size:22px">/${d.list.length}</span></div>
       <div style="color:var(--sub);margin:8px 0 14px">本轮正确率 ${acc}%${d.isWrong ? ' · 错题已消灭 ✂️' : ''}</div>
-      <div style="text-align:left;margin-bottom:12px" id="drillRankLine"></div>
-      <button class="btn magenta" onclick="go('s-study')">返回自习室</button></div>`;
+      <div style="text-align:left;margin-bottom:12px" id="drillRankLine"></div></div>
+      <div class="card" style="text-align:left"><div style="font-weight:900;margin-bottom:10px">📋 本轮战报 · 公式与考点速查</div><div id="repF"></div></div>
+      <div class="card" style="text-align:left"><div style="font-weight:900;margin-bottom:10px">🧠 本轮知识点思维导图</div><div id="mindBody2"></div></div>
+      <div class="card" style="text-align:left"><div style="font-weight:900;margin-bottom:10px">🎵 专属记忆口诀</div><div id="memoBody2"><button class="btn magenta" id="memoBtn2">✨ 生成记忆口诀</button></div></div>
+      <button class="btn magenta mt10" onclick="go('s-study')">返回自习室</button>`;
     renderRankCard('drillRankLine');
+    renderRoundReport(document.getElementById('repF'), modIds, d);
+    renderMindMap(document.getElementById('mindBody2'), modIds, acc);
+    document.getElementById('memoBtn2').onclick = () => genMnemonic(modIds, document.getElementById('memoBody2'), d);
     return;
   }
   const q = d.list[d.i], mo = modById(q.m), mate = getMate(MOD2MATE[q.m]);
@@ -4134,8 +4202,9 @@ function renderDrill(){
   } else {
     const replies = document.createElement('div'); replies.className = 'chat-replies';
     const fw = document.createElement('div'); fw.className = 'fillwrap';
-    fw.innerHTML = '<input id="fillInput" placeholder="输入答案，如 3 / e²" autocomplete="off">';
+    fw.innerHTML = '<input id="fillInput" placeholder="输入答案，如 3 / e²（可用下方符号键）" autocomplete="off">';
     replies.appendChild(fw);
+    replies.appendChild(fillKeypad('fillInput'));
     const btn = document.createElement('button'); btn.className = 'btn magenta mt10 selfbtn'; btn.textContent = '提交';
     btn.onclick = () => { const v = document.getElementById('fillInput').value.trim(); if(v === ''){ toast('先写个答案嘛'); return; } submitFill(v); };
     replies.appendChild(btn);
@@ -4414,6 +4483,7 @@ function drillFeedback(q, ok){
   sol.innerHTML = `<div class="h">${ok ? '✅ 答对了' : '❌ 答错了 · 正确答案：' + escapeHtml(ansText(q))}</div>`
     + (homeHit ? `<div class="homebonus">💞 ${mate.name} 的主场共鸣 · 经验 +2</div>` : '') + escapeHtml(q.sol);
   body.appendChild(sol);
+  body.appendChild(qMemoEl(q));   // v3.7.0 每题记忆口诀（内置精选 + AI 兜底）
   if(ok && (S.drill.help || 0) >= 3 && !S.drill.isWrong){
     const tg = document.createElement('div'); tg.className = 'helpstep lv3';
     tg.innerHTML = `<div class="h">🎓 讲解模式达成</div>${mate.name}：「自己走完一遍思路选对了——这题已进错题本，明天回来验收。过得了验收，才算真的会。」`;
@@ -4450,6 +4520,33 @@ function drillFeedback(q, ok){
   nb.onclick = () => { S.drill.i++; renderDrill(); };
   body.appendChild(nb);
 }
+/* ---------- v3.7.0 每题记忆口诀：内置精选打底（MNEM_LOCAL 按考点），没收录的用 AI 现编并缓存 ---------- */
+function qMemoEl(q){
+  const wrap = document.createElement('div');
+  const cached = (st.mnemQ || {})[q.id];
+  const cur = (typeof MNEM_LOCAL !== 'undefined' && MNEM_LOCAL[q.m]) || '';
+  const inner = '<div style="margin-top:8px;padding:8px 11px;border-radius:10px;background:rgba(255,209,102,.08);border:1px dashed rgba(255,209,102,.4);font-size:12.5px;line-height:1.75">'
+    + '<b style="color:#ffd166">🧠 记忆口诀</b>　<span id="qmemoTxt">' + escapeHtml(cached || cur || '这个考点还没收录口诀') + '</span>'
+    + (SF.key && !cached ? ' <button class="btn sm ghost" id="qmemoBtn" style="padding:2px 9px;font-size:11px">✨ AI 编个口诀</button>' : '')
+    + '</div>';
+  wrap.innerHTML = inner;
+  const qb = wrap.querySelector('#qmemoBtn');
+  if(qb) qb.onclick = async () => {
+    const txt = document.getElementById('qmemoTxt');
+    qb.disabled = true; qb.textContent = '⏳ 编写中…';
+    if(txt) txt.textContent = '正在为你编口诀…';
+    const sys = aiPrompt(mate) + '\n\n【当前任务】为这道题的考点编一段好记的中文记忆口诀。要求：步骤化、押韵顺口、带易错点提醒，参考「看分子分母最高次数定渐近线」这类风格。不超过 90 字，只输出口诀本身。';
+    const req = '题目：' + String(q.q || '').replace(/<[^>]+>/g, '').slice(0, 200) + '\n正确答案：' + ansText(q) + '\n解析：' + String(q.sol || '').replace(/<[^>]+>/g, ' ').slice(0, 300) + '\n请编口诀。';
+    const r = await aiTask('mnemonic', [{role:'system', content:sys}, {role:'user', content:req}], { ck: ack('qmnem', q.id), ctx:{ q } });
+    const out = ((r.src === 'ai' ? r.text : r.data) || '').trim();
+    const finalTxt = out || cur || '这题先记住答案思路，口诀下次再补。';
+    st.mnemQ = st.mnemQ || {};
+    if(out){ st.mnemQ[q.id] = out; saveSoon(); }
+    if(txt) txt.textContent = finalTxt;
+    qb.remove();
+  };
+  return wrap.firstChild || wrap;
+}
 /* ★ 错题强制清零核心：答错→自动排到任务末尾重刷；答对→销掉一笔欠账。
    巩固模式下错题换成同考点的另一道题（换花样考同一考点，杜绝死记答案）。 */
 function drillVerdict(q, ok){
@@ -4474,9 +4571,10 @@ function drillVerdict(q, ok){
       toast('这题先记下啦，任务结束后去错题本攻克它 💪');
       return;
     }
-    /* D2 闸①：微会话（5/10 题档）错题追加封顶，超出的转错题本，不拉长会话时长 */
+    /* v3.7.0 错题不再静默追加进当前轮（此前用户做到 6/8 会变成 8 道没完没了），
+       改为收进 revengeQ：首轮按原长度打完 → 出「复仇战分界页」→ 只重做这几道错题 */
     const cap = drillAddCap(d);
-    if(cap !== Infinity && (d.added || 0) >= cap){
+    if(cap !== Infinity && (d.revengeQ || []).length >= cap){
       d.wrongN[cid] = 0;
       d.pendingWrong = Math.max(0, d.pendingWrong - 1);
       toast('微会话只追 ' + cap + ' 道错题，其余的去错题本攻克 💪');
@@ -4484,8 +4582,9 @@ function drillVerdict(q, ok){
     }
     d.added = (d.added || 0) + 1;
     const alt = (d.mode === 'solid') ? pickAltSameMod(q, d) : null;
-    if(alt){ const c = Object.assign({}, alt); c.__clearFor = cid; d.list.push(c); }
-    else d.list.push(q);
+    const rq = alt ? Object.assign({}, alt, {__clearFor: cid}) : Object.assign({}, q, {__clearFor: cid});
+    d.revengeQ = d.revengeQ || [];
+    d.revengeQ.push(rq);
   }
 }
 function submitDrill(k, el){
@@ -4537,9 +4636,45 @@ function srsReset(w){
   s.rep = 0; s.stage = 0; s.iv = 1;                    // EF 保留：答错不惩罚，只是重新排队
   s.due = Date.now() + 864e5;
 }
+/* ---------- v3.7.0 填空判分归一化 + 数学符号键盘 ----------
+   旧实现 toLowerCase() 严格相等：答案「3 / e²」里的 ²、/ 手机九键打不出，全对也判错。
+   现在：① 全半角/空格/上标/乘除号归一化；② e^2 与 e2 等宽松二次匹配；
+   ③ 输入框下方给一行常用数学符号快捷键，点了直接插入光标处。 */
+function normFill(s){
+  let t = String(s || '').toLowerCase().trim();
+  t = t.replace(/，/g, ',').replace(/（/g, '(').replace(/）/g, ')').replace(/．/g, '.').replace(/：/g, ':');
+  t = t.replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 65296 + 48));
+  t = t.replace(/²/g, '^2').replace(/³/g, '^3');
+  t = t.replace(/[×✕]/g, '*').replace(/÷/g, '/').replace(/[−–—]/g, '-');
+  t = t.replace(/\s+/g, '');
+  return t;
+}
+function fillEq(a, b){
+  const x = normFill(a), y = normFill(b);
+  if(x === y) return true;
+  return x.replace(/\^/g, '') === y.replace(/\^/g, '');   // 宽松：e^2 == e2、x^3 == x3
+}
+function fillKeypad(inputId){
+  const syms = ['²', '³', '√', 'π', '∞', '/', '×', '−', 'e', '^'];
+  const kw = document.createElement('div');
+  kw.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px';
+  syms.forEach(s => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.textContent = s;
+    b.style.cssText = 'min-width:38px;padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.07);color:#f3ecff;font-size:15px;font-weight:700';
+    b.onclick = () => {
+      const inp = document.getElementById(inputId); if(!inp || inp.disabled) return;
+      const st0 = inp.selectionStart || inp.value.length, en0 = inp.selectionEnd || st0;
+      inp.value = inp.value.slice(0, st0) + s + inp.value.slice(en0);
+      const pos = st0 + s.length; inp.focus(); try{ inp.setSelectionRange(pos, pos); }catch(_){}
+    };
+    kw.appendChild(b);
+  });
+  return kw;
+}
 function submitFill(v){
   const d = S.drill, q = d.list[d.i];
-  const ok = q.ans.some(a => a.toLowerCase() === v.toLowerCase());
+  const ok = q.ans.some(a => fillEq(a, v));
   d.lastAns = v;
   d.ansLog = d.ansLog || {};
   d.ansLog[q.id] = {k: -1, ok, fill: v};
@@ -5294,8 +5429,9 @@ function renderBoss(){
     });
   } else {
     const fw = document.createElement('div'); fw.className = 'fillwrap';
-    fw.innerHTML = '<input id="bossFill" placeholder="输入答案" autocomplete="off">';
+    fw.innerHTML = '<input id="bossFill" placeholder="输入答案（可用下方符号键）" autocomplete="off">';
     body.appendChild(fw);
+    body.appendChild(fillKeypad('bossFill'));
     const btn = document.createElement('button'); btn.className = 'btn magenta mt10'; btn.textContent = '攻击 ⚔️';
     btn.onclick = () => { const v = document.getElementById('bossFill').value.trim(); if(v === ''){ toast('先写个答案嘛'); return; } bossHitFill(v); };
     body.appendChild(btn);
@@ -5322,7 +5458,7 @@ function bossHit(k, el){
 }
 function bossHitFill(v){
   const b = S.boss, q = b.list[b.i];
-  const ok = q.ans.some(a => a.toLowerCase() === v.toLowerCase());
+  const ok = q.ans.some(a => fillEq(a, v));
   const fw = document.getElementById('bossFill');
   fw.disabled = true; fw.style.borderColor = ok ? 'var(--green)' : 'var(--red)';
   if(ok) b.right++;
@@ -5400,8 +5536,9 @@ function renderMock(){
     });
   } else {
     const fw = document.createElement('div'); fw.className = 'fillwrap';
-    fw.innerHTML = '<input id="mockFill" placeholder="输入答案" autocomplete="off">';
+    fw.innerHTML = '<input id="mockFill" placeholder="输入答案（可用下方符号键）" autocomplete="off">';
     body.appendChild(fw);
+    body.appendChild(fillKeypad('mockFill'));
     const btn = document.createElement('button'); btn.className = 'btn magenta mt10'; btn.textContent = '提交';
     btn.onclick = () => { const v = document.getElementById('mockFill').value.trim(); if(v === ''){ toast('先写个答案嘛'); return; } mockAnsFill(v); };
     body.appendChild(btn);
@@ -5428,7 +5565,7 @@ function mockAns(k, el){
 }
 function mockAnsFill(v){
   const m = S.mock, q = m.list[m.i];
-  const ok = q.ans.some(a => a.toLowerCase() === v.toLowerCase());
+  const ok = q.ans.some(a => fillEq(a, v));
   const fw = document.getElementById('mockFill');
   fw.disabled = true; fw.style.borderColor = ok ? 'var(--green)' : 'var(--red)';
   if(ok) m.right++;
@@ -6940,15 +7077,58 @@ function butlerTab(t){
 function byokSave(){
   const el = document.getElementById('byokInput'); if(!el) return;
   const v = el.value.trim();
+  const be = document.getElementById('byokBaseInput');
+  if(be) SF.base = be.value.trim();          // v3.7.0 接口地址可配置（留空恢复默认）
   SF.key = v;                      // setter 写入 localStorage['ck_sfkey']，index.html 内不含密钥
   AIQ.openUntil = 0; AIQ.fail = 0;
-  toast(v ? '已保存你自己的 Key ✅' : '已清除 Key，转为离线模式');
+  toast(v ? '已保存 ✅ 正在测试连通…' : '已清除 Key，转为离线模式');
+  if(v) aiTestConn();              // v3.7.0 保存即测：立刻验证 Key/接口是否真的能通
   if(typeof renderButler === 'function') renderButler();
 }
 function byokClear(){
   const el = document.getElementById('byokInput'); if(el) el.value = '';
-  SF.key = ''; toast('已清除 Key，AI 功能转为离线模式');
+  const be = document.getElementById('byokBaseInput'); if(be) be.value = '';
+  SF.key = ''; SF.base = ''; toast('已清除 Key，AI 功能转为离线模式');
+  const out = document.getElementById('aiTestOut'); if(out) out.innerHTML = '';
   if(typeof renderButler === 'function') renderButler();
+}
+/* v3.7.0 连通测试：发一次最小的真实请求，把结果（在线/401/429/CORS 网络不通）明示给用户。
+   此前 aiCheck 只查「Key 存在与否」，失败一律静默降级离线，用户填了 Key 也无感知 —— 本函数根治。 */
+async function aiTestConn(){
+  const out = document.getElementById('aiTestOut'); if(!out) return;
+  const btn = document.getElementById('aiTestBtn');
+  if(!SF.key){ out.innerHTML = '<span style="color:#ff8ad1">❌ 请先填写并保存 Key</span>'; return; }
+  if(btn){ btn.disabled = true; btn.textContent = '⏳ 测试中…'; }
+  out.innerHTML = '<span style="color:var(--sub)">正在向 ' + escapeHtml(SF.base) + ' 发起真实请求…</span>';
+  const t0 = Date.now();
+  try{
+    const ac = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    const timer = ac ? setTimeout(() => { try{ ac.abort(); }catch(_){} }, 12000) : null;
+    const r = await fetch(SF.base + '/chat/completions', {
+      method:'POST', signal: ac ? ac.signal : undefined,
+      headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + SF.key },
+      body: JSON.stringify({ model:SF.model, messages:[{role:'user', content:'回复两个字：在线'}], max_tokens:8, temperature:0 })
+    });
+    if(timer) clearTimeout(timer);
+    const ms = Date.now() - t0;
+    if(!r.ok){
+      let detail = 'HTTP ' + r.status;
+      try{ const e = await r.json(); detail += '：' + ((e.error && e.error.message) || e.message || ''); }catch(_){}
+      const hint = r.status === 401 ? '（Key 无效或已过期）' : r.status === 429 ? '（额度不足或被限流）' : r.status === 404 ? '（接口地址或模型名不对）' : '';
+      out.innerHTML = '<span style="color:#ff8ad1">❌ ' + escapeHtml(detail) + hint + '</span>';
+    }else{
+      const d = await r.json();
+      const reply = String((d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content) || '').trim().slice(0, 30);
+      AIQ.fail = 0; AIQ.openUntil = 0;    // 测试成功即解除熔断
+      out.innerHTML = '<span style="color:#8fe8b8">✅ 连通成功 · ' + ms + 'ms · 模型已回复「' + escapeHtml(reply || '…') + '」— AI 讲师已真正在线</span>';
+    }
+  }catch(e){
+    const msg = String((e && e.message) || e);
+    const netFail = /abort|failed|fetch|network|TypeError/i.test(msg);
+    out.innerHTML = '<span style="color:#ff8ad1">❌ 请求发不出去（' + escapeHtml(msg).slice(0, 80) + '）</span>'
+      + (netFail ? '<div style="font-size:11px;color:var(--sub);line-height:1.6;margin-top:4px">大概率是<b>浏览器跨域(CORS)被拦</b>或网络不通 —— 该服务商不允许网页直连。出路：① 在上方「接口地址」填允许跨域的中转服务（如 Cloudflare Worker 代理）；② 换一家支持 CORS 的服务商。</div>' : '');
+  }
+  if(btn){ btn.disabled = false; btn.textContent = '🔗 测试连通'; }
 }
 function aiPanelHTML(){
   const s = st.aiStats || {api:0, hit:0};
@@ -6975,7 +7155,11 @@ function aiPanelHTML(){
     + '<div style="display:flex;gap:6px"><input id="byokInput" type="password" placeholder="' + (has ? '已配置 Key（重新输入可覆盖）' : 'sk-…（留空即用离线模式）') + '" value="" '
     + 'style="flex:1;min-width:0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:8px;color:var(--txt);padding:7px 9px;font-size:12px">'
     + '<button class="btn sm" onclick="byokSave()">保存</button><button class="btn sm ghost" onclick="byokClear()">清除</button></div>'
-    + '<div style="font-size:11px;color:var(--sub);line-height:1.6;margin-top:6px">没有 Key 也能用：AI 相关功能会走<b>离线模式</b>（规则实现），功能不缺失、不会卡在加载中。配置了 Key 则按 40 次/天、30K tokens/天、5 次/分钟自动限流。</div>'
+    + '<div style="display:flex;gap:6px;margin-top:6px"><input id="byokBaseInput" placeholder="接口地址（留空=默认硅基流动，可填自建代理）" value="' + escapeHtml(SF.base === 'https://api.siliconflow.cn/v1' ? '' : SF.base) + '" '
+    + 'style="flex:1;min-width:0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:8px;color:var(--txt);padding:7px 9px;font-size:12px"></div>'
+    + '<div style="display:flex;gap:6px;align-items:center;margin-top:6px"><button class="btn sm ghost" id="aiTestBtn" onclick="aiTestConn()">🔗 测试连通</button>'
+    + '<span id="aiTestOut" style="font-size:11px;line-height:1.6;flex:1;min-width:0"></span></div>'
+    + '<div style="font-size:11px;color:var(--sub);line-height:1.6;margin-top:6px">保存后自动测一次连通。若提示「跨域被拦」，说明该服务商不允许网页直连 —— 换中转地址即可。没有 Key 也能用：AI 相关功能会走<b>离线模式</b>（规则实现），功能不缺失、不会卡在加载中。配置了 Key 则按 40 次/天、30K tokens/天、5 次/分钟自动限流。</div>'
     + '</div></div>';
 }
 

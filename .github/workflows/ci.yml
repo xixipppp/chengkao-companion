@@ -77,6 +77,11 @@ jobs:
           TEST_URL=http://127.0.0.1:8900/index.html timeout 300 node tests/audio_smoke.js \
             && echo "audio_smoke PASS ✅" || { echo "audio_smoke FAIL ❌"; fail=1; }
 
+          # v3.7.0：p0_smoke 校验 AI 连通测试 / 填空归一化+符号键盘 / 复仇战分界 / 战报卡+口诀
+          echo "=== p0_smoke（本地服务版） ==="
+          TEST_URL=http://127.0.0.1:8900/index.html timeout 300 node tests/p0_smoke.js \
+            && echo "p0_smoke PASS ✅" || { echo "p0_smoke FAIL ❌"; fail=1; }
+
           exit $fail
 
       # v3.4.1：失败留证——上传测试截图/产物
