@@ -1244,6 +1244,9 @@
 </section>
 <script src="data/mathbank.js"></script>
 <script src="data/subjectbank.js"></script>
+<!-- v3.9.0 · 记忆口诀库（考点级细粒度，约 30KB，人工编写，离线可用）。
+     同步加载是有意为之：口诀在答题页每道题的解析下方都要显示，异步会出现「先空后填」的跳动。 -->
+<script src="data/mnemonics.js"></script>
 <!-- v3.4.0 · 首屏减负：data/kaodian.js(501KB 考点速记资料库) 与 data/goldpoints.js(380KB 黄金考点)
      都不参与 ALLQ 构建，只有「考点速记」页与「速记图猜考点」小游戏用到 →
      改为由 ensureBank() 按需异步加载（首屏同步解析体积 2.03MB → 1.15MB，HTML 解析与首绘不再等待）。
@@ -2110,7 +2113,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.8.0';   // 同步 GitHub Release 标签（v3.6.1 = 修复朗读 interrupted；v3.7.0 = P0 四项；v3.8.0 = **全应用按钮/交互体验重构**（主次层级 + 触控热区 + 输入防缩放 + 答题页按钮收纳 + 分步讲解一次看全）+ 每题笔记与收藏夹 + 掌握度雷达改薄弱行动卡 + AI 接入内置 Key/模型可配/余额与模型错误明示）
+const APP_VER = 'v3.9.0';   // 同步 GitHub Release 标签（v3.9.0 = **P2 内容质量**：① 记忆口诀细化到考点级（141 条人工口诀 + 关键词匹配，全库 97% 题命中具体考点，零 API）② 2D 动画「真演算」重制：高数题解析题干函数真画曲线/切线/法线/面积/渐近线，分镜改「破题思路→逐步推演（公式高亮）→答案揭晓→记忆口诀」，砍掉无理由排除法与剧透答案的政治概念图）
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
@@ -4221,6 +4224,36 @@ function renderMindMap(box, modIds, acc){
   });
   box.innerHTML = html;
 }
+/* v3.9.0：结束页「本轮专属记忆口诀」直接展示内置口诀（零 API 消耗、打开就有），
+   AI 按钮降级为「让 TA 再编一个」的次要入口 —— 用户明确要求口诀不再依赖应用内 AI 现编 */
+function fillRoundMnem(box, d, modIds){
+  if(!box) return;
+  const seen = {}, lines = [];
+  const list = (d && d.list) || [];
+  for(let i = 0; i < list.length && lines.length < 6; i++){
+    const q = list[i]; if(!q) continue;
+    String(mnemFor(q) || '').split('\n').forEach(x => {
+      x = x.trim();
+      if(!x) return;
+      const k = x.slice(0, 16);
+      if(seen[k] || lines.length >= 6) return;
+      seen[k] = 1; lines.push(x);
+    });
+  }
+  if(!lines.length){
+    (modIds || []).forEach(id => {
+      const m = (typeof MNEM_LOCAL !== 'undefined' && MNEM_LOCAL[id]) || [];
+      (Array.isArray(m) ? m.slice(0, 1) : [m]).forEach(x => { if(x && lines.length < 6) lines.push(x); });
+    });
+  }
+  if(!lines.length) lines.push('多练几遍就熟，错题清零考场不慌；先抓高频考点，再补边角知识。');
+  box.innerHTML = lines.map(t =>
+    '<div style="margin-bottom:9px;padding:8px 10px;border-radius:10px;background:rgba(255,209,102,.08);'
+    + 'border:1px dashed rgba(255,209,102,.35);font-size:12.5px;line-height:1.75">' + escapeHtml(t) + '</div>').join('')
+    + '<button class="btn sm ghost" id="memoBtn2" style="margin-top:4px">✨ 让 TA 再编一个</button>';
+  const b = document.getElementById('memoBtn2');
+  if(b) b.onclick = () => genMnemonic(modIds, box, d);
+}
 async function genMnemonic(modIds, box, d){
   const names = modIds.map(id => modName(id)).filter(Boolean);
   box.innerHTML = '<div style="font-size:12px;color:var(--sub)">她正在为你编口诀…</div>';
@@ -4269,12 +4302,12 @@ function renderDrill(){
       <div style="text-align:left;margin-bottom:12px" id="drillRankLine"></div></div>
       <div class="card" style="text-align:left"><div style="font-weight:900;margin-bottom:10px">📋 本轮战报 · 公式与考点速查</div><div id="repF"></div></div>
       <div class="card" style="text-align:left"><div style="font-weight:900;margin-bottom:10px">🧠 本轮知识点思维导图</div><div id="mindBody2"></div></div>
-      <div class="card" style="text-align:left"><div style="font-weight:900;margin-bottom:10px">🎵 专属记忆口诀</div><div id="memoBody2"><button class="btn magenta" id="memoBtn2">✨ 生成记忆口诀</button></div></div>
+      <div class="card" style="text-align:left"><div style="font-weight:900;margin-bottom:10px">🎵 本轮专属记忆口诀</div><div id="memoBody2"></div></div>
       <button class="btn magenta mt10" onclick="go('s-study')">返回自习室</button>`;
     renderRankCard('drillRankLine');
     renderRoundReport(document.getElementById('repF'), modIds, d);
     renderMindMap(document.getElementById('mindBody2'), modIds, acc);
-    document.getElementById('memoBtn2').onclick = () => genMnemonic(modIds, document.getElementById('memoBody2'), d);
+    fillRoundMnem(document.getElementById('memoBody2'), d, modIds);
     return;
   }
   const q = d.list[d.i], mo = modById(q.m), mate = getMate(MOD2MATE[q.m]);
@@ -4777,13 +4810,34 @@ function noteDel(id){
   if(st.notes) delete st.notes[id];
   saveSoon(); openNoteSheet();
 }
-/* ---------- v3.7.0 每题记忆口诀：内置精选打底（MNEM_LOCAL 按考点），没收录的用 AI 现编并缓存 ---------- */
+/* ---------- v3.7.0 每题记忆口诀：内置精选打底（MNEM_LOCAL 按考点），没收录的用 AI 现编并缓存 ----------
+   v3.9.0：口诀细化到「考点级」—— 先用题干/选项/解析/思路提示里的关键词命中 data/mnemonics.js
+   的考点规则（最多 3 条），命中就是这题真正考的那个点；一条都没命中再回退模块总纲，
+   全库实测 97% 的题能命中考点规则，剩余 3% 仍有模块总纲兜底 → 每题必有口诀，且零 API 消耗。 */
+function mnemFor(q){
+  const out = [];
+  const R = (typeof MNEM_DATA !== 'undefined' && MNEM_DATA && MNEM_DATA.rules) || [];
+  if(R.length && q){
+    const s = [q.q, (q.o || []).join(' '), (q.ans || []).join(' '), q.sol, q.hint, q.mod]
+      .map(x => String(x == null ? '' : x)).join(' ').toLowerCase();
+    for(let i = 0; i < R.length && out.length < 3; i++){
+      const ks = R[i].k || [];
+      for(let j = 0; j < ks.length; j++){
+        if(s.indexOf(String(ks[j]).toLowerCase()) >= 0){ out.push(R[i].t); break; }
+      }
+    }
+  }
+  if(!out.length){
+    const m = (typeof MNEM_LOCAL !== 'undefined' && MNEM_LOCAL[q && q.m]) || '';
+    (Array.isArray(m) ? m.slice(0, 2) : [m]).forEach(t => { if(t) out.push(t); });
+  }
+  return out.join('\n');
+}
 function qMemoEl(q){
   const wrap = document.createElement('div');
   const cached = (st.mnemQ || {})[q.id];
-  /* v3.8.0：口诀库按考点收录多条，换行展示（此前数组会被隐式转成逗号串） */
-  const _m = (typeof MNEM_LOCAL !== 'undefined' && MNEM_LOCAL[q.m]) || '';
-  const cur = Array.isArray(_m) ? _m.join('\n') : _m;
+  /* v3.9.0：优先考点级口诀（mnemFor），旧版模块总纲作为兜底留在函数里 */
+  const cur = mnemFor(q);
   const inner = '<div style="margin-top:8px;padding:8px 11px;border-radius:10px;background:rgba(255,209,102,.08);border:1px dashed rgba(255,209,102,.4);font-size:12.5px;line-height:1.75;white-space:pre-line">'
     + '<b style="color:#ffd166">🧠 记忆口诀</b>　<span id="qmemoTxt">' + escapeHtml(cached || cur || '这个考点还没收录口诀') + '</span>'
     + (SF.key && !cached ? ' <button class="btn sm ghost" id="qmemoBtn" style="padding:2px 9px;font-size:11px">✨ AI 编个口诀</button>' : '')

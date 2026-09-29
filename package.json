@@ -1,10 +1,10 @@
 {
   "name": "chengkao-companion",
-  "version": "3.5.0",
+  "version": "3.9.0",
   "private": true,
   "description": "心动成考 · 乙女陪练 —— 成人高考专升本备考陪练（纯静态 PWA）",
   "scripts": {
-    "check": "node tools/syntax_check.js && node tools/dup_check.js && node tools/ver_check.js && node tools/data_check.js && node tools/anim2d_dur_check.js && node tests/anim2d_test.js",
+    "check": "node tools/syntax_check.js && node tools/dup_check.js && node tools/ver_check.js && node tools/data_check.js && node tools/anim2d_dur_check.js && node tests/anim2d_test.js && node tools/mnem_cover.js && node tests/p2_smoke.js",
     "publish": "node tools/publish.js"
   },
   "devDependencies": {

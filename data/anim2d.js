@@ -369,8 +369,495 @@
   }
 
   /* ---------------- 三科差异化舞台 ---------------- */
-  /* 高数：坐标系 + 曲线 / 切线 / 面积填充 / 极限逼近 */
+  /* =========================================================================
+     v3.9.0 · 真·函数绘图引擎（用户反馈「2D 动画讲了个寂寞」的核心修复）
+     -------------------------------------------------------------------------
+     旧版高数舞台画的是一条写死的示意曲线（sin/cos 拼的装饰线），无论题目是
+     求切线还是求面积，画面都一样 —— 等于没讲题。
+     新版：把题干里的表达式**真解析**出来（递归下降 parser，绝不用 eval），
+     在坐标系里画出这条真实曲线，并按题意叠加：
+         切线 / 法线 / 曲边梯形面积 / 渐近线 / 极限逼近动点
+     解析失败（纯文字题、表达式超出支持范围）自动退回旧示意曲线，不崩。
+     ========================================================================= */
+  var FUN1 = {
+    sin:Math.sin, cos:Math.cos, tan:Math.tan, cot:function(x){ return 1 / Math.tan(x); },
+    ln:Math.log, lg:function(x){ return Math.log(x) / Math.LN10; }, log:Math.log,
+    sqrt:Math.sqrt, abs:Math.abs, exp:Math.exp,
+    arcsin:Math.asin, arccos:Math.acos, arctan:Math.atan, arccot:function(x){ return Math.PI / 2 - Math.atan(x); },
+    sinh:function(x){ return (Math.exp(x) - Math.exp(-x)) / 2; },
+    cosh:function(x){ return (Math.exp(x) + Math.exp(-x)) / 2; }
+  };
+  var CONST1 = { e:Math.E, pi:Math.PI, 'π':Math.PI };
+  function K1(v){ return function(){ return v; }; }
+  function ID1(){ return function(x){ return x; }; }
+  function ADD1(a,b){ return function(x){ return a(x) + b(x); }; }
+  function SUB1(a,b){ return function(x){ return a(x) - b(x); }; }
+  function MUL1(a,b){ return function(x){ return a(x) * b(x); }; }
+  function DIV1(a,b){ return function(x){ return a(x) / b(x); }; }
+  function POW1(a,b){ return function(x){ return Math.pow(a(x), b(x)); }; }
+  function NEG1(a){ return function(x){ return -a(x); }; }
+  function CALL1(nm,a){ var f = FUN1[nm]; return function(x){ return f(a(x)); }; }
+  /* 上下标数字：题库里全是 x²、x³、∫₀¹ 这类排版字符，先归一成 ^n / n */
+  var SUP2 = { '\u2070':0, '\u00b9':1, '\u00b2':2, '\u00b3':3, '\u2074':4, '\u2075':5, '\u2076':6, '\u2077':7, '\u2078':8, '\u2079':9 };
+  var SUB2 = { '\u2080':0, '\u2081':1, '\u2082':2, '\u2083':3, '\u2084':4, '\u2085':5, '\u2086':6, '\u2087':7, '\u2088':8, '\u2089':9 };
+  /* 词法：数字 / 标识符（含 π）/ 运算符；遇到其它字符（中文、= 等）直接放弃 */
+  function tokenize1(s){
+    var t = [], i = 0;
+    s = String(s == null ? '' : s);
+    while(i < s.length){
+      var c = s.charAt(i);
+      if(c === ' ' || c === '\t'){ i++; continue; }
+      if(c >= '0' && c <= '9' || c === '.'){
+        var j = i;
+        while(j < s.length && ((s.charAt(j) >= '0' && s.charAt(j) <= '9') || s.charAt(j) === '.')) j++;
+        var num = parseFloat(s.slice(i, j));
+        if(isNaN(num)) return null;
+        t.push({ k:'num', v:num }); i = j; continue;
+      }
+      if((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c === 'π'){
+        var j2 = i;
+        while(j2 < s.length && ((s.charAt(j2) >= 'a' && s.charAt(j2) <= 'z') || (s.charAt(j2) >= 'A' && s.charAt(j2) <= 'Z') || s.charAt(j2) === 'π')) j2++;
+        t.push({ k:'id', v:s.slice(i, j2).toLowerCase() }); i = j2; continue;
+      }
+      if(SUP2[c] !== undefined){ t.push({ k:'op', v:'^' }); t.push({ k:'num', v:SUP2[c] }); i++; continue; }
+      if(SUB2[c] !== undefined){ t.push({ k:'num', v:SUB2[c] }); i++; continue; }
+      if(c === '\u207b' || c === '\u208b' || c === '\u2212'){ t.push({ k:'op', v:'-' }); i++; continue; }
+      if('+-*/^()|'.indexOf(c) >= 0){ t.push({ k:'op', v:c }); i++; continue; }
+      return null;
+    }
+    return t;
+  }
+  /* 语法：expr → term → unary → power → tight(隐式乘法) → atom */
+  function parseExpr(src){
+    var tk = tokenize1(src);
+    if(!tk || !tk.length) return null;
+    var i = 0;
+    function isOp(v){ return i < tk.length && tk[i].k === 'op' && tk[i].v === v; }
+    function atom(){
+      if(i >= tk.length) return null;
+      var t = tk[i];
+      if(t.k === 'num'){ i++; return K1(t.v); }
+      if(t.k === 'id'){
+        i++;
+        var nm = t.v;
+        if(nm === 'x' || nm === 't') return ID1();   // t：变上限积分 ∫₀ˣf(t)dt 的自变量，画图时当 x
+        if(CONST1[nm] !== undefined) return K1(CONST1[nm]);
+        if(FUN1[nm]){
+          var arg;
+          if(isOp('(')){ i++; arg = expr(); if(!arg || !isOp(')')) return null; i++; }
+          else { arg = tight(); if(!arg) return null; }      // cosx / lnx / sin2x 这类无括号写法
+          return CALL1(nm, arg);
+        }
+        /* 无括号函数写法（cosx、lnx、sin2x 的纯字母情形）：词法会把它们连成一个标识符，
+           这里按「最长函数名前缀」拆开后重新解析 —— 题库里 sinx/cosx/lnx 出现频率极高 */
+        var cut = 0;
+        for(var fn2 in FUN1){
+          if(nm.length > fn2.length && nm.slice(0, fn2.length) === fn2 && fn2.length > cut) cut = fn2.length;
+        }
+        if(cut > 0){
+          var rt = tokenize1(nm.slice(cut));
+          if(rt && rt.length){
+            /* 把 cosx 这一块替换成 cos + x 两个 token 后重新解析 */
+            tk.splice(i - 1, 1, { k:'id', v:nm.slice(0, cut) });
+            for(var z = 0; z < rt.length; z++) tk.splice(i + z, 0, rt[z]);
+            i = i - 1;
+            return atom();
+          }
+        }
+        return null;                                          // 未知标识符（y、a、k 等）→ 放弃
+      }
+      if(isOp('(')){ i++; var e = expr(); if(!e || !isOp(')')) return null; i++; return e; }
+      if(isOp('|')){ i++; var e2 = expr(); if(!e2 || !isOp('|')) return null; i++; return function(x){ return Math.abs(e2(x)); }; }
+      return null;
+    }
+    function tight(){
+      var n = atom(); if(!n) return null;
+      while(i < tk.length && (tk[i].k === 'num' || tk[i].k === 'id' || (tk[i].k === 'op' && tk[i].v === '('))){
+        var r = atom(); if(!r) return null;
+        n = MUL1(n, r);
+      }
+      return n;
+    }
+    function power(){
+      var b = tight(); if(!b) return null;
+      if(isOp('^')){ i++; var e = unary(); if(!e) return null; return POW1(b, e); }
+      return b;
+    }
+    function unary(){
+      if(isOp('-')){ i++; var u = unary(); if(!u) return null; return NEG1(u); }
+      if(isOp('+')){ i++; return unary(); }
+      return power();
+    }
+    function term(){
+      var n = unary(); if(!n) return null;
+      while(i < tk.length){
+        if(isOp('*')){ i++; var r = unary(); if(!r) return null; n = MUL1(n, r); }
+        else if(isOp('/')){ i++; var r2 = unary(); if(!r2) return null; n = DIV1(n, r2); }
+        else break;
+      }
+      return n;
+    }
+    function expr(){
+      var n = term(); if(!n) return null;
+      while(i < tk.length){
+        if(isOp('+')){ i++; var r = term(); if(!r) return null; n = ADD1(n, r); }
+        else if(isOp('-')){ i++; var r2 = term(); if(!r2) return null; n = SUB1(n, r2); }
+        else break;
+      }
+      return n;
+    }
+    var f = expr();
+    if(!f || i < tk.length) return null;      // 有剩余 token = 没解析干净，宁可不画
+    return f;
+  }
+  /* 从一坨候选串里挑「最长的可解析前缀」：题干形如「y=x²+1，则…」也能正确截断 */
+  function bestParse(s){
+    s = String(s == null ? '' : s).replace(/\s+/g, '');
+    if(!s) return null;
+    for(var n = s.length; n >= 1; n--){
+      var sub = s.slice(0, n);
+      if(/[+\-*/^(|]$/.test(sub)) continue;            // 尾巴是运算符，不可能是完整式
+      if(/[\u4e00-\u9fa5]/.test(sub)) continue;        // 含中文，跳过（从更短的前缀再试）
+      var f = parseExpr(sub);
+      if(!f) continue;
+      /* 常数函数没有曲线可画（如 y=1），判为无意义 */
+      var v0 = NaN, same = true, hits = 0;
+      for(var x = -4; x <= 4; x += 0.7){
+        var v; try{ v = f(x); }catch(e){ v = NaN; }
+        if(!isFinite(v)) continue;
+        hits++;
+        if(isNaN(v0)) v0 = v; else if(Math.abs(v - v0) > 1e-9) same = false;
+      }
+      if(hits < 4 || same) continue;
+      return { f:f, s:sub };
+    }
+    return null;
+  }
+  var SUPMAP = { '⁰':'0','¹':'1','²':'2','³':'3','⁴':'4','⁵':'5','⁶':'6','⁷':'7','⁸':'8','⁹':'9','⁻':'-' };
+  var SUBMAP = { '₀':'0','₁':'1','₂':'2','₃':'3','₄':'4','₅':'5','₆':'6','₇':'7','₈':'8','₉':'9','₋':'-' };
+  function supNum(s){
+    var out = '';
+    s = String(s || '');
+    for(var i = 0; i < s.length; i++){
+      var c = s.charAt(i);
+      if(SUPMAP[c] !== undefined) out += SUPMAP[c];
+      else if(SUBMAP[c] !== undefined) out += SUBMAP[c];
+      else if(c === '-' || c === '\u2212') out += '-';
+      else if(c >= '0' && c <= '9') out += c;
+      else break;
+    }
+    return out === '' || out === '-' ? null : parseFloat(out);
+  }
+  /* 从内置口诀库里挑这题的考点口诀（data/mnemonics.js；浏览器里同步加载，node 单测里没有也不报错） */
+  function pickMemo(spec, q){
+    try{
+      var R = (typeof window !== 'undefined' && window.MNEM_DATA && window.MNEM_DATA.rules) || null;
+      if(!R || !R.length) return '';
+      var s2 = [spec.stem, (spec.opts || []).join(' '), spec.answer, (spec.steps || []).join(' '), spec.hint, spec.modName]
+        .map(function(x){ return String(x == null ? '' : x); }).join(' ').toLowerCase();
+      var hits = [];
+      for(var i = 0; i < R.length && hits.length < 2; i++){
+        var ks = R[i].k || [];
+        for(var j = 0; j < ks.length; j++){
+          if(s2.indexOf(String(ks[j]).toLowerCase()) >= 0){ hits.push(R[i].t); break; }
+        }
+      }
+      return hits.join('\n');
+    }catch(e){ return ''; }
+  }
+  /* 富文本一行：把「算式/数字」染成金色、叙述保持白色，支持自动换行 */
+  var MATHCH = /[0-9A-Za-z=+\-*/^()\[\]∫√∞∂πθ≤≥≠|.]/;
+  var SUPCH = /[\u2070-\u209f\u00b2\u00b3\u00b9\u207f\u00d7\u00f7]/;
+  function tokenRich(s){
+    var out = [], cur = '', curM = false;
+    s = String(s == null ? '' : s);
+    for(var i = 0; i < s.length; i++){
+      var c = s.charAt(i);
+      var isM = MATHCH.test(c) || SUPCH.test(c);
+      if(cur && isM !== curM){ out.push({ t:cur, m:curM }); cur = ''; }
+      cur += c; curM = isM;
+    }
+    if(cur) out.push({ t:cur, m:curM });
+    return out.map(function(o){
+      return { t:o.t, hl:o.m && /[=^\u222b\u221a\u2202\u221e\u2264\u2265\u2260]|[0-9]/.test(o.t) };
+    });
+  }
+  function richLine(ctx, s, x, y, maxW, size, weight){
+    var toks = tokenRich(s), cx = x, cy = y, lh = size * 1.3;
+    for(var i = 0; i < toks.length; i++){
+      var tk = toks[i];
+      setFont(ctx, size, weight);
+      var wch = ctx.measureText(tk.t).width;
+      if(wch > maxW){                                  // 超长片段按字符硬断，绝不溢出卡片
+        for(var c2 = 0; c2 < tk.t.length; c2++){
+          var one = tk.t.charAt(c2), w1 = ctx.measureText(one).width;
+          if(cx > x && cx + w1 > x + maxW){ cx = x; cy += lh; }
+          txt(ctx, one, cx, cy, { size:size, weight:weight, color: tk.hl ? GOLD : '#fff', stroke:false });
+          cx += w1;
+        }
+        continue;
+      }
+      if(cx > x && cx + wch > x + maxW){ cx = x; cy += lh; }
+      txt(ctx, tk.t, cx, cy, { size:size, weight:weight, color: tk.hl ? GOLD : '#fff', stroke:false });
+      cx += wch;
+    }
+    return cy + lh - y;
+  }
+  /* 从题面里抽：函数表达式 + 关注点 x0 + 积分区间 [a,b] + 该画什么（kind） */
+  function buildPlot(q){
+    if(subjOf(q) !== 'math') return null;
+    var stem = plain(q.q), sol = plain(q.sol), all = stem + ' ' + sol;
+    var fn = null, label = '', x0 = null, a = null, b = null, m;
+    m = /(?:y|f\s*\(\s*x\s*\)|f)\s*=\s*([^=]+)/.exec(stem);
+    if(m){
+      var bp = bestParse(m[1]);
+      if(bp){ fn = bp.f; label = 'y = ' + bp.s; }
+    }
+    if(!fn){
+      m = /lim\s*[（(]?\s*x\s*(?:→|->|=>)\s*([^)），,。]+)[)）]?\s*(.+)/.exec(stem);
+      if(m){
+        var bp2 = bestParse(m[2]);
+        if(bp2){ fn = bp2.f; label = 'y = ' + bp2.s; x0 = supNum(m[1]); }
+      }
+    }
+    if(!fn){
+      /* 定积分题：∫₀¹ (2x+1)³ dx —— 取积分号后括号里的被积式 */
+      m = /∫\s*[⁰¹²³⁴⁵⁶⁷⁸⁹⁻₀₁₂₃₄₅₆₇₈₉₋\-\d]*\s*[（(]\s*([^)）]+)/.exec(stem);
+      if(m){
+        var bp4 = bestParse(m[1]);
+        if(bp4){ fn = bp4.f; label = 'y = ' + bp4.s; }
+      }
+    }
+    if(!fn){
+      /* 兜底：整条题干里找含 x 的最长可解析片段 */
+      var segs = stem.split(/[，,。;；？?（）()]/);
+      for(var i = 0; i < segs.length && !fn; i++){
+        if(segs[i].indexOf('x') < 0) continue;
+        var bp3 = bestParse(segs[i]);
+        /* 只认长度 ≥3 的表达式：否则「设区域 D = {(x,y)…」这类抽象题会兜出一条 y=x 装样子 */
+        if(bp3 && bp3.s.length >= 3){ fn = bp3.f; label = 'y = ' + bp3.s; }
+      }
+    }
+    if(!fn) return null;
+    /* 关注点 x0：x→a / 在点 x=a / 点(a, ...) / 区间 [a,b] */
+    if(x0 == null){
+      m = /x\s*(?:→|->|=>)\s*(-?[\d]+)/.exec(stem);
+      if(m) x0 = parseFloat(m[1]);
+    }
+    if(x0 == null){
+      m = /(?:在|点|处)\s*[（(]?\s*(-?[\d]+)\s*[，,]/.exec(stem);
+      if(m) x0 = parseFloat(m[1]);
+    }
+    if(x0 == null){
+      m = /x\s*=\s*(-?[\d]+)/.exec(stem);
+      if(m) x0 = parseFloat(m[1]);
+    }
+    /* 积分区间 ∫ₐᵇ / ∫(a,b) / ∫a^b */
+    var im = /∫\s*[₀₁₂₃₄₅₆₇₈₉₋\-\d]{0,4}\s*[⁰¹²³⁴⁵⁶⁷⁸⁹⁻\-\d]{0,4}/.exec(all);
+    if(im){
+      var seg = im[0].replace('∫', '');
+      var lo = supNum(seg.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻\-]/g, ''));
+      var hi = supNum(seg.replace(/[₀₁₂₃₄₅₆₇₈₉₋]/g, ''));
+      if(lo != null && hi != null && hi > lo){ a = lo; b = hi; }
+    }
+    if(a == null){
+      m = /∫\s*[（(]\s*(-?[\d]+)\s*[，,]\s*(-?[\d]+)\s*[)）]/.exec(all);
+      if(m && parseFloat(m[2]) > parseFloat(m[1])){ a = parseFloat(m[1]); b = parseFloat(m[2]); }
+    }
+    /* 图形类型优先看题干：解析里常出现「切线」字样（法线题的解析也会写「切线斜率的负倒数」） */
+    var ksrc = /切线|法线|面积|围成|∫|定积分|渐近线|极限|lim/.test(stem) ? stem : all;
+    var kind = 'curve';
+    if(/切线/.test(ksrc)) kind = 'tangent';
+    else if(/法线/.test(ksrc)) kind = 'normal';
+    else if(/面积|围成|∫|定积分/.test(ksrc)) kind = 'area';
+    else if(/渐近线/.test(ksrc)) kind = 'asymptote';
+    else if(/极限|lim/.test(ksrc)) kind = 'limit';
+    if(kind === 'area' && a == null){ a = (x0 == null ? 0 : x0); b = a + 2; }
+    var xmin, xmax;
+    if(a != null && b != null){ xmin = a - (b - a) * 0.35 - 0.5; xmax = b + (b - a) * 0.35 + 0.5; }
+    else if(x0 != null){ xmin = x0 - 5; xmax = x0 + 5; }
+    else { xmin = -6; xmax = 6; }
+    if(xmin < -40) xmin = -40; if(xmax > 40) xmax = 40;
+    return { fn:fn, label:label, kind:kind, x0:x0, a:a, b:b, xmin:xmin, xmax:xmax };
+  }
+  /* 真实曲线绘制；返回 false 表示画不出来（调用方退回示意曲线） */
+  function plotMath(ctx, spec, p, box){
+    var pl = spec.plot;
+    if(!pl || !pl.fn) return false;
+    var fn = pl.fn, N = 240, xs = [], ys = [];
+    for(var k = 0; k <= N; k++){
+      var x = pl.xmin + (pl.xmax - pl.xmin) * k / N, y;
+      try{ y = fn(x); }catch(e){ y = NaN; }
+      xs.push(x);
+      ys.push((typeof y === 'number' && isFinite(y)) ? y : NaN);
+    }
+    var good = [];
+    for(var g = 0; g < ys.length; g++) if(!isNaN(ys[g])) good.push(ys[g]);
+    if(good.length < 8) return false;
+    var sorted = good.slice().sort(function(a, b){ return a - b; });
+    var lo = sorted[Math.floor(sorted.length * 0.03)], hi = sorted[Math.floor(sorted.length * 0.97)];
+    if(hi - lo < 1e-6){ lo = lo - 1; hi = hi + 1; }
+    var span = hi - lo;
+    lo -= span * 0.14; hi += span * 0.14;
+    var cutLo = lo - span * 1.6, cutHi = hi + span * 1.6;
+    var px0 = box.x + 6, px1 = box.x + box.w - 6, py0 = box.y + 6, py1 = box.y + box.h - 46;
+    function PX(x){ return px0 + (x - pl.xmin) / (pl.xmax - pl.xmin) * (px1 - px0); }
+    function PY(y){ return py1 - (y - lo) / (hi - lo) * (py1 - py0); }
+    ctx.save();
+    /* 网格 + 坐标轴 */
+    var step = (pl.xmax - pl.xmin) > 24 ? 4 : ((pl.xmax - pl.xmin) > 12 ? 2 : 1);
+    ctx.strokeStyle = 'rgba(183,148,255,.16)'; ctx.lineWidth = 2;
+    var gx, gy;
+    for(gx = Math.ceil(pl.xmin / step) * step; gx <= pl.xmax; gx += step){
+      ctx.beginPath(); ctx.moveTo(PX(gx), py0); ctx.lineTo(PX(gx), py1); ctx.stroke();
+    }
+    for(gy = Math.ceil(lo / step) * step; gy <= hi; gy += step){
+      ctx.beginPath(); ctx.moveTo(px0, PY(gy)); ctx.lineTo(px1, PY(gy)); ctx.stroke();
+    }
+    var yZero = clamp(PY(0), py0, py1), xZero = clamp(PX(0), px0, px1);
+    ctx.strokeStyle = 'rgba(183,148,255,.75)'; ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(px0, yZero); ctx.lineTo(px1, yZero);
+    ctx.moveTo(xZero, py0); ctx.lineTo(xZero, py1);
+    ctx.stroke();
+    txt(ctx, 'x', px1 - 4, yZero - 14, { size: 28, weight: 800, color: SUBJ.math.c, align: 'right' });
+    txt(ctx, 'y', xZero + 12, py0 + 26, { size: 28, weight: 800, color: SUBJ.math.c });
+    /* 曲线本体：随进度生长，奇点处断笔（1/x 之类不会连成竖线） */
+    var prog = clamp(p * 1.4, 0, 1), upto = Math.floor(N * prog), started = false;
+    function strokeCurve(alpha, lw){
+      ctx.beginPath(); started = false;
+      for(var k2 = 0; k2 <= upto; k2++){
+        var yv = ys[k2];
+        if(isNaN(yv) || yv < cutLo || yv > cutHi){ started = false; continue; }
+        var X2 = PX(xs[k2]), Y2 = PY(yv);
+        if(!started){ ctx.moveTo(X2, Y2); started = true; } else ctx.lineTo(X2, Y2);
+      }
+      ctx.strokeStyle = hexA(SUBJ.math.c, alpha); ctx.lineWidth = lw;
+      ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.stroke();
+    }
+    strokeCurve(.22, 12);                 // 外发光
+    strokeCurve(.98, 5);                  // 主线
+    /* 按题意叠加 */
+    var cx = pl.x0 == null ? (pl.xmin + pl.xmax) / 2 : pl.x0;
+    var cy = NaN; try{ cy = fn(cx); }catch(e){ cy = NaN; }
+    var d = NaN;
+    if(isFinite(cy)){
+      var h = 1e-4, y1 = NaN, y2 = NaN;
+      try{ y1 = fn(cx + h); y2 = fn(cx - h); }catch(e){}
+      if(isFinite(y1) && isFinite(y2)) d = (y1 - y2) / (2 * h);
+    }
+    function drawPt(x, y, color){
+      ctx.fillStyle = color;
+      ctx.beginPath(); ctx.arc(PX(x), PY(y), 13, 0, 6.2832); ctx.fill();
+    }
+    function drawLine(x, y, slope, color){
+      /* 数据斜率 → 画布方向 */
+      var dx = (px1 - px0) * 0.42;
+      var dy = -slope * (py1 - py0) / (hi - lo) * ((pl.xmax - pl.xmin) / (px1 - px0)) * dx;
+      ctx.strokeStyle = color; ctx.lineWidth = 5; ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(PX(x) - dx, PY(y) - dy); ctx.lineTo(PX(x) + dx, PY(y) + dy);
+      ctx.stroke();
+    }
+    if(pl.kind === 'tangent' && isFinite(cy) && isFinite(d)){
+      var tp = clamp((p - .35) / .5, 0, 1);
+      ctx.save(); ctx.globalAlpha = tp;
+      drawLine(cx, cy, d, GOLD);
+      drawPt(cx, cy, GOLD);
+      txt(ctx, '切线斜率 = f\u2032(x\u2080)', PX(cx), PY(cy) - 40, { size: 30, weight: 800, align: 'center', color: GOLD });
+      ctx.restore();
+    } else if(pl.kind === 'normal' && isFinite(cy) && isFinite(d) && Math.abs(d) > 1e-6){
+      var np = clamp((p - .35) / .5, 0, 1);
+      ctx.save(); ctx.globalAlpha = np;
+      drawLine(cx, cy, -1 / d, CYAN);
+      drawPt(cx, cy, CYAN);
+      txt(ctx, '法线斜率 = \u22121 / f\u2032(x\u2080)', PX(cx), PY(cy) - 40, { size: 30, weight: 800, align: 'center', color: CYAN });
+      ctx.restore();
+    } else if(pl.kind === 'area'){
+      var a0 = pl.a, b0 = pl.b;
+      var shown = a0 + (b0 - a0) * clamp(p * 1.25, 0, 1);
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(PX(a0), PY(0));
+      for(var k3 = 0; k3 <= N; k3++){
+        var xx = xs[k3];
+        if(xx < a0 || xx > shown) continue;
+        var yy = ys[k3];
+        if(isNaN(yy)) continue;
+        ctx.lineTo(PX(xx), PY(clamp(yy, cutLo, cutHi)));
+      }
+      ctx.lineTo(PX(shown), PY(0)); ctx.closePath();
+      ctx.fillStyle = hexA(GOLD, .3); ctx.fill();
+      ctx.strokeStyle = hexA(GOLD, .7); ctx.lineWidth = 3; ctx.stroke();
+      ctx.restore();
+      txt(ctx, 'S = \u222b f(x) dx', (PX(a0) + PX(b0)) / 2, py0 + 40, { size: 36, weight: 900, align: 'center', color: GOLD });
+    } else if(pl.kind === 'asymptote'){
+      var lv = NaN, rv = NaN;
+      try{ lv = fn(pl.xmin - 400); rv = fn(pl.xmax + 400); }catch(e){}
+      var ap = clamp((p - .3) / .55, 0, 1);
+      ctx.save(); ctx.globalAlpha = ap;
+      ctx.setLineDash([14, 10]);
+      if(isFinite(lv) && isFinite(rv) && Math.abs(lv - rv) < Math.max(1, Math.abs(lv) * 0.2)){
+        ctx.strokeStyle = hexA(GOLD, .85); ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.moveTo(px0, PY((lv + rv) / 2)); ctx.lineTo(px1, PY((lv + rv) / 2)); ctx.stroke();
+        txt(ctx, '水平渐近线', px1 - 10, PY((lv + rv) / 2) - 18, { size: 28, weight: 800, align: 'right', color: GOLD });
+      }
+      /* 垂直渐近线：找曲线断点（相邻采样值突变） */
+      for(var k4 = 1; k4 < N; k4++){
+        if(isNaN(ys[k4]) || isNaN(ys[k4 - 1])) continue;
+        if(Math.abs(ys[k4] - ys[k4 - 1]) > span * 1.2){
+          var vx = (xs[k4] + xs[k4 - 1]) / 2;
+          ctx.strokeStyle = hexA(RED, .8); ctx.lineWidth = 4;
+          ctx.beginPath(); ctx.moveTo(PX(vx), py0); ctx.lineTo(PX(vx), py1); ctx.stroke();
+          txt(ctx, '垂直渐近线 x=' + vx.toFixed(1), PX(vx) + 10, py1 - 14, { size: 26, weight: 800, color: RED });
+          break;
+        }
+      }
+      ctx.setLineDash([]);
+      ctx.restore();
+    } else if(pl.kind === 'limit'){
+      var lp = easeInOut(clamp(p * 1.25, 0, 1));
+      var ax = cx + (pl.xmax - cx) * 0.85 * (1 - lp);
+      var ay = NaN; try{ ay = fn(ax); }catch(e){}
+      if(isFinite(ay)){
+        ctx.save();
+        ctx.setLineDash([8, 8]); ctx.strokeStyle = hexA(GOLD, .6); ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(PX(ax), PY(ay)); ctx.lineTo(PX(ax), PY(0)); ctx.stroke();
+        ctx.setLineDash([]);
+        drawPt(ax, ay, GOLD);
+        txt(ctx, 'x \u2192 x\u2080，f(x) \u2192 ' + ay.toFixed(2), PX(ax), PY(ay) - 38,
+          { size: 30, weight: 800, align: 'center', color: GOLD });
+        ctx.restore();
+      }
+    } else {
+      var mp = clamp(p * 1.2, 0, 1);
+      var mx = pl.xmin + (pl.xmax - pl.xmin) * mp, my = NaN;
+      try{ my = fn(mx); }catch(e){}
+      if(isFinite(my) && my > cutLo && my < cutHi) drawPt(mx, my, '#ffffff');
+    }
+    /* 函数标签（直接取自题干，不编造） */
+    if(pl.label){
+      ctx.save(); ctx.globalAlpha = clamp(p * 2, 0, 1);
+      var lb = pl.label.length > 30 ? pl.label.slice(0, 29) + '…' : pl.label;
+      setFont(ctx, 30, 700);
+      var lw2 = ctx.measureText(lb).width + 30;
+      rr(ctx, px0 + 6, py0 + 4, lw2, 52, 14);
+      ctx.fillStyle = 'rgba(12,8,20,.72)'; ctx.fill();
+      ctx.strokeStyle = hexA(SUBJ.math.c, .6); ctx.lineWidth = 2; ctx.stroke();
+      txt(ctx, lb, px0 + 21, py0 + 42, { size: 30, weight: 700, color: '#fff', stroke: false });
+      ctx.restore();
+    }
+    ctx.restore();
+    return true;
+  }
+
+  /* 高数舞台：真曲线优先，画不出来才退回示意曲线 */
   function stageMath(ctx, spec, p, box){
+    if(spec.plot && spec.plot.fn && plotMath(ctx, spec, p, box)) return;
+    stageMathLegacy(ctx, spec, p, box);
+  }
+  /* 兜底：示意曲线（题干没有可解析函数时） */
+  function stageMathLegacy(ctx, spec, p, box){
     var mod = String(spec.mod || '');
     var x0 = box.x, y0 = box.y, w = box.w, h = box.h;
     var cx = x0 + w * 0.5, cy = y0 + h * 0.55, sx = w * 0.40, sy = h * 0.30;
@@ -455,7 +942,8 @@
     var n = kws.length;
     // 中心节点
     var cp = easeOutBack(clamp(p * 1.6, 0, 1));
-    var core = (spec.answer || '核心').slice(0, 10);
+    /* v3.9.0：读题阶段不剧透答案 —— 旧版中心节点直接写着正确答案，等于一上来就泄题 */
+    var core = (spec._ph === 'reveal' ? (spec.answer || '核心') : (spec.modName || '考点')).slice(0, 10);
     ctx.save();
     ctx.translate(cx, cy); ctx.scale(cp, cp);
     var cg = ctx.createRadialGradient(0, 0, 10, 0, 0, R * .95);
@@ -696,6 +1184,10 @@
     }
     if(spec.kw.length < 2) spec.kw = keywords(stem + ' ' + answer, 5);
     if(spec.kw.length < 2) spec.kw = keywords(answer, 3);
+    /* v3.9.0：① 真·函数曲线（高数题把题干里的函数真画出来）② 收尾记忆口诀（取内置口诀库） */
+    spec.plot = buildPlot(q);
+    spec.memo = pickMemo(spec, q);
+    spec._ph = 'stem';
 
     var sc = [];
     var push = function(o){ sc.push(o); };
@@ -709,9 +1201,9 @@
       });
     }
 
-    /* --- S1 片头题卡 --- */
+    /* --- S1 片头题卡（v3.9.0：砍废话，1.8 秒带过，把时间留给真正的推演） --- */
     push({
-      id: 'cover', name: '片头', dur: 3.2,
+      id: 'cover', name: '片头', dur: 1.8,
       caps: [spec.subjName + ' · ' + (modNm || '综合'), (paperTail || spec.qid)],
       draw: function(ctx, p){
         var e = easeOutBack(clamp(p * 1.7, 0, 1));
@@ -769,6 +1261,23 @@
       }
     });
 
+    /* --- S2B 破题思路（v3.9.0：提到选项之前 —— 先告诉你这题用什么方法，再看选项） --- */
+    if(hint){
+      push({
+        id: 'hint', name: '破题思路', dur: clamp(1.8 + 0.045 * hint.length, 2.2, 4.6),
+        caps: ['先定方法：' + hint.slice(0, 34), hint.slice(0, 40)],
+        draw: function(ctx, p){
+          chip(ctx, '破 题 思 路', PAD, 250, { size: 28, c: GOLD, c2: '#f59e0b' });
+          var e = clamp(p / .7, 0, 1);
+          var y = STAGE_TOP + 90, w = W - PAD * 2;
+          rr(ctx, PAD, y, w, 540, 32);
+          ctx.fillStyle = hexA(GOLD, .07); ctx.fill();
+          ctx.strokeStyle = hexA(GOLD, .6); ctx.lineWidth = 4; ctx.stroke();
+          para(ctx, hint, PAD + 34, y + 90, w - 68, FS.sol, { weight: 700, color: '#fff', progress: e, stagger: .1, each: .5 });
+        }
+      });
+    }
+
     /* --- S3 选项飞入 / 填空题求解卡 --- */
     if(isChoice){
       push({
@@ -786,30 +1295,32 @@
           }
         }
       });
-      /* --- S4 排除法 --- */
+      /* --- S4 排除法（v3.9.0：解析步骤 ≥2 时整段跳过 —— 没理由地逐个打叉，正是「讲了个寂寞」的元凶）
+             只有在没有文字解析可讲时，才用「排除 + 直给答案」兜底 --- */
       var wrongIdx = [];
       for(var w0 = 0; w0 < opts.length; w0++) if(w0 !== ai) wrongIdx.push(w0);
-      push({
-        id: 'eliminate', name: '排除法', dur: clamp(0.9 + 1.05 * wrongIdx.length, 1.6, 7.0),
-        caps: wrongIdx.map(function(i){ return '排除 ' + String.fromCharCode(65 + i); }),
-        draw: function(ctx, p){
-          var n = opts.length;
-          var h = Math.min(150, (STAGE_BOT - STAGE_TOP - (n - 1) * 20) / n);
-          var top = STAGE_TOP + 40;
-          chip(ctx, '排 除 法', PAD, top - 110, { size: 28, c: RED, c2: '#ff9ed6' });
-          for(var i = 0; i < n; i++){
-            if(i === ai){ optCard(ctx, spec, i, { p: 1, top: top }); continue; }
-            var k = wrongIdx.indexOf(i);
-            var st = clamp((p - k * 0.24) / 0.4, 0, 1);
-            if(st <= 0){ optCard(ctx, spec, i, { p: 1, top: top }); continue; }
-            optCard(ctx, spec, i, {
-              p: 1, top: top, wrong: true,
-              shakeP: clamp(st / .45, 0, 1),
-              xP: clamp((st - .45) / .55, 0, 1)
-            });
+      if(steps.length < 2){
+        push({
+          id: 'eliminate', name: '排除法', dur: clamp(0.7 + 0.72 * wrongIdx.length, 1.4, 4.6),
+          caps: wrongIdx.map(function(i){ return '排除 ' + String.fromCharCode(65 + i); }),
+          draw: function(ctx, p){
+            var n = opts.length;
+            var top = STAGE_TOP + 40;
+            chip(ctx, '排 除 法', PAD, top - 110, { size: 28, c: RED, c2: '#ff9ed6' });
+            for(var i = 0; i < n; i++){
+              if(i === ai){ optCard(ctx, spec, i, { p: 1, top: top }); continue; }
+              var k = wrongIdx.indexOf(i);
+              var st = clamp((p - k * 0.24) / 0.4, 0, 1);
+              if(st <= 0){ optCard(ctx, spec, i, { p: 1, top: top }); continue; }
+              optCard(ctx, spec, i, {
+                p: 1, top: top, wrong: true,
+                shakeP: clamp(st / .45, 0, 1),
+                xP: clamp((st - .45) / .55, 0, 1)
+              });
+            }
           }
-        }
-      });
+        });
+      }
     } else {
       push({
         id: 'ask', name: '求解目标', dur: 3.0,
@@ -838,27 +1349,60 @@
       });
     }
 
-    /* --- S3B 思路提示（独立场景，故事板 S03B；q.hint 为真内容，非注水） --- */
-    if(hint){
-      var hintLines = wrapMeasure(hint, W - PAD * 2 - 68, FS.sol, 700);
-      push({
-        id: 'hint', name: '思路提示', dur: clamp(1.6 + 0.04 * hint.length, 2.0, 4.4),
-        caps: [hint.slice(0, 40)],
-        draw: function(ctx, p){
-          chip(ctx, '思 路 提 示', PAD, 250, { size: 28, c: S.c, c2: S.c2 });
-          var e = clamp(p / .7, 0, 1);
-          var y = STAGE_TOP + 90, w = W - PAD * 2;
-          rr(ctx, PAD, y, w, 540, 32);
-          ctx.fillStyle = 'rgba(255,255,255,.06)'; ctx.fill();
-          ctx.strokeStyle = hexA(S.c, .6); ctx.lineWidth = 4; ctx.stroke();
-          para(ctx, hint, PAD + 34, y + 90, w - 68, FS.sol, { weight: 700, color: '#fff', progress: e, stagger: .1, each: .5 });
-        }
-      });
-    }
-
-    /* --- S5 答案揭晓 --- */
+    /* --- S5 解析分步推演（v3.9.0：升格为成片主体 —— 逐步推演 + 公式高亮 + 高数真曲线随讲随画；
+             答案揭晓已挪到推演之后：先讲清为什么，再告诉你是什么） --- */
+    var solSteps = steps.length ? steps : [];
+    var solFrom = steps.length ? 'sol' : 'none';
+    spec.prov.solFrom = solFrom;
+    var hasPlot = !!(spec.plot && spec.plot.fn);
     push({
-      id: 'reveal', name: '答案揭晓', dur: 3.0,
+      id: 'solution', name: '解析推演', dur: clamp(2.4 + 2.7 * solSteps.length, 4.0, 22),
+      caps: solSteps.length ? solSteps.map(function(s, i){ return '第 ' + (i + 1) + ' 步 · ' + s.slice(0, 34); }) : ['这题暂无文字解析，先记住套路'],
+      draw: function(ctx, p){
+        chip(ctx, solFrom === 'sol' ? '解 析 推 演' : '思 路 提 示', PAD, 250, { size: 28, c: S.c, c2: S.c2 });
+        /* 高数题：舞台持续画着这条真曲线，跟着讲解一起演化 —— 边讲边看图 */
+        if(hasPlot) stage(ctx, spec, clamp(p * 1.2, 0, 1), 1);
+        var n = solSteps.length;
+        var y0 = hasPlot ? 800 : 380;
+        var each = Math.min(hasPlot ? 128 : 210, (CAP_TOP - 130 - y0) / Math.max(1, n));
+        var fs = hasPlot ? 38 : FS.sol;
+        for(var i = 0; i < n; i++){
+          var sp = clamp((p - i * 0.16) / 0.55, 0, 1);
+          if(sp <= 0) continue;
+          var e = easeOut(sp);
+          var y = y0 + i * each;
+          ctx.save();
+          ctx.globalAlpha = sp;
+          ctx.translate((1 - e) * 90, 0);
+          var hh = each - 20;
+          rr(ctx, PAD, y, W - PAD * 2, hh, 24);
+          ctx.fillStyle = i === n - 1 ? hexA(GREEN, .13) : 'rgba(255,255,255,.055)';
+          ctx.fill();
+          ctx.strokeStyle = i === n - 1 ? hexA(GREEN, .55) : 'rgba(255,255,255,.10)';
+          ctx.lineWidth = 3; ctx.stroke();
+          if(sp < 1){ ctx.strokeStyle = hexA(GOLD, .85); ctx.lineWidth = 4; ctx.stroke(); }   // 正在讲的那一步：金边聚焦
+          var bs = Math.min(54, hh - 8);
+          rr(ctx, PAD + 24, y + (hh - bs) / 2, bs, bs, bs / 2);
+          ctx.fillStyle = i === n - 1 ? GREEN : hexA(S.c, .85); ctx.fill();
+          txt(ctx, String(i + 1), PAD + 24 + bs / 2, y + hh / 2 + bs * .24, { size: Math.min(34, bs * .62), weight: 900, align: 'center', color: '#1a0a1e', stroke: false });
+          /* 公式高亮：算式与数字走金色、叙述走白色 —— 一眼看清算的是哪一步 */
+          var maxW = W - PAD * 2 - 150;
+          var lines = wrap(ctx, solSteps[i], maxW, fs, 700);
+          var lh = fs * 1.3, sy = y + hh / 2 - (Math.min(lines.length, 3) - 1) * lh / 2 + fs * .36;
+          richLine(ctx, solSteps[i], PAD + 100, sy, maxW, fs, 700, Math.min(lines.length, 3) * lh);
+          ctx.restore();
+        }
+        if(!n){
+          ctx.save(); ctx.globalAlpha = clamp(p / .4, 0, 1);
+          txt(ctx, '本题暂无文字解析，先看答案反推每一步', W / 2, 900, { size: 42, weight: 800, align: 'center', color: SUB });
+          ctx.restore();
+        }
+      }
+    });
+
+    /* --- S6 答案揭晓（v3.9.0：移到解析推演之后 —— 先讲清为什么，再揭晓答案） --- */
+    push({
+      id: 'reveal', name: '答案揭晓', dur: 2.6,
       caps: [isChoice ? ('正确答案是 ' + String.fromCharCode(65 + ai)) : '答案揭晓',
              isChoice ? (String.fromCharCode(65 + ai) + '. ' + answer) : ('答案：' + answer)].filter(Boolean),
       draw: function(ctx, p){
@@ -894,50 +1438,27 @@
       }
     });
 
-    /* --- S6 解析分步推演（思路提示已独立为 S03B 场景，避免重复） --- */
-    var solSteps = steps.length ? steps : [];
-    var solFrom = steps.length ? 'sol' : 'none';
-    spec.prov.solFrom = solFrom;
-    push({
-      id: 'solution', name: '解析推演', dur: clamp(1.6 + 2.1 * solSteps.length, 2.6, 18),
-      caps: solSteps.length ? solSteps.map(function(s, i){ return '第 ' + (i + 1) + ' 步 · ' + s.slice(0, 34); }) : ['这题暂无文字解析，先记住套路'],
-      draw: function(ctx, p){
-        chip(ctx, solFrom === 'sol' ? '解 析 推 演' : '思 路 提 示', PAD, 250, { size: 28, c: S.c, c2: S.c2 });
-        var n = solSteps.length;
-        var y0 = 380;
-        var each = Math.min(210, (CAP_TOP - 140 - y0) / Math.max(1, n));
-        for(var i = 0; i < n; i++){
-          var sp = clamp((p - i * 0.16) / 0.55, 0, 1);
-          if(sp <= 0) continue;
-          var e = easeOut(sp);
-          var y = y0 + i * each;
-          ctx.save();
-          ctx.globalAlpha = sp;
-          ctx.translate((1 - e) * 90, 0);
-          var hh = each - 24;
-          rr(ctx, PAD, y, W - PAD * 2, hh, 24);
-          ctx.fillStyle = i === n - 1 ? hexA(GREEN, .13) : 'rgba(255,255,255,.055)';
-          ctx.fill();
-          ctx.strokeStyle = i === n - 1 ? hexA(GREEN, .55) : 'rgba(255,255,255,.10)';
-          ctx.lineWidth = 3; ctx.stroke();
-          // 序号
-          rr(ctx, PAD + 24, y + (hh - 54) / 2, 54, 54, 27);
-          ctx.fillStyle = i === n - 1 ? GREEN : hexA(S.c, .85); ctx.fill();
-          txt(ctx, String(i + 1), PAD + 51, y + hh / 2 + 19, { size: 34, weight: 900, align: 'center', color: '#1a0a1e', stroke: false });
-          var lines = wrap(ctx, solSteps[i], W - PAD * 2 - 130, FS.sol, 700);
-          var lh = FS.sol * 1.28, sy = y + hh / 2 - (Math.min(lines.length, 3) - 1) * lh / 2 + FS.sol * .36;
-          for(var k = 0; k < Math.min(lines.length, 3); k++){
-            txt(ctx, lines[k], PAD + 100, sy + k * lh, { size: FS.sol, weight: 700, color: '#fff', stroke: false });
+    /* --- S6B 记忆口诀（v3.9.0：内置口诀库直接给，零 API 消耗、断网也在） --- */
+    if(spec.memo){
+      push({
+        id: 'mnem', name: '记忆口诀', dur: 3.4,
+        caps: [isChoice ? (String.fromCharCode(65 + ai) + '. ' + answer) : ('答案：' + answer)].filter(Boolean),
+        draw: function(ctx, p){
+          chip(ctx, '记 忆 口 诀', PAD, 250, { size: 28, c: GOLD, c2: '#f59e0b' });
+          var e = easeOut(clamp(p / .7, 0, 1));
+          ctx.save(); ctx.globalAlpha = e;
+          var y = 380, w = W - PAD * 2;
+          rr(ctx, PAD, y, w, 660, 32);
+          ctx.fillStyle = hexA(GOLD, .09); ctx.fill();
+          ctx.strokeStyle = hexA(GOLD, .6); ctx.lineWidth = 4; ctx.stroke();
+          var lines = wrap(ctx, spec.memo, w - 110, 40, 700);
+          for(var k2 = 0; k2 < Math.min(lines.length, 8); k2++){
+            txt(ctx, lines[k2], PAD + 55, y + 96 + k2 * 62, { size: 40, weight: 700, color: k2 === 0 ? GOLD : '#fff', stroke: false });
           }
           ctx.restore();
         }
-        if(!n){
-          ctx.save(); ctx.globalAlpha = clamp(p / .4, 0, 1);
-          txt(ctx, '本题暂无文字解析，先看答案反推每一步', W / 2, 900, { size: 42, weight: 800, align: 'center', color: SUB });
-          ctx.restore();
-        }
-      }
-    });
+      });
+    }
 
     /* --- S7 结尾记忆点 --- */
     var outro = hint ? hint : (steps.length ? steps[steps.length - 1] : '');

@@ -14,7 +14,7 @@
      - runtime 缓存名与版本解耦（ck-rt 固定），升级不再清掉 27MB 模型/考点图；
      - cache.put 全部吞配额异常（QuotaExceeded 不再让网络成功的资源渲染失败）；
      - precache 单项失败从静默改 console.warn，便于排查缺块。 */
-const CACHE_PREFIX = 'ck-v3.8.0';
+const CACHE_PREFIX = 'ck-v3.9.0';
 const PRECACHE = CACHE_PREFIX + '-pre';
 const RUNTIME = 'ck-rt';   // 与版本解耦：升级只清旧 precache，保留运行期缓存
 
@@ -27,6 +27,7 @@ const PRECACHE_URLS = [
   './data/kaodian.js',
   './data/goldpoints.js',
   './data/anim2d.js',          // v3.5.0 · 2D 动画讲解引擎（按需加载，断网也要能播）
+  './data/mnemonics.js',       // v3.9.0 · 考点级记忆口诀库（同步加载，断网也要能显示）
   './assets/heroine.jpg',
   './assets/xue.jpg',
   './assets/luo.jpg',

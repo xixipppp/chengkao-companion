@@ -7,6 +7,7 @@ global.window = global;                       // 题库脚本是 window.xxx = ..
 require(path.join(ROOT, 'data', 'anim2d.js'));
 require(path.join(ROOT, 'data', 'subjectbank.js'));
 require(path.join(ROOT, 'data', 'mathbank.js'));
+require(path.join(ROOT, 'data', 'mnemonics.js'));   // v3.9.0：让「记忆口诀」场景也进入单测
 
 const A = global.Anim2D;
 const ALL = [].concat(global.SUBJ_BANK || [], global.MATH_BANK || []);
@@ -26,6 +27,7 @@ const TEMPLATE = [
 ];
 function isTemplate(t){
   if(TEMPLATE.indexOf(t) >= 0) return true;
+  if(/^先定方法：/.test(t)) return true;                      // v3.9.0 破题思路串词 + 题目 hint
   if(/^排除 [A-H]$/.test(t)) return true;                    // 排除 A
   if(/^第 \d+ 步 · /.test(t)) return true;                   // 第 N 步 · 内容截断
   if(/^记住：/.test(t)) return true;
@@ -58,7 +60,7 @@ function traceable(text, q){
     });
   }
   // 「第 N 步 · xxx」「记住：xxx」这类前缀 + 截断内容：校验正文片段
-  const body = t.replace(/^第 \d+ 步 · /, '').replace(/^记住：/, '').replace(/^答案：/, '')
+  const body = t.replace(/^第 \d+ 步 · /, '').replace(/^记住：/, '').replace(/^答案：/, '').replace(/^先定方法：/, '')
                 .replace(/^[A-H]\. /, '').replace(/^正确答案是 [A-H]$/, '');
   const cut = body.replace(/…$/, '').slice(0, 20);
   return cut.length >= 2 && src.indexOf(cut) >= 0;
@@ -76,16 +78,21 @@ ALL.forEach(q => {
   bySubj[k] = (bySubj[k] || 0) + 1;
   if(!(sp.total >= 29.9 && sp.total <= 60.1)) badDur.push(q.id + '=' + sp.total.toFixed(1));
   const ids = sp.scenes.map(s => s.id).join(',');
-  /* 场景序列：基础 7/6 场；题目带 hint 时多一个 S03B 思路提示场景（在 options/ask 之后、reveal 之前） */
-  const base = sp.isChoice
-    ? ['cover', 'stem', 'options', 'eliminate', 'reveal', 'solution', 'outro']
-    : ['cover', 'stem', 'ask', 'reveal', 'solution', 'outro'];
-  const need = base.slice();
-  if(sp.scenes.some(function(s){ return s.id === 'hint'; })){
-    const pos = sp.isChoice ? base.indexOf('eliminate') : base.indexOf('ask');
-    need.splice(pos + 1, 0, 'hint');
-  }
+  /* v3.9.0 新分镜：片头 → 题干 → 破题思路 → 选项/求解目标 →（解析不足时才用）排除法
+     → 解析推演（主体）→ 答案揭晓 → 记忆口诀 → 结尾记忆点
+     硬规则：解析推演必须在答案揭晓之前（先讲清为什么，再给答案） */
+  const has = id => sp.scenes.some(s => s.id === id);
+  const need = ['cover', 'stem'];
+  if(has('hint')) need.push('hint');
+  need.push(sp.isChoice ? 'options' : 'ask');
+  if(has('eliminate')) need.push('eliminate');
+  need.push('solution', 'reveal');
+  if(has('mnem')) need.push('mnem');
+  need.push('outro');
   if(ids !== need.join(',')) badScene.push(q.id + '=' + ids);
+  const iSol = sp.scenes.findIndex(s => s.id === 'solution');
+  const iRev = sp.scenes.findIndex(s => s.id === 'reveal');
+  if(!(iSol >= 0 && iRev >= 0 && iSol < iRev)) badScene.push(q.id + '@order');
   if(!sp.caps.length) badCap.push(q.id);
   // 时间轴必须首尾相接、无空洞
   let t = 0;

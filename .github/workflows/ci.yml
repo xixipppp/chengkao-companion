@@ -87,6 +87,11 @@ jobs:
           TEST_URL=http://127.0.0.1:8900/index.html timeout 300 node tests/p1_smoke.js \
             && echo "p1_smoke PASS ✅" || { echo "p1_smoke FAIL ❌"; fail=1; }
 
+          # v3.9.0：p2_smoke 校验考点级口诀库（全库覆盖/命中率）+ 2D 动画真演算重制（新分镜/真曲线/口诀收尾）
+          echo "=== p2_smoke（本地服务版） ==="
+          TEST_URL=http://127.0.0.1:8900/index.html timeout 300 node tests/p2_smoke.js \
+            && echo "p2_smoke PASS ✅" || { echo "p2_smoke FAIL ❌"; fail=1; }
+
           exit $fail
 
       # v3.4.1：失败留证——上传测试截图/产物
