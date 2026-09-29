@@ -29,6 +29,7 @@ const srcText = q => [q.q, (q.o || []).join(' '), (q.ans || []).join(' '), q.sol
 function mnemFor(q){
   const s = srcText(q), out = [];
   for(let i = 0; i < R.length && out.length < 3; i++){
+    if(q.m && R[i].m && R[i].m !== q.m) continue;   // v3.10.2：与 index.html mnemFor 同步，规则限同模块
     for(const kw of R[i].k){ if(s.indexOf(String(kw).toLowerCase()) >= 0){ out.push(R[i].t); break; } }
   }
   return out;

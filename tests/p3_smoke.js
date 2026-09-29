@@ -110,7 +110,21 @@ function ok(cond, name, extra){
   });
   ok(wired.hasChant && wired.hasSteps, '答题页已展示「考场速记 + 做题步骤」');
 
-  /* ⑦ v3.10.1 回归：复仇战必须是「重新答题」，不能一进来就是已答错画面 */
+  /* ⑦b v3.10.2 回归：考点口诀不得跨模块串库——政治因果题绝不能给出英语逻辑关系词口诀（用户截图实锤） */
+  const cross = await page.evaluate(() => {
+    const ALL = (window.SUBJ_BANK || []).concat(window.MATH_BANK || []);
+    const q = ALL.find(x => x.m === 'p1' && /因果/.test(x.q)) || ALL.find(x => x.m === 'p1');
+    const m = window.mnemFor(q);
+    return {
+      qid: q.id, text: m,
+      eng: /but\/however|so\/because|转折词|逻辑关系词/.test(m),
+      pol: /辩证法|联系|对立统一|矛盾/.test(m)
+    };
+  });
+  ok(!cross.eng, '政治题的考点口诀不混入英语逻辑关系词（限同模块）', cross.qid + ' → ' + cross.text.slice(0, 40));
+  ok(cross.pol, '政治因果题命中政治自己的考点口诀', cross.text.slice(0, 40));
+
+
   const rev = await page.evaluate(async () => {
     const ALL = (window.SUBJ_BANK || []).concat(window.MATH_BANK || []);
     const q = ALL.find(x => x.m === 'p1' && x.t === 'choice');
@@ -136,6 +150,27 @@ function ok(cond, name, extra){
   ok(rev.reached, '答错后能进复仇战分界页');
   ok(rev.reached && !rev.solShown && rev.disabled.every(x => !x), '复仇战首屏是重新答题（无已答错解析、选项可点）',
      'sol=' + rev.solShown + ' disabled=' + JSON.stringify(rev.disabled));
+
+  /* ⑦c v3.10.2：复仇战分界页必须有「本轮考点·公式回顾」卡（每轮答完都能再扫一眼必考点） */
+  const recap = await page.evaluate(() => {
+    const ALL = (window.SUBJ_BANK || []).concat(window.MATH_BANK || []);
+    const q = ALL.find(x => x.m === 'p1' && x.t === 'choice');
+    window.startDrill('p1', 'normal', { only: [q] });
+    const k = (q.a + 1) % q.o.length;
+    window.submitDrill(k, document.querySelectorAll('#drillBody .opt')[k]);
+    const nb = [].slice.call(document.querySelectorAll('#drillBody button')).find(b => /下一题/.test(b.textContent));
+    if(nb) nb.click();
+    window.renderDrill();                                   // 到复仇战分界页
+    const rep = document.getElementById('repFv');
+    const memo = document.getElementById('memoBodyV');
+    return {
+      rep: !!(rep && rep.textContent.trim().length > 5),
+      memo: !!(memo && memo.textContent.trim().length > 5),
+      repTxt: rep ? rep.textContent.slice(0, 50) : ''
+    };
+  });
+  ok(recap.rep, '复仇战分界页含「本轮考点·公式回顾」卡且有内容', recap.repTxt);
+  ok(recap.memo, '复仇战分界页含「本轮考点口诀」卡且有内容');
 
   /* ⑧ v3.10.1 回归：题笔记同步落盘 + 笔记本可见（重载到干净页面，避免受刷题流程影响） */
   await page.reload({ waitUntil: 'load' });

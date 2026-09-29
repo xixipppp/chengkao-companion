@@ -2118,7 +2118,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.10.1';  // 同步 GitHub Release 标签（v3.10.1 = 热修：① 复仇战回到「重新答题」——进入复仇战时清空首轮作答痕迹 ansLog 并标记 revengeRound，不再一进来就是「已答错」且选项全禁用 ② 题笔记修复——内联 onclick 传参改走 jstr()（此前双引号截断 HTML 属性导致「保存笔记/编辑/删除/去练」点了没反应），保存改为同步落盘、输入停顿自动存草稿、「我的笔记」页顶部新增题笔记区块（可编辑/删除/去练））
+const APP_VER = 'v3.10.2';  // 同步 GitHub Release 标签（v3.10.2 = 热修：① 考点口诀跨模块串库修复——mnemFor 匹配 MNEM_DATA 规则补上限同模块校验（与 QSTEP/LECTURE 对齐），政治题不再混入英语逻辑关系词口诀 ② 复仇战分界页新增「本轮考点·公式回顾 + 本轮考点口诀」两张卡——每轮答完都能扫一眼本轮必考点加深记忆，不再只有全对/通关页才有战报）
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
@@ -4301,7 +4301,14 @@ function renderDrill(){
         <div style="color:var(--sub);margin:8px 0 4px">首轮完成 · 首轮正确率 ${acc}%</div>
         <div style="color:var(--sub);margin-bottom:14px">还有 <b class="hl">${rv.length}</b> 道错题待消灭 —— 复仇战<b>只重做这几道</b>，答对过的不再出现。</div>
         <div class="row2"><button class="btn magenta" id="rvGo">⚔️ 复仇战：只做这 ${rv.length} 道</button><button class="btn ghost" id="rvQuit">🏁 结束本轮（错题已进错题本）</button></div>
-        <div style="text-align:left;margin-top:12px" id="drillRankLine"></div></div>`;
+        <div style="text-align:left;margin-top:12px" id="drillRankLine"></div></div>
+      <!-- v3.10.2：分界页同样给出「本轮考点·公式回顾」——用户要求每轮答完都能扫一眼
+           本轮遇到的必考知识点与公式，加深记忆；此前只有全对/通关的结束页才有战报卡，
+           而真实使用里最常见的就是这个分界页（用户截图实锤没有总结）。 -->
+      <div class="card" style="text-align:left"><div style="font-weight:900;margin-bottom:10px">📚 本轮考点·公式回顾<small style="font-size:11px;color:var(--sub);font-weight:500;margin-left:6px">做完题扫一眼，加深记忆</small></div><div id="repFv"></div></div>
+      <div class="card" style="text-align:left"><div style="font-weight:900;margin-bottom:10px">🎵 本轮考点口诀<small style="font-size:11px;color:var(--sub);font-weight:500;margin-left:6px">进复仇战前默念一遍</small></div><div id="memoBodyV"></div></div>`;
+      renderRoundReport(document.getElementById('repFv'), modIds, d);
+      fillRoundMnem(document.getElementById('memoBodyV'), d, modIds);
       /* v3.10.1 复仇战必须是「重新答题」：此前只重置了 i/right，没清 ansLog，
          而复仇战复用的就是首轮那几道题（同一个 id）→ replayAnswered 把首轮的作答痕迹
          重放出来，用户一进来就看到「❌ 这题你答错过」且选项全禁用，根本没法重做。
@@ -4943,6 +4950,10 @@ function mnemFor(q){
     const s = [q.q, (q.o || []).join(' '), (q.ans || []).join(' '), q.sol, q.hint, q.mod]
       .map(x => String(x == null ? '' : x)).join(' ').toLowerCase();
     for(let i = 0; i < R.length && out.length < 3; i++){
+      /* v3.10.2：规则必须同模块——此前不限 m，政治题题干含「因果」会命中英语 e 模块的
+         【逻辑关系词】口诀（因果 so/because/therefore…），口诀内容张冠李戴（用户截图实锤）。
+         QSTEP/LECTURE 两库匹配时本就限模块，这里补齐。 */
+      if(q.m && R[i].m && R[i].m !== q.m) continue;
       const ks = R[i].k || [];
       for(let j = 0; j < ks.length; j++){
         if(s.indexOf(String(ks[j]).toLowerCase()) >= 0){ out.push(R[i].t); break; }

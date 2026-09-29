@@ -14,7 +14,7 @@ const R = global.MNEM_DATA.rules;
 const ALL = [].concat(global.SUBJ_BANK || [], global.MATH_BANK || []);
 const onlySubj = process.argv[2] || '';
 
-/* 与 index.html 里 mnemFor() 保持同一套逻辑 */
+/* 与 index.html 里 mnemFor() 保持同一套逻辑（v3.10.2 起规则限同模块） */
 function srcText(q){
   return [q.q, (q.o || []).join(' '), (q.ans || []).join(' '), q.sol, q.hint, q.mod]
     .map(s => String(s == null ? '' : s)).join(' ').toLowerCase();
@@ -23,6 +23,7 @@ function mnemHit(q){
   const s = srcText(q);
   const hit = [];
   for(const r of R){
+    if(q.m && r.m && r.m !== q.m) continue;      // v3.10.2 跨模块串库修复（与 mnemFor 同步）
     for(const kw of r.k){
       if(s.indexOf(String(kw).toLowerCase()) >= 0){ hit.push(r); break; }
     }
