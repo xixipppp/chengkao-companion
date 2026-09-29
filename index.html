@@ -1045,6 +1045,8 @@
   <section class="screen" id="s-myNotes">
     <div class="back" onclick="go('s-study')">← 返回自习室</div>
     <div class="sec-title"><span class="bar"></span>我的笔记<small>自动标重点 · 按模块归类</small></div>
+    <!-- v3.10.1：做题时手写的题笔记也在这里呈现（此前只有自动考点笔记，用户写完找不到） -->
+    <div id="myQNoteSec"></div>
     <div class="row2 mt10">
       <button class="btn ghost" onclick="myNoteTab('math')" id="mntab-math">∫ 高数二</button>
       <button class="btn ghost" onclick="myNoteTab('pol')" id="mntab-pol">★ 政治</button>
@@ -2029,8 +2031,9 @@ function blank(){ return {name:'女主', xp:0, correct:0, total:0,
   mem:{sem:{}, epi:[], pro:{}},
   /* v3.6.0 音效与云端朗读默认 */
   sfxOn:true, cloudTts:{enabled:false, endpoint:'', token:''},
-  /* v3.8.0 每题笔记（qid -> 文本）与收藏夹（qid 数组，最新在前） */
-  notes:{}, favs:[]}; }
+  /* v3.8.0 每题笔记（qid -> 文本）与收藏夹（qid 数组，最新在前）
+     v3.10.1 新增 noteTs（qid -> 写入时间戳），老存档自动补 {} */
+  notes:{}, favs:[], noteTs:{}}; }
 /* 0.7 归一化：load() 与 importArchive() 共用，杜绝两条路径补字段不一致 */
 function normalize(s){
   const b = blank();
@@ -2115,7 +2118,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.10.0';  // 同步 GitHub Release 标签（v3.10.0 = **P3 教授级讲解**：① 每题新增「做题步骤 + 考场速记口诀」（data/stepmnem.js，用题干真实数据填充，全库 100% 有输出、92% 精准命中题型）② 2D 动画升格为教授六段式讲解（data/lecture.js：考点定位→破题思路→为什么这么做→分步推演→易错警示→一句带走）③ 播放器新增分段导航条可点跳任一段 ④ 分步推演自适应排版不溢出）
+const APP_VER = 'v3.10.1';  // 同步 GitHub Release 标签（v3.10.1 = 热修：① 复仇战回到「重新答题」——进入复仇战时清空首轮作答痕迹 ansLog 并标记 revengeRound，不再一进来就是「已答错」且选项全禁用 ② 题笔记修复——内联 onclick 传参改走 jstr()（此前双引号截断 HTML 属性导致「保存笔记/编辑/删除/去练」点了没反应），保存改为同步落盘、输入停顿自动存草稿、「我的笔记」页顶部新增题笔记区块（可编辑/删除/去练））
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
@@ -3654,6 +3657,13 @@ function trimHist(hist){
   return sys.concat(rest).map(m => ({ role:m.role, content:clipText(m.content) }));
 }
 function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+/* v3.10.1：内联 onclick 传字符串参数统一走 jstr()（单引号 + 转义）。
+   此前用 JSON.stringify(id) 生成的是双引号，会把 HTML 属性 onclick="..." 提前闭合，
+   浏览器拿到的 JS 变成残缺片段（控制台 Unexpected end of input）→
+   「保存笔记 / 编辑 / 删除 / 去练」这类按钮点了完全没反应。 */
+function jstr(s){
+  return "'" + String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;').replace(/</g,'&lt;') + "'";
+}
 /* 兼容既有 8 个调用点：行为等价，但已具备超时 / 重试 / 熔断 / 配额 */
 async function sfChat(messages){
   const t = await aiCall(messages);
@@ -4178,7 +4188,7 @@ function drillClear(d){
       label: d.label, mode: d.mode,
       memo: (document.getElementById('memoBody').textContent || '').slice(0, 500)
     };
-    save(); toast('已保存，可在「我的笔记」随时回看 💾');
+    save(); toast('已存进通关记录 💾 在「我的笔记」页底部回看');
   };
   document.getElementById('mindGoNote').onclick = () => { go('s-note'); noteSrc('gold'); };
   /* v3.4.0：一轮通关 = 画像变化最大的一刻 → 强制让管家重估一次（只感知+规划，不自动执行） */
@@ -4292,7 +4302,15 @@ function renderDrill(){
         <div style="color:var(--sub);margin-bottom:14px">还有 <b class="hl">${rv.length}</b> 道错题待消灭 —— 复仇战<b>只重做这几道</b>，答对过的不再出现。</div>
         <div class="row2"><button class="btn magenta" id="rvGo">⚔️ 复仇战：只做这 ${rv.length} 道</button><button class="btn ghost" id="rvQuit">🏁 结束本轮（错题已进错题本）</button></div>
         <div style="text-align:left;margin-top:12px" id="drillRankLine"></div></div>`;
-      document.getElementById('rvGo').onclick = () => { d.list = rv; d.revengeQ = []; d.i = 0; d.right = 0; renderDrill(); };
+      /* v3.10.1 复仇战必须是「重新答题」：此前只重置了 i/right，没清 ansLog，
+         而复仇战复用的就是首轮那几道题（同一个 id）→ replayAnswered 把首轮的作答痕迹
+         重放出来，用户一进来就看到「❌ 这题你答错过」且选项全禁用，根本没法重做。
+         现在：清空作答痕迹 + 标记 revengeRound（replayAnswered 直接跳过）双保险。 */
+      document.getElementById('rvGo').onclick = () => {
+        d.list = rv; d.revengeQ = []; d.i = 0; d.right = 0;
+        d.ansLog = {}; d.lastAns = ''; d.revengeRound = 1; d.wrongRun = 0;
+        renderDrill();
+      };
       document.getElementById('rvQuit').onclick = () => { clearDrillProgress(); toast('错题已收进错题本，明天来验收 👋'); go('s-study'); };
       renderRankCard('drillRankLine');
       return;
@@ -4401,6 +4419,7 @@ function renderDrill(){
 /* 重放已作答的题：还原选项状态与解析，不发奖励、不重复计入统计 */
 function replayAnswered(q){
   const d = S.drill; if(!d || !d.ansLog) return;
+  if(d.revengeRound) return;                 // v3.10.1 复仇战一律重新答题，不重放首轮痕迹
   const log = d.ansLog[q.id]; if(!log) return;
   const body = document.getElementById('drillBody'); if(!body) return;
   const opts = body.querySelectorAll('.opt');
@@ -4724,39 +4743,102 @@ function toggleFav(q, btn){
   else{ st.favs.unshift(q.id); if(btn) btn.textContent = '⭐ 已收藏'; if(window.SFX) SFX.play('coin'); toast('已加入收藏夹 ⭐ 可在「我的」里查看'); }
   saveSoon();
 }
+/* v3.10.1 笔记加固：① 同步落盘（结构性操作，不再等 600ms 防抖）② 边打边存草稿，
+   切题/关框绝不丢 ③ 笔记按钮状态随保存即时同步 ④ 打开新框前先存掉旧框（杜绝点一次没反应） */
+function noteText(id){ return (st.notes && st.notes[id]) ? String(st.notes[id]) : ''; }
+function syncNoteBtns(){
+  document.querySelectorAll('.noteBtn').forEach(function(b){
+    const id = b.dataset.qid;
+    const has = !!noteText(id);
+    b.textContent = has ? '📝 已写笔记' : '📝 记笔记';
+    b.className = 'btn sm noteBtn ' + (has ? 'keep' : 'ghost');
+  });
+  const mn = document.getElementById('meNoteN'); if(mn) mn.textContent = Object.keys(st.notes || {}).length;
+}
 function qNoteBar(q){
   const bar = document.createElement('div'); bar.className = 'btns mt10';
   const fb = document.createElement('button'); fb.className = 'btn ghost sm';
   fb.textContent = favHas(q.id) ? '⭐ 已收藏' : '⭐ 收藏';
   fb.onclick = () => toggleFav(q, fb);
   bar.appendChild(fb);
-  const nb = document.createElement('button'); nb.className = 'btn ghost sm';
-  nb.textContent = (st.notes && st.notes[q.id]) ? '📝 已写笔记' : '📝 记笔记';
-  nb.onclick = () => toggleNoteBox(q, bar);
+  const has = !!noteText(q.id);
+  const nb = document.createElement('button');
+  nb.className = 'btn sm noteBtn ' + (has ? 'keep' : 'ghost');
+  nb.dataset.qid = String(q.id);
+  nb.textContent = has ? '📝 已写笔记' : '📝 记笔记';
+  nb.onclick = () => openNoteBox(q, bar);
   bar.appendChild(nb);
   return bar;
 }
-function toggleNoteBox(q, anchor){
-  const old = document.getElementById('noteBox');
-  if(old){ old.remove(); return; }
+let _noteDraftT = null;
+/* 把当前笔记框里的内容写进存档（不关框、不弹提示）——输入停顿 700ms 自动触发 */
+function flushNoteBox(){
+  const box = document.getElementById('noteBox');
+  if(!box || !box.dataset.qid) return;
+  const ta = document.getElementById('noteTa'); if(!ta) return;
+  const id = box.dataset.qid, v = String(ta.value || '').trim();
+  st.notes = st.notes || {};
+  if(v){ if(st.notes[id] !== v){ st.notes[id] = v; st.noteTs = st.noteTs || {}; st.noteTs[id] = Date.now(); save(); } }
+  else if(st.notes[id]){ delete st.notes[id]; save(); }
+}
+function openNoteBox(q, anchor){
+  /* 旧框先存再删：此前是「有旧框就只删不打开」，导致点一次没反应 */
+  flushNoteBox();
+  const old = document.getElementById('noteBox'); if(old) old.remove();
   st.notes = st.notes || {};
   const box = document.createElement('div'); box.id = 'noteBox';
+  box.dataset.qid = String(q.id);
   box.style.cssText = 'margin-top:8px;padding:10px;border-radius:12px;background:var(--panel2);border:1px solid var(--line)';
-  box.innerHTML = '<div style="font-size:12px;font-weight:800;margin-bottom:6px">📝 这道题的笔记（只存在你本机）</div>'
+  box.innerHTML = '<div style="font-size:12px;font-weight:800;margin-bottom:6px">📝 这道题的笔记'
+    + '<span style="font-weight:600;color:var(--sub)"> · 输入即自动保存，可在「我的 · 我的笔记」回看</span></div>'
     + '<textarea id="noteTa" rows="3" placeholder="记下你的思路、易错点、自己的口诀…" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:8px;color:var(--txt);padding:8px">'
-    + escapeHtml(st.notes[q.id] || '') + '</textarea>'
-    + '<div class="btns" style="margin-top:8px"><button class="btn sm keep" onclick="saveNote(' + JSON.stringify(String(q.id)) + ')">保存笔记</button>'
-    + '<button class="btn sm ghost" onclick="document.getElementById(\'noteBox\').remove()">收起</button></div>';
+    + escapeHtml(noteText(q.id)) + '</textarea>'
+    + '<div class="btns" style="margin-top:8px"><button class="btn sm keep" onclick="saveNote(' + jstr(q.id) + ',1)">保存并收起</button>'
+    + '<button class="btn sm ghost" onclick="closeNoteBox()">收起</button></div>';
   anchor.parentNode.insertBefore(box, anchor.nextSibling);
-  const ta = document.getElementById('noteTa'); if(ta) ta.focus();
+  const ta = document.getElementById('noteTa');
+  if(ta){
+    if(_noteDraftT) clearTimeout(_noteDraftT);
+    ta.oninput = function(){
+      if(_noteDraftT) clearTimeout(_noteDraftT);
+      _noteDraftT = setTimeout(function(){ flushNoteBox(); syncNoteBtns(); renderMyQNotes(); }, 700);
+    };
+    ta.focus();
+  }
 }
-function saveNote(id){
-  const ta = document.getElementById('noteTa'); if(!ta) return;
-  st.notes = st.notes || {};
-  const v = ta.value.trim();
-  if(v) st.notes[id] = v; else delete st.notes[id];
-  saveSoon(); toast(v ? '笔记已保存 📝' : '笔记已清空');
+function closeNoteBox(){
+  flushNoteBox(); syncNoteBtns(); renderMyQNotes();
   const box = document.getElementById('noteBox'); if(box) box.remove();
+}
+function saveNote(id, fromBtn){
+  const ta = document.getElementById('noteTa');
+  const v = ta ? String(ta.value || '').trim() : '';
+  st.notes = st.notes || {}; st.noteTs = st.noteTs || {};
+  if(v){ st.notes[id] = v; st.noteTs[id] = Date.now(); } else { delete st.notes[id]; delete st.noteTs[id]; }
+  save();                                   // 同步落盘，不等防抖
+  syncNoteBtns(); renderMyQNotes();
+  if(fromBtn){ toast(v ? '已保存 📝 去「我的 · 我的笔记」回看' : '笔记已清空'); }
+  const box = document.getElementById('noteBox'); if(box) box.remove();
+}
+/* 在「我的笔记」页里直接编辑某条题笔记 */
+function noteEdit(id){
+  const q = qById(id);
+  openSheet('📝 编辑笔记', '<div style="font-size:12.5px;color:var(--sub);margin-bottom:6px">'
+    + escapeHtml(q ? String(q.q || '').slice(0, 60) : ('题目 ' + id)) + '</div>'
+    + '<textarea id="noteTa2" rows="4" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:8px;color:var(--txt);padding:8px">'
+    + escapeHtml(noteText(id)) + '</textarea>'
+    + '<div class="btns" style="margin-top:8px"><button class="btn sm keep" onclick="noteEditSave(' + jstr(id) + ')">保存</button>'
+    + '<button class="btn sm ghost" onclick="document.getElementById(\'ckSheet\').remove()">取消</button></div>');
+}
+function noteEditSave(id){
+  const ta = document.getElementById('noteTa2');
+  const v = ta ? String(ta.value || '').trim() : '';
+  st.notes = st.notes || {}; st.noteTs = st.noteTs || {};
+  if(v){ st.notes[id] = v; st.noteTs[id] = Date.now(); } else { delete st.notes[id]; delete st.noteTs[id]; }
+  save(); syncNoteBtns(); renderMyQNotes();
+  toast(v ? '笔记已更新 📝' : '笔记已删除');
+  const ov = document.getElementById('ckSheet'); if(ov) ov.remove();
+  openNoteSheet();
 }
 /* 通用底部弹层（移动端友好，从底部升起） */
 function openSheet(title, innerHTML){
@@ -4780,8 +4862,8 @@ function openFavSheet(){
     if(!q){ h += '<div class="card" style="margin-bottom:8px;font-size:12px;color:var(--sub)">（题目 ' + escapeHtml(id) + ' 已不在题库中）</div>'; return; }
     h += '<div class="card" style="margin-bottom:8px;padding:11px">'
       + '<div style="font-size:13px;line-height:1.6;margin-bottom:6px">' + escapeHtml(String(q.q || '').slice(0, 90)) + '</div>'
-      + '<div class="btns"><button class="btn sm ghost" onclick="favGo(' + JSON.stringify(String(id)) + ')">去练 ▶</button>'
-      + '<button class="btn sm ghost" onclick="favDel(' + JSON.stringify(String(id)) + ')">取消收藏</button></div></div>';
+      + '<div class="btns"><button class="btn sm ghost" onclick="favGo(' + jstr(id) + ')">去练 ▶</button>'
+      + '<button class="btn sm ghost" onclick="favDel(' + jstr(id) + ')">取消收藏</button></div></div>';
   });
   openSheet('⭐ 我的收藏夹', h);
 }
@@ -4794,23 +4876,61 @@ function favGo(id){
   const sh = document.getElementById('ckSheet'); if(sh) sh.remove();
   startDrill(q.m || 'm1', {only:[q]});
 }
+function subjLabel(sid){
+  const s = (typeof SUBJECTS !== 'undefined' && SUBJECTS.find) ? SUBJECTS.find(x => x.id === sid) : null;
+  return s ? s.name : ({math:'高数（二）', pol:'政治', eng:'英语'}[sid] || '');
+}
+function noteTime(id){
+  const ts = (st.noteTs || {})[id]; if(!ts) return '';
+  const d = new Date(ts), now = new Date();
+  const sameDay = d.toDateString() === now.toDateString();
+  const p = n => (n < 10 ? '0' : '') + n;
+  return sameDay ? ('今天 ' + p(d.getHours()) + ':' + p(d.getMinutes())) : (p(d.getMonth() + 1) + '-' + p(d.getDate()));
+}
 function openNoteSheet(){
-  const ks = Object.keys(st.notes || {});
-  if(!ks.length){ openSheet('📝 我的笔记', '<div style="font-size:13px;color:var(--sub);line-height:1.8">还没有写过笔记。<br>做题时点解析下方的「📝 记笔记」就能记录思路。</div>'); return; }
-  let h = '<div style="font-size:12px;color:var(--sub);margin-bottom:8px">共 ' + ks.length + ' 条笔记</div>';
+  const ks = Object.keys(st.notes || {}).sort(function(a, b){ return ((st.noteTs || {})[b] || 0) - ((st.noteTs || {})[a] || 0); });
+  if(!ks.length){ openSheet('📝 我的笔记', '<div style="font-size:13px;color:var(--sub);line-height:1.8">还没有写过笔记。<br>做题时点解析下方的「📝 记笔记」就能记录思路（输入即自动保存）。</div>'); return; }
+  let h = '<div style="font-size:12px;color:var(--sub);margin-bottom:8px">共 ' + ks.length + ' 条 · 最新的在最上面</div>';
   ks.forEach(id => {
     const q = qById(id);
+    const sj = q ? subjLabel(q.subj || subjOfMod(q.m)) : '';
     h += '<div class="card" style="margin-bottom:8px;padding:11px">'
+      + '<div style="font-size:11.5px;color:var(--gold);font-weight:800;margin-bottom:4px">' + escapeHtml(sj || '题目') + (q ? ' · ' + escapeHtml(TREE_SHORT[q.m] || q.m) : '') + ' <span style="color:var(--sub);font-weight:600">' + escapeHtml(noteTime(id)) + '</span></div>'
       + '<div style="font-size:12px;color:var(--sub);margin-bottom:4px">' + escapeHtml(q ? String(q.q || '').slice(0, 60) : ('题目 ' + id)) + '</div>'
       + '<div style="font-size:13px;line-height:1.7;white-space:pre-wrap">' + escapeHtml(st.notes[id]) + '</div>'
-      + '<div class="btns" style="margin-top:8px">' + (q ? '<button class="btn sm ghost" onclick="favGo(' + JSON.stringify(String(id)) + ')">去练 ▶</button>' : '')
-      + '<button class="btn sm ghost" onclick="noteDel(' + JSON.stringify(String(id)) + ')">删除</button></div></div>';
+      + '<div class="btns" style="margin-top:8px">' + (q ? '<button class="btn sm ghost" onclick="favGo(' + jstr(id) + ')">去练 ▶</button>' : '')
+      + '<button class="btn sm keep" onclick="noteEdit(' + jstr(id) + ')">编辑</button>'
+      + '<button class="btn sm ghost" onclick="noteDel(' + jstr(id) + ')">删除</button></div></div>';
   });
   openSheet('📝 我的笔记', h);
 }
 function noteDel(id){
   if(st.notes) delete st.notes[id];
-  saveSoon(); openNoteSheet();
+  if(st.noteTs) delete st.noteTs[id];
+  save(); syncNoteBtns(); renderMyQNotes(); openNoteSheet();
+}
+/* v3.10.1：「📒 我的笔记」自动归类页顶部也挂上我写的题笔记 —— 用户从哪个入口进都能找到 */
+function renderMyQNotes(){
+  const host = document.getElementById('myQNoteSec'); if(!host) return;
+  const ks = Object.keys(st.notes || {}).sort(function(a, b){ return ((st.noteTs || {})[b] || 0) - ((st.noteTs || {})[a] || 0); });
+  if(!ks.length){
+    host.innerHTML = '<div class="card" style="padding:11px;font-size:12.5px;color:var(--sub);line-height:1.75">还没写过题笔记。做题时点解析下方的「📝 记笔记」，输入即自动保存，会同步出现在这里。</div>';
+    return;
+  }
+  let h = '<div style="display:flex;align-items:center;justify-content:space-between;margin:14px 0 8px">'
+    + '<div style="font-size:13px;font-weight:900">📝 我写的题笔记 <span style="color:var(--gold)">' + ks.length + '</span> 条</div>'
+    + '<button class="btn sm ghost" onclick="openNoteSheet()">全部管理</button></div>';
+  ks.slice(0, 8).forEach(id => {
+    const q = qById(id);
+    h += '<div class="card" style="margin-bottom:8px;padding:11px">'
+      + '<div style="font-size:11.5px;color:var(--gold);font-weight:800;margin-bottom:4px">' + escapeHtml(q ? (TREE_SHORT[q.m] || q.m) : '题目') + ' <span style="color:var(--sub);font-weight:600">' + escapeHtml(noteTime(id)) + '</span></div>'
+      + '<div style="font-size:12px;color:var(--sub);margin-bottom:4px">' + escapeHtml(q ? String(q.q || '').slice(0, 54) : ('题目 ' + id)) + '</div>'
+      + '<div style="font-size:13px;line-height:1.7;white-space:pre-wrap">' + escapeHtml(String(st.notes[id]).slice(0, 160)) + '</div>'
+      + '<div class="btns" style="margin-top:8px">' + (q ? '<button class="btn sm ghost" onclick="favGo(' + jstr(id) + ')">去练 ▶</button>' : '')
+      + '<button class="btn sm keep" onclick="noteEdit(' + jstr(id) + ')">编辑</button></div></div>';
+  });
+  if(ks.length > 8) h += '<div style="font-size:12px;color:var(--sub);text-align:center;margin-top:6px">仅显示最近 8 条，点「全部管理」看全部 ' + ks.length + ' 条</div>';
+  host.innerHTML = h;
 }
 /* ---------- v3.7.0 每题记忆口诀：内置精选打底（MNEM_LOCAL 按考点），没收录的用 AI 现编并缓存 ----------
    v3.9.0：口诀细化到「考点级」—— 先用题干/选项/解析/思路提示里的关键词命中 data/mnemonics.js
@@ -5353,7 +5473,7 @@ function renderRadar(){
         return '<div style="display:flex;align-items:center;gap:8px;padding:9px 0;border-top:1px dashed var(--line)">'
           + '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:800">' + modById(x.id).name + '</div>'
           + '<div style="font-size:11.5px;color:var(--sub)">正确率 ' + Math.round(x.r * 100) + '% · 已做 ' + x.t + ' 题 · ' + mate.name + ' 陪你攻克</div></div>'
-          + '<button class="btn ghost sm" onclick="startDrill(' + JSON.stringify(String(x.id)) + ',\'solid\')">去攻克 ▶</button></div>';
+          + '<button class="btn ghost sm" onclick="startDrill(' + jstr(x.id) + ',\'solid\')">去攻克 ▶</button></div>';
       }).join('');
     }else{
       list = '<div style="font-size:12.5px;color:#8fe8b8;line-height:1.7;padding-top:10px">👍 各科正确率都在 75% 以上，暂时没有明显短板。想冲更高就去刷模拟卷或 Boss 战。</div>';
@@ -6154,6 +6274,7 @@ function delTaskMind(k){
 }
 function renderMyNotes(kw){
   renderTaskMind();
+  renderMyQNotes();                     // v3.10.1 手写题笔记同步进「我的笔记」页
   const box = document.getElementById('myNoteList'); if(!box) return;
   ['math', 'pol', 'eng'].forEach(s => {
     const b = document.getElementById('mntab-' + s);

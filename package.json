@@ -1,6 +1,6 @@
 {
   "name": "chengkao-companion",
-  "version": "3.10.0",
+  "version": "3.10.1",
   "private": true,
   "description": "心动成考 · 乙女陪练 —— 成人高考专升本备考陪练（纯静态 PWA）",
   "scripts": {

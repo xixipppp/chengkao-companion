@@ -110,7 +110,91 @@ function ok(cond, name, extra){
   });
   ok(wired.hasChant && wired.hasSteps, '答题页已展示「考场速记 + 做题步骤」');
 
-  /* ⑦ 页面零 JS 错误 */
+  /* ⑦ v3.10.1 回归：复仇战必须是「重新答题」，不能一进来就是已答错画面 */
+  const rev = await page.evaluate(async () => {
+    const ALL = (window.SUBJ_BANK || []).concat(window.MATH_BANK || []);
+    const q = ALL.find(x => x.m === 'p1' && x.t === 'choice');
+    window.__q0 = q;
+    window.startDrill('p1', 'normal', { only: [q] });
+    // 故意答错
+    const k = (q.a + 1) % q.o.length;
+    window.submitDrill(k, document.querySelectorAll('#drillBody .opt')[k]);
+    // 点「下一题」推进到队尾 → 出复仇战分界页
+    const nb = [].slice.call(document.querySelectorAll('#drillBody button')).find(b => /下一题/.test(b.textContent));
+    if(nb) nb.click();
+    window.renderDrill();
+    const go = document.getElementById('rvGo');
+    if(!go) return { reached: false };
+    go.click();
+    const opts = document.querySelectorAll('#drillBody .opt');
+    return {
+      reached: true,
+      disabled: [].map.call(opts, o => o.classList.contains('dis')),
+      solShown: !!document.querySelector('#drillBody .sol')
+    };
+  });
+  ok(rev.reached, '答错后能进复仇战分界页');
+  ok(rev.reached && !rev.solShown && rev.disabled.every(x => !x), '复仇战首屏是重新答题（无已答错解析、选项可点）',
+     'sol=' + rev.solShown + ' disabled=' + JSON.stringify(rev.disabled));
+
+  /* ⑧ v3.10.1 回归：题笔记同步落盘 + 笔记本可见（重载到干净页面，避免受刷题流程影响） */
+  await page.reload({ waitUntil: 'load' });
+  await page.waitForFunction(() => window.SUBJ_BANK && window.MATH_BANK, null, { timeout: 30000 });
+  await page.waitForTimeout(400);
+  const nt = await page.evaluate(() => {
+    const ALL = (window.SUBJ_BANK || []).concat(window.MATH_BANK || []);
+    const q = ALL.find(x => x.m === 'p1' && x.t === 'choice') || ALL[0];
+    const host = document.createElement('div'); host.id = 'p3noteHost'; document.body.appendChild(host);
+    host.appendChild(window.qNoteBar(q));
+    host.querySelectorAll('button')[1].click();          // 打开笔记框
+    const ta = document.getElementById('noteTa');
+    if(!ta) return { err: 'noteTa 未创建', hostHtml: host.innerHTML.slice(0, 120) };
+    ta.value = 'p3 回归测试笔记';
+    const btns = [].slice.call(document.querySelectorAll('#noteBox button'));
+    const labels = btns.map(b => b.textContent);
+    const save = btns.find(b => /保存/.test(b.textContent));
+    let clickErr = '';
+    try{ if(save) save.click(); }catch(e){ clickErr = String(e); }
+    const raw = JSON.parse(localStorage.getItem('ckmath_v3') || '{}');
+    window.openNoteSheet();
+    const sheet = document.getElementById('ckSheet');
+    const txt = sheet ? sheet.textContent : '';
+    if(sheet) sheet.remove();
+    window.go('s-myNotes');
+    const sec = document.getElementById('myQNoteSec');
+    return {
+      rawKeys: Object.keys(raw).slice(0, 8), labels: labels, clickErr: clickErr,
+      saved: !!((raw.notes || {})[q.id]),
+      text: (raw.notes || {})[q.id] || '',
+      inSheet: /p3 回归测试笔记/.test(txt),
+      inMyNotes: sec ? /p3 回归测试笔记/.test(sec.textContent) : false
+    };
+  });
+  ok(nt.saved && nt.text === 'p3 回归测试笔记', '笔记保存后即时落盘', JSON.stringify(nt));
+  ok(nt.inSheet, '「我的 · 我的笔记」里能看到这条笔记');
+  ok(nt.inMyNotes, '「📒 我的笔记」页顶部也能看到这条笔记');
+
+  /* ⑨ v3.10.1 回归：所有内联 onclick 都必须是可解析的合法 JS
+     （历史坑：onclick="fn("id")" 里的双引号会把 HTML 属性提前闭合 → 按钮点了没反应） */
+  const onclickSafe = await page.evaluate(() => {
+    const ALL = (window.SUBJ_BANK || []).concat(window.MATH_BANK || []);
+    const q = ALL.find(x => x.m === 'p1' && x.t === 'choice') || ALL[0];
+    if(window.toggleFav) window.toggleFav(q);          // 造一条收藏，让收藏弹层有按钮可检
+    if(window.openFavSheet) window.openFavSheet();
+    const els = document.querySelectorAll('[onclick]');
+    const bad = [];
+    [].forEach.call(els, el => {
+      const code = el.getAttribute('onclick') || '';
+      try{ new Function(code); }catch(e){ bad.push(code.slice(0, 40)); }
+    });
+    const sheet = document.getElementById('ckSheet'); if(sheet) sheet.remove();
+    return { total: els.length, bad: bad };
+  });
+  ok(onclickSafe.total > 0 && onclickSafe.bad.length === 0,
+     '收藏弹层内联 onclick 全部可解析（无属性截断）',
+     'total=' + onclickSafe.total + ' bad=' + JSON.stringify(onclickSafe.bad));
+
+  /* ⑩ 页面零 JS 错误 */
   ok(errs.length === 0, '页面无 JS 错误', errs.slice(0, 2).join(' | '));
 
   console.log('\n通过 ' + pass + ' / ' + (pass + fail));
