@@ -847,12 +847,14 @@ const CHANNEL = process.env.TEST_CHANNEL || (process.env.CI ? undefined : 'msedg
   /* T4 无 Key ⇒ 零网络请求且不卡死 */
   const t4 = await page.evaluate(async () => {
     localStorage.removeItem('ck_sfkey');
+    window.CK_AI_OFF = true;      // v3.8.0 起内置默认 Key，需显式关闭才能复现「未配置 Key」场景
     AIQ.day = ''; AIQ.calls = 0; AIQ.tok = 0; AIQ.win = []; AIQ.fail = 0; AIQ.openUntil = 0;
     const orig = window.fetch; let n = 0;
     window.fetch = async () => { n++; return { ok: true, json: async () => ({ choices: [{ message: { content: 'x' } }] }) }; };
     let err = '';
     try { await aiCall([{ role: 'user', content: 'hi' }]); } catch (e) { err = e.message; }
     window.fetch = orig;
+    window.CK_AI_OFF = false;
     return { n, err, nokey: st.aiStats.nokey };
   });
   T('T4', '未配置 Key ⇒ 零网络请求 + 明确报错（不卡 loading）', t4.n === 0 && /Key/i.test(t4.err), 'net=' + t4.n + ' err=' + t4.err);
@@ -1010,6 +1012,7 @@ const CHANNEL = process.env.TEST_CHANNEL || (process.env.CI ? undefined : 'msedg
   T('U1', '0.8 降级表：8 个 task 全部有非 AI 实现', u1.n === 8 && u1.allFn && u1.need && u1.task, JSON.stringify(u1));
 
   const u2 = await page.evaluate(async () => {
+    window.CK_AI_OFF = true;      // v3.8.0：U 段验证的是「AI 不可用时的本地降级」，需显式关闭内置 Key
     const before = (st.aiStats && st.aiStats.deg) || 0;
     const q = ALLQ.find(x => x.t === 'choice') || ALLQ[0];
     const r = await aiTask('tutor', [{ role: 'system', content: 'x' }, { role: 'user', content: 'y' }], { ctx: { q: q } });
@@ -1138,6 +1141,7 @@ const CHANNEL = process.env.TEST_CHANNEL || (process.env.CI ? undefined : 'msedg
     return { deg: (s.deg || 0) > 0, panel: /离线降级/.test(aiPanelHTML()), css: /\.offbadge\s*\{/.test(document.documentElement.innerHTML) };
   });
   T('U16', '0.8 降级计入统计 + 面板可观测 + 徽章样式已内置', u17.deg && u17.panel && u17.css, JSON.stringify(u17));
+  await page.evaluate(() => { window.CK_AI_OFF = false; });   // U 段结束，恢复内置 Key
 
   /* ---------- V. v3.1.0 P1（Agent 闭环：记忆分层 / 工具注册表 / 主循环 / 计划快照） ---------- */
   sect('V. v3.1.0 P1：Agent 闭环成型（记忆 · 能力 · 主循环 · 计划快照）');

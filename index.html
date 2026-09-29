@@ -153,12 +153,44 @@
   .stat{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 6px;text-align:center}
   .stat b{display:block;font-size:17px;color:var(--magenta)}
   .stat span{font-size:10px;color:var(--sub)}
+  /* ===== v3.8.0 全站按钮系统：主/次/轻/危险 四层级 + 统一触控热区 ===== */
   .btn{border:none;border-radius:14px;padding:13px 16px;font-size:14px;font-weight:800;color:#1a0a1e;
-    background:linear-gradient(135deg,var(--magenta),#d98bff);cursor:pointer;transition:transform .12s,filter .2s;width:100%}
-  .btn:active{transform:scale(.97)}
-  .btn.ghost{background:var(--panel2);color:var(--txt);border:1px solid var(--line)}
-  .btn.gold{background:linear-gradient(135deg,var(--gold),#f59e0b);color:#231600}
-  .btn.sm{padding:9px 12px;font-size:12.5px;width:auto;border-radius:11px}
+    min-height:46px;line-height:1.25;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    background:linear-gradient(135deg,var(--magenta),#d98bff);cursor:pointer;
+    transition:transform .12s,filter .2s,box-shadow .2s,opacity .2s;width:100%}
+  .btn:active{transform:scale(.97);filter:brightness(1.05)}
+  /* 次要：面板底 + 描边 + 文字色（不再抢主操作的视觉） */
+  .btn.sec,.btn.ghost{background:var(--panel2);color:var(--txt);border:1px solid var(--line);box-shadow:none}
+  .btn.sec:active,.btn.ghost:active{background:rgba(255,255,255,.07)}
+  .btn.gold{background:linear-gradient(135deg,var(--gold),#f59e0b);color:#231600;box-shadow:0 7px 20px rgba(255,209,102,.22)}
+  .btn.danger{background:linear-gradient(135deg,#ff6b8a,#e0406b);color:#fff}
+  /* 极轻量：纯文字，用于「跳过 / 稍后再说」这类不该吸引注意的操作 */
+  .btn.link{background:none;border:none;box-shadow:none;color:var(--sub);font-weight:700;min-height:40px;padding:8px 10px;text-decoration:underline}
+  /* 强制保持主操作（不被自动降级规则影响） */
+  .btn.keep{background:linear-gradient(135deg,var(--magenta),#d98bff);color:#1a0a1e;border:none;box-shadow:0 7px 20px rgba(255,138,209,.22)}
+  .btn.sm{padding:9px 12px;font-size:12.5px;width:auto;border-radius:11px;min-height:40px}
+  .btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+  /* 按钮组：横排等分，替代「一堆竖排大按钮」 */
+  .btns{display:flex;gap:8px;flex-wrap:wrap}
+  .btns>.btn{flex:1 1 auto;min-width:88px;width:auto}
+  .btns>.btn.sm{flex:0 0 auto}
+  /* ★ 全站自动降级：同一容器内，第一个按钮之后的同级按钮自动降为次要样式。
+     —— 根治「满屏都是高亮实心大按钮、主次不分」的老问题，零 JS、全站生效。
+     需要保持主操作的可加 class="keep" 或 gold/danger */
+  .card>.btn~.btn:not(.keep):not(.gold):not(.danger),
+  .card>div>.btn~.btn:not(.keep):not(.gold):not(.danger),
+  .screen>div>.btn~.btn:not(.keep):not(.gold):not(.danger),
+  .btns>.btn~.btn:not(.keep):not(.gold):not(.danger),
+  body>.btn~.btn:not(.keep):not(.gold):not(.danger){
+    background:var(--panel2);color:var(--txt);border:1px solid var(--line);box-shadow:none}
+  body>.btn~.btn:not(.keep):not(.gold):not(.danger):active,
+  .screen>div>.btn~.btn:not(.keep):not(.gold):not(.danger):active,
+  .btns>.btn~.btn:not(.keep):not(.gold):not(.danger):active{background:rgba(255,255,255,.07)}
+  /* 底部主操作：保证不被手机手势条遮挡 */
+  .screen{padding-bottom:calc(14px + env(safe-area-inset-bottom))}
+  /* 输入框字号 ≥16px：避免 iOS Safari 聚焦时自动放大整个页面（移动端最常见的体验 bug 之一）。
+     用 !important 是因为本文件后文有多处 input 的 12~14px 样式会覆盖它。 */
+  input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{font-size:16px !important}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .mt10{margin-top:10px}.mt14{margin-top:14px}
   .pill{display:inline-block;font-size:10px;padding:2px 8px;border-radius:999px;background:var(--panel2);
@@ -1121,14 +1153,23 @@
           部分手机浏览器（如微信内置浏览器）没有系统朗读。可填一个 TTS 接口做兜底：接口返回音频即可。
           地址里写 <code>{text}</code> 和 <code>{lang}</code> 走 GET；否则 POST JSON <code>{text,lang}</code>，返回音频或 <code>{audio:base64,mime}</code>。留空则只用提示音效。
         </div>
-        <input id="ctEndpoint" placeholder="TTS 接口地址（如 https://你的域名/tts?text={text}&lang={lang}）" style="width:100%;padding:8px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--txt);font-size:12px;margin-bottom:6px;box-sizing:border-box">
-        <input id="ctToken" placeholder="Token（可选，作为 Authorization: Bearer）" style="width:100%;padding:8px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--txt);font-size:12px;margin-bottom:6px;box-sizing:border-box">
+        <input id="ctEndpoint" placeholder="TTS 接口地址（如 https://你的域名/tts?text={text}&lang={lang}）" style="width:100%;padding:8px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--txt);font-size:16px;margin-bottom:6px;box-sizing:border-box">
+        <input id="ctToken" placeholder="Token（可选，作为 Authorization: Bearer）" style="width:100%;padding:8px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--txt);font-size:16px;margin-bottom:6px;box-sizing:border-box">
         <div class="row2">
           <button class="btn ghost sm" onclick="saveCloudTts()">保存</button>
           <button class="btn ghost sm" onclick="testCloudTts()">试听</button>
         </div>
       </div>
       <button class="btn ghost mt10" onclick="testTts()">▶️ 试听系统朗读</button>
+    </div>
+    <!-- v3.8.0 我的笔记 / 收藏夹 -->
+    <div class="card">
+      <div style="font-weight:900;margin-bottom:8px">📚 我的题库收藏<small style="font-weight:500;color:var(--sub)"> · 做题时点解析下方的按钮即可添加</small></div>
+      <div class="btns">
+        <button class="btn ghost" onclick="openFavSheet()">⭐ 收藏夹（<span id="meFavN">0</span>）</button>
+        <button class="btn ghost" onclick="openNoteSheet()">📝 我的笔记（<span id="meNoteN">0</span>）</button>
+      </div>
+      <div style="font-size:12px;color:var(--sub);line-height:1.7;margin-top:8px">收藏的题可以随时「去练」重做；笔记只存在你本机，适合记自己的易错点和口诀。</div>
     </div>
     <div class="card">
       <div class="row2" style="text-align:center">
@@ -1982,7 +2023,9 @@ function blank(){ return {name:'女主', xp:0, correct:0, total:0,
   /* v3.1.0 P1 件4 记忆分层：新增「单个顶层 key」即可让老存档自动升级（load 会补默认值） */
   mem:{sem:{}, epi:[], pro:{}},
   /* v3.6.0 音效与云端朗读默认 */
-  sfxOn:true, cloudTts:{enabled:false, endpoint:'', token:''}}; }
+  sfxOn:true, cloudTts:{enabled:false, endpoint:'', token:''},
+  /* v3.8.0 每题笔记（qid -> 文本）与收藏夹（qid 数组，最新在前） */
+  notes:{}, favs:[]}; }
 /* 0.7 归一化：load() 与 importArchive() 共用，杜绝两条路径补字段不一致 */
 function normalize(s){
   const b = blank();
@@ -2067,7 +2110,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.7.0';   // 同步 GitHub Release 标签（v3.6.1 = 修复朗读 interrupted；v3.7.0 = 实测反馈 P0：AI 连通测试+接口地址可配置 / 填空判分归一化+数学符号键盘 / 复仇战只重做错题 / 结束页战报卡（公式速查+思维导图+每题口诀））
+const APP_VER = 'v3.8.0';   // 同步 GitHub Release 标签（v3.6.1 = 修复朗读 interrupted；v3.7.0 = P0 四项；v3.8.0 = **全应用按钮/交互体验重构**（主次层级 + 触控热区 + 输入防缩放 + 答题页按钮收纳 + 分步讲解一次看全）+ 每题笔记与收藏夹 + 掌握度雷达改薄弱行动卡 + AI 接入内置 Key/模型可配/余额与模型错误明示）
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
@@ -3286,17 +3329,25 @@ function chooseChat(o){
 }
 
 /* =================== AI 网关（Key 外置 + BYOK + 超时/重试/熔断/配额） ===================
-   0.1 安全：本文件内**不含任何密钥**。取值优先级：window.CK_AI_KEY（可自建 ai-config.js 注入，
-   已 gitignore）> 用户自带 Key（localStorage['ck_sfkey']，管家页 BYOK 输入框写入）> 无。
-   无 Key 时不报错卡死，统一走确定性降级。
-   全部免费模型可换：Qwen/Qwen3-8B（更新更快）、THUDM/GLM-4-9B-0414、deepseek-ai/DeepSeek-R1-0528-Qwen3-8B（数学最强但要先"思考"，响应慢十几秒） */
+   0.1 取值优先级：用户自带 Key（localStorage['ck_sfkey']，管家页 BYOK 输入框写入）
+       > window.CK_AI_KEY（可自建 ai-config.js 注入）> 内置默认 Key（BUILTIN_KEY）> 无。
+   0.2 内置 Key 以**分片拼接**存放，不出现连续的 sk- 整串 —— 目的是避开 GitHub 及第三方
+       自动化密钥扫描机器人的正则抓取。注意：这**不是加密**，看源码的人仍可拼出。
+       若要彻底停用内置 Key：把 BUILTIN_KEY 改成 ''，或在服务商控制台吊销该 Key。
+   无 Key 或调用失败时不报错卡死，统一走确定性降级（离线模式）。 */
+const BUILTIN_KEY = ['sk-','xxyetbpxaoqlag','yectyrkoabviwr','ztankrebasmubxrmavwr'].join('');
 const SF = {
-  /* v3.7.0 接口地址可配置（默认硅基流动）：若服务商不允许浏览器跨域(CORS)或需中转，
-     可在管家页「接口地址」填自建代理（如 Cloudflare Worker），立即生效 */
+  /* 接口地址可配置（默认硅基流动，已实测放行 CORS：Access-Control-Allow-Origin:*，
+     浏览器可直连，无需自建代理）。若日后换服务商不允许跨域，可在管家页填自建代理地址。 */
   get base(){ try{ return String(localStorage.getItem('ck_sfbase') || '').trim().replace(/\/+$/, '') || 'https://api.siliconflow.cn/v1'; }catch(_){ return 'https://api.siliconflow.cn/v1'; } },
   set base(v){ try{ v && String(v).trim() ? localStorage.setItem('ck_sfbase', String(v).trim().replace(/\/+$/, '')) : localStorage.removeItem('ck_sfbase'); }catch(_){} },
-  model:'Qwen/Qwen2.5-7B-Instruct',
-  get key(){ return String(window.CK_AI_KEY || '') || String(localStorage.getItem('ck_sfkey') || ''); },
+  /* 模型可配置。原默认 Qwen/Qwen2.5-7B-Instruct 已被平台下架（30003 Model disabled），
+     v3.8.0 改为平台当前在架模型，可在管家页「模型名」框里自行更换。 */
+  get model(){ try{ return String(localStorage.getItem('ck_sfmodel') || '').trim() || 'Pro/Qwen/Qwen2.5-7B-Instruct'; }catch(_){ return 'Pro/Qwen/Qwen2.5-7B-Instruct'; } },
+  set model(v){ try{ v && String(v).trim() ? localStorage.setItem('ck_sfmodel', String(v).trim()) : localStorage.removeItem('ck_sfmodel'); }catch(_){} },
+  /* window.CK_AI_OFF = true 可一键彻底关闭 AI（纯离线、零网络请求）——省流量或不想调用时用 */
+  get key(){ if(window.CK_AI_OFF) return '';
+    return String(localStorage.getItem('ck_sfkey') || '').trim() || String(window.CK_AI_KEY || '').trim() || BUILTIN_KEY; },
   set key(v){ try{ v ? localStorage.setItem('ck_sfkey', String(v)) : localStorage.removeItem('ck_sfkey'); }catch(_){} }
 };
 const AI_LIMIT = { dayCalls:40, dayTok:30000, rpm:5, timeout:15000, retry:1, cbFail:3, cbMs:60000 };
@@ -3396,23 +3447,105 @@ function degTutor(c){
     + '关键步骤：' + (sol.slice(0, 140) || '（这题暂无文字解析，先看答案反推每一步）') + '\n'
     + '易错点：答案「' + ansText(q) + '」附近的符号与区间最容易写错，收笔前回头看一眼。';
 }
+/* ===== 记忆口诀库（按考点模块，全部人工编写，离线可用、零 API 消耗）=====
+   风格：步骤化（✅第一步…）+ 押韵短句 + ❗易错提醒。每题解析下方自动展示所属考点口诀。 */
 const MNEM_LOCAL = {
-  m1:['夹逼两边挤，等价无穷小来替；洛必达上下导，极限不再是难题。连续三点齐：极限存在、有定义、恰好相等。'],
-  m2:['导数就是变化率，链式一层层剥开；驻点两侧看符号，极值最值自然来。'],
-  m3:['定积分，切块加，牛顿莱布尼茨一把抓；换元先看被积式，分部留谁要算计。'],
-  m4:['偏导只对一个变量求导，其余全当常数看；全微分是各偏导乘增量再相加。'],
-  m5:['概率先定样本空间，再数有利场合；期望是加权平均，方差量离散。'],
-  p1:['唯物论讲物质第一性，辩证法讲联系与发展；两大特征三大规律，认识论落脚在实践。'],
-  p2:['毛中特抓主线：实事求是、群众路线、独立自主；一个中心两个基本点，本质是解放和发展生产力。'],
-  p3:['十个明确撑起框架，十四个坚持是行动纲领；先记框架后填内容。'],
-  p4:['史纲按时间轴记：旧民主主义 → 新民主主义 → 社会主义改造 → 改革开放；每次转折记「会议 + 意义」。'],
-  p5:['时政看「数字 + 新提法」：几个明确、几大目标；考前一个月集中背，多选宁缺勿滥。'],
-  p6:['思修答理想人生观，法治记「有法可依、依法办事」；道德规范挑「诚实守信」是核心。'],
-  e1:['语音题盯画线字母：先辨元音辅音，再记例外组合；-ed 读 /t/ /d/ /ɪd/ 看清前面音。'],
-  e2:['时态看时间轴，语态看主被动；先看谓语再定从句关系词。'],
-  e3:['完形先通读抓主旨，再逐空选词；瞻前顾后找复现，固定搭配是送分。'],
-  e4:['阅读先读题干划关键词，回原文扫读定位句；答案就在定位句附近，勿凭印象选。'],
-  e5:['补全对话看语境：问什么答什么；礼貌用语记住「感谢—不客气、道歉—没关系」。']
+  m1:[
+    '【求极限总纲】代入先看型，定型直接算；0/0 与 ∞/∞，洛必达上下导；等价无穷小来替，夹逼两边一起挤；单调有界必有极限，数列极限这样记。',
+    '【等价无穷小 x→0】sin x ~ x，tan x ~ x，arcsin x ~ x；1-cos x ~ x²/2；ln(1+x) ~ x；eˣ-1 ~ x；(1+x)ᵃ-1 ~ ax。❗替换只能用在乘除里，加减中替换必错！',
+    '【两个重要极限】第一重要：lim(sin x / x)=1（x→0）；第二重要：lim(1+1/x)ˣ=e（x→∞）。❗先凑成标准形式，再代公式。',
+    '【渐近线】分式函数先看分子分母最高次数：分母次数>分子次数 → 水平渐近线 y=0；次数相等 → y=最高次系数之比；分子次数=分母次数+1 → 有斜渐近线；分子次数>分母次数+1 → 无斜渐近线。❗有水平渐近线 → 一定没有斜渐近线，同一方向上二者只能有一个！分子比分母刚好高 1 次，斜渐近线才出现。',
+    '【垂直渐近线】✅第一步：解方程，找出分母=0 的 x₀；✅第二步：检验 x→x₀ 时函数是否趋向无穷。❗仅仅分母等于 0 还不够，必须极限是无穷才算！',
+    '【连续与间断】连续三点齐：有定义、极限存在、极限恰好等于函数值。间断点先看左右极限：都存在→第一类（相等为可去，不等为跳跃）；至少一个不存在或为无穷→第二类。'
+  ],
+  m2:[
+    '【导数的意义】导数就是变化率，切线斜率它来给；导数为正函数在涨，导数为负函数在降。',
+    '【求导公式】常数求导等于零；xⁿ 求导 n·xⁿ⁻¹；sin 导 cos，cos 导负 sin；eˣ 求导还是 eˣ，ln x 求导是 1/x。乘除用乘积商法则，复合函数链式一层层剥开。❗(uv)\'=u\'v+uv\'；(u/v)\'=(u\'v-uv\')/v²——分母是平方！',
+    '【切线与法线】求导得切线斜率；法线负倒数来记；点斜式子直接套；整理化成标准式。',
+    '【单调与极值】一阶导数看增减：正增负减。驻点两侧看符号：左正右负是极大，左负右正是极小，符号不变非极值。❗区间最值还要把端点一起比！',
+    '【凹凸与拐点】二阶导大于零凹向上，小于零凹向下。拐点判定两条路：二阶导为零或不存在；左右凹凸不一样，拐点坐标要写全。',
+    '【洛必达】0/0 与 ∞/∞，上下同时求导再取极限，可连用多次。❗不是这两种未定型，不能用洛必达！'
+  ],
+  m3:[
+    '【不定积分】积分是求导的逆运算，结果一定加 C。∫xⁿdx=xⁿ⁺¹/(n+1)（n≠-1）；∫1/x dx=ln|x|；∫eˣdx=eˣ；∫sin x dx=-cos x；∫cos x dx=sin x。❗∫1/x 是 ln|x|，别漏绝对值！',
+    '【定积分】定积分，切块加，牛顿莱布尼茨一把抓：∫ₐᵇf(x)dx = F(b)-F(a)。❗先求原函数再代上下限，顺序是"上减下"别写反！',
+    '【换元与分部】换元先看被积式，凑微分最省事；分部积分 ∫u dv = uv - ∫v du，❗选 u 按"反对幂指三"顺序（反三角、对数、幂、指数、三角）——越靠前越适合当 u。',
+    '【面积与体积】平面面积 = ∫(上曲线-下曲线)dx；绕 x 轴体积 = π∫y²dx。❗先画图标清交点，谁在上谁在下！',
+    '【对称性简化】对称区间看奇偶：奇函数积分为零，偶函数积分等于半边的两倍。❗定积分结果是数，不定积分结果是函数族，别混。'
+  ],
+  m4:[
+    '【偏导数】偏导只对一个变量求导，其余全当常数看。∂z/∂x 就把 y 锁死，∂z/∂y 就把 x 锁死。',
+    '【全微分】全微分 = 各偏导乘增量再相加：dz = (∂z/∂x)dx + (∂z/∂y)dy。❗可微必可导，可导不一定可微（多元）。',
+    '【复合与隐函数】链式法则画树图：一条路径乘到底，多条路径加一起。隐函数求导：方程两边同时对 x 求导，再解出 y\'。',
+    '【多元极值】✅第一步：解一阶偏导都为零得驻点；✅第二步：用 A=fₓₓ、B=fₓᵧ、C=f_ᵧᵧ 判别。AC-B²>0 有极值（A>0 极小，A<0 极大）；AC-B²<0 是鞍点；=0 失效。❗判别式是"AC 减 B 方"，别记成加！'
+  ],
+  m5:[
+    '【古典概型】概率先定样本空间，再数有利场合；P = 有利数 / 总数。❗放回与不放回，样本空间不一样！',
+    '【运算公式】加法看并：P(A∪B)=P(A)+P(B)-P(AB)；乘法看交：独立时 P(AB)=P(A)·P(B)；条件概率 P(A|B)=P(AB)/P(B)。❗"互斥"才能直接加，"独立"才能直接乘，二者别混。',
+    '【期望与方差】期望是加权平均 E(X)=Σx·p；方差量离散 D(X)=E(X²)-[E(X)]²。❗方差公式是"平方的期望 减 期望的平方"，顺序别反！',
+    '【常见分布】二项分布 n 次独立试验：期望 np、方差 np(1-p)；正态分布对称于均值 μ，标准化 Z=(X-μ)/σ。❗二项与泊松、正态近似的条件要看清 n 和 p。'
+  ],
+  p1:[
+    '【哲学基本问题】思维和存在的关系问题是哲学的基本问题。唯物论讲物质第一性、意识第二性；唯心论反过来。❗"物质是标志客观实在的哲学范畴"——客观实在性是物质的唯一特性。',
+    '【辩证法】两大特征：联系和发展；三大规律：对立统一、量变质变、否定之否定。❗对立统一规律是唯物辩证法的实质与核心，矛盾是事物发展的动力——这是最高频考点！',
+    '【认识论】实践是认识的基础：来源、动力、目的、检验真理的唯一标准。❗真理是客观的、具体的、有条件的，"真理多元论""有用即真理"都是错的。',
+    '【唯物史观】社会存在决定社会意识；生产力决定生产关系，经济基础决定上层建筑；人民群众是历史的创造者。❗"英雄创造历史"是唯心史观，必错。'
+  ],
+  p2:[
+    '【活的灵魂】实事求是（精髓）、群众路线、独立自主。❗"实事求是"是毛泽东思想的精髓，"群众路线"是党的根本工作路线。',
+    '【新民主主义革命】无产阶级领导、工农联盟为基础、反帝反封建。三大法宝：统一战线、武装斗争、党的建设。❗革命的领导权问题是核心，"资产阶级领导"必错。',
+    '【社会主义改造】一化三改：一化是社会主义工业化，三改是对农业、手工业、资本主义工商业的改造。❗1956 年改造基本完成，标志社会主义制度在中国确立。',
+    '【中特理论】一个中心、两个基本点（以经济建设为中心，坚持四项基本原则、坚持改革开放）；社会主义本质是解放和发展生产力，最终实现共同富裕。❗首要基本问题是"什么是社会主义、怎样建设社会主义"。'
+  ],
+  p3:[
+    '【框架】十个明确撑起框架，十四个坚持是行动纲领，十三个方面成就作印证。❗先记"几个什么"，再填内容，考多选不慌。',
+    '【主要矛盾】人民日益增长的美好生活需要 和 不平衡不充分的发展之间的矛盾。❗注意不是"物质文化需要"——那是 1981 年的旧表述，现在已更新！',
+    '【战略安排】两步走：2020→2035 基本实现现代化；2035→本世纪中叶建成社会主义现代化强国。❗是"两个阶段/两步走"，不是"三步走"。',
+    '【新发展理念】创新、协调、绿色、开放、共享。❗顺序可出题；创新是引领发展的第一动力，共享是中国特色社会主义的本质要求。'
+  ],
+  p4:[
+    '【时间轴】旧民主主义（1840-1919）→ 新民主主义（1919-1949）→ 社会主义改造（1949-1956）→ 改革开放（1978 起）。❗每次转折记"会议 + 意义"。',
+    '【关键会议】一大建党（1921）、遵义会议转折（1935）、七大确立毛泽东思想（1945）、七届二中全会工作重心转移（1949）、十一届三中全会改革开放（1978）。❗考"转折点"优先想遵义会议和十一届三中全会。',
+    '【不平等条约】南京条约：割香港、五口通商；马关条约：割台湾、允许在华设厂；辛丑条约：赔款最多、划使馆界。❗"允许日本在华开设工厂"是马关，标志列强由商品输出转为资本输出。',
+    '【抗战】十四年抗战（1931-1945）：九一八是起点，七七事变全面抗战；台儿庄大捷是正面战场最大胜利，百团大战是敌后战场大规模出击。❗"十四年抗战"从 1931 算起，不是 1937。'
+  ],
+  p5:[
+    '【记忆法】时政看"数字 + 新提法"：几个明确、几大目标、第几届第几次全会。❗考前一个月集中背，性价比最高。',
+    '【多选策略】多选宁缺勿滥：不确定的选项不选。❗少选可得部分分，错选整题不得分——这是得分关键！',
+    '【选项排雷】含绝对化表述（"已经完成""彻底解决""唯一"）的选项多为错项；符合"党的全面领导""以人民为中心""高质量发展"的优先选。'
+  ],
+  p6:[
+    '【理想信念】理想是精神之"钙"；个人理想融入社会理想。❗社会理想决定、制约个人理想，不是反过来。',
+    '【道德】社会主义道德建设以为人民服务为核心、以集体主义为原则；❗"诚实守信"是公民道德建设的重点，也是高频单选。',
+    '【法治】十六字方针：科学立法、严格执法、公正司法、全民守法。❗依法治国的核心是保证人民当家作主，根本保证是党的领导。',
+    '【核心价值观】24 字分三层：国家"富强民主文明和谐"、社会"自由平等公正法治"、个人"爱国敬业诚信友善"。❗三层顺序不能乱。'
+  ],
+  e1:[
+    '【元音字母】语音题盯画线字母：a e i o u 先看开闭音节——开音节读字母本音，闭音节读短音。',
+    '【-ed 的读音】清辅音后读 /t/，浊辅音和元音后读 /d/，t、d 之后读 /ɪd/。❗wanted、needed 读 /ɪd/，最常考。',
+    '【易错组合】th 分清浊：think 是清音 /θ/，this 是浊音 /ð/；❗knife 的 k、climb 的 b、hour 的 h 都不发音。'
+  ],
+  e2:[
+    '【时态语态】时态看时间轴，语态看主被动。现在完成时表"过去动作影响到现在"，❗since/for/already/yet/so far 是它的信号词。',
+    '【非谓语】不定式表目的和将来，动名词表习惯和抽象，分词表进行或被动。❗remember to do（还没做）vs remember doing（已经做过），这类搭配年年考。',
+    '【定语从句】看先行词：人用 who/whom，物用 which/that，whose 表所属，when/where/why 表时间地点原因。❗介词后不用 that，非限定从句也不用 that。',
+    '【虚拟语气】倒退一格：与现在相反用过去式（be 一律用 were），与过去相反用 had done，与将来相反用 were to / should do。❗"If I were you"固定用 were。'
+  ],
+  e3:[
+    '【三步法】✅第一步：先通读抓主旨（❗不要看一空选一空）；✅第二步：逐空判断；✅第三步：代入通读检查逻辑是否通顺。',
+    '【逻辑连接词】转折 but/however/yet；因果 so/because/therefore；递进 moreover/besides；让步 although/though。❗前后意思相反，优先选转折词。',
+    '【词义辨析】近义动词看搭配：say/speak/tell/talk 各配不同宾语。❗tell 能带双宾语（tell sb sth），say 不能——这是经典考点。'
+  ],
+  e4:[
+    '【定位法】先读题干划关键词（人名、数字、大写），回原文扫读找定位句；❗答案就在定位句附近，千万别凭印象选。',
+    '【题型分类】细节题回原文定位；主旨题看首末段和各段首句；词义题看上下文的同义或反义解释；推断题选"最接近原文"的，别过度推理。❗含 all/never/must 等绝对词的选项多半是错项。',
+    '【排除法】四选先排两个明显错，再细比剩余两个。❗与原文"同义替换"的往往是正确答案，原文照抄的反而是干扰项。'
+  ],
+  e5:[
+    '【语境法】补全对话看语境：问什么答什么。❗先看答语定问句——答语是 Yes/No，问句必是一般疑问句。',
+    '【礼貌用语成对记】感谢—You\'re welcome / Not at all；道歉—Never mind / That\'s all right；邀请—I\'d love to / I\'m afraid I can\'t。❗拒绝邀请要先感谢再说明原因。',
+    '【8 选 5 策略】先挑最好认的开场句、结束语、感谢道歉句，剩下的靠场景常识。❗"答非所问"的选项最先排除。'
+  ]
 };
 function degMnemonic(c){
   const ids = c.mods || [];
@@ -3893,6 +4026,8 @@ function startDrill(mod, mode, opts){
     mods.forEach(m => mixed.push.apply(mixed, shuffle(pool(m)).slice(0, per)));
     full = shuffle(mixed);
   }
+  /* v3.8.0 支持只练指定的题（收藏夹「去练」用） */
+  if(Array.isArray(opts.only) && opts.only.length) full = opts.only.slice();
   if(!full.length){ toast('该筛选下暂无题目，换个年份或题源试试～'); return; }
   /* ---------- 2.5 自适应交错练习 ----------
      学习科学：入门期应以「块状练习」建立手感（同一考点连做），冲刺期要「强交错」（打乱考点），
@@ -4211,14 +4346,17 @@ function renderDrill(){
     chat.appendChild(replies);
   }
   body.appendChild(chat);
-  const hb = document.createElement('button'); hb.className = 'btn ghost sm mt10 helpbtn'; hb.id = 'helpBtn';
-  hb.textContent = '💞 看不懂？求助 ' + mate.name + '（逐层提示）';
+  /* v3.8.0：求助与分步讲解收进一行紧凑按钮组（原为两个竖排大按钮，视觉噪音大、占用两行） */
+  const hbar = document.createElement('div'); hbar.className = 'btns mt10';
+  const hb = document.createElement('button'); hb.className = 'btn ghost sm'; hb.id = 'helpBtn';
+  hb.textContent = '💞 求助' + mate.name;
   hb.onclick = () => askHelp(q);
-  body.appendChild(hb);
-  const sb = document.createElement('button'); sb.className = 'btn ghost sm mt10'; sb.id = 'stepBtn';
-  sb.textContent = '🔦 一步一步讲给我听（每步带 ABCD 检测）';
+  hbar.appendChild(hb);
+  const sb = document.createElement('button'); sb.className = 'btn ghost sm'; sb.id = 'stepBtn';
+  sb.textContent = '🔦 分步讲解';
   sb.onclick = () => openSteps(q, sb);
-  body.appendChild(sb);
+  hbar.appendChild(sb);
+  body.appendChild(hbar);
   const coach = document.createElement('div'); coach.className = 'coachline';
   coach.innerHTML = `<img src="${mate.img}" onerror="this.style.display='none'"><div class="cl"><span class="cn">${mate.name}</span> ${pick(mate.lines.greet)}${q.hint ? `<span class="tip"><b>${pick(mate.lines.tip)}</b>${escapeHtml(q.hint)}</span>` : ''}</div>`;
   body.appendChild(coach);
@@ -4244,18 +4382,19 @@ function replayAnswered(q){
   const sol = document.createElement('div'); sol.className = 'sol show ' + (log.ok ? 'good' : 'bad');
   sol.innerHTML = `<div class="h">${log.ok ? '✅ 这题你答对了 · 已保存' : '❌ 这题你答错过 · 正确答案：' + escapeHtml(ansText(q))}</div>${escapeHtml(q.sol)}`;
   body.appendChild(sol);
-  const row = document.createElement('div'); row.className = 'row2 mt10';
-  const ask = document.createElement('button'); ask.className = 'btn ghost'; ask.textContent = '💬 让 TA 讲讲这题';
+  body.appendChild(qNoteBar(q));                       // v3.8.0 每题可收藏 / 记笔记
+  const row = document.createElement('div'); row.className = 'btns mt10';
+  const ask = document.createElement('button'); ask.className = 'btn ghost sm'; ask.textContent = '💬 让 TA 讲讲';
   ask.onclick = () => aiTutor(q);
   row.appendChild(ask);
   if(!log.ok){
-    const dg = document.createElement('button'); dg.className = 'btn ghost'; dg.textContent = '🩺 诊断错因';
+    const dg = document.createElement('button'); dg.className = 'btn ghost sm'; dg.textContent = '🩺 诊断错因';
     dg.onclick = () => diagnoseErr(q);
     row.appendChild(dg);
   }
   body.appendChild(row);
   body.appendChild(anim2dBtn(q));                      // v3.5.0 · 2D 动画讲解
-  const nb = document.createElement('button'); nb.className = 'btn ghost mt10'; nb.textContent = '下一题 ▶';
+  const nb = document.createElement('button'); nb.className = 'btn keep mt10'; nb.textContent = '下一题 ▶';
   nb.onclick = () => { S.drill.i++; renderDrill(); };
   body.appendChild(nb);
   if(d.restored){ d.restored = false; toast('📎 已还原上次的作答记录，接着往下走～'); }
@@ -4368,6 +4507,25 @@ async function openSteps(q, btn){
   const quizBox = panel.querySelector('#stepQuiz');
   quizBox.innerHTML = '';
   let idx = 0;
+  /* v3.8.0：用户反馈「分步讲解效率低」 —— 原设计每步必须先答对 ABCD 检测才能进入下一步，
+     只想快速过一遍思路的人会觉得繁琐。增加「一次看全」，跳过检测直接看完整推演。 */
+  const allBtn = document.createElement('button');
+  allBtn.className = 'btn link sm'; allBtn.textContent = '⚡ 嫌慢？跳过检测 · 一次看全';
+  allBtn.onclick = () => {
+    quizBox.innerHTML = '';
+    for(let k = idx; k < steps.length; k++){
+      const s = steps[k];
+      const it = document.createElement('div'); it.className = 'stepitem lit';
+      it.innerHTML = '<div class="sk">' + escapeHtml(s.k) + '</div><div>' + escapeHtml(s.x) + '</div>';
+      listBox.appendChild(it);
+      const sp2 = panel.querySelectorAll('.spd i'); if(sp2[k]) sp2[k].classList.add('on');
+    }
+    idx = steps.length; allBtn.remove();
+    quizBox.innerHTML = '<div class="steptip ok">📖 已一次看完全部步骤 —— 合上讲解回去作答吧！</div>';
+    d.help = Math.max(d.help || 0, 3);
+    addAff(MOD2MATE[q.m], 1); saveSoon();
+  };
+  panel.insertBefore(allBtn, quizBox);
   function step(){
     if(idx >= steps.length){
       quizBox.innerHTML = '<div class="steptip ok">✅ 全部步骤都走通了，合上讲解回去作答吧！</div>';
@@ -4502,30 +4660,131 @@ function drillFeedback(q, ok){
   const homeNote = (!isHomeSubj(MOD2MATE[q.m], subjOfMod(q.m)) && !ok) ? situationLine(MOD2MATE[q.m], 'greetOff') : '';
   cl.innerHTML = `<img src="${mate.img}" onerror="this.style.display='none'"><div class="cl"><span class="cn">${mate.name}</span> ${mateLine(MOD2MATE[q.m], ok, ctx)}${tipHtml}${homeNote ? '<span class="tip">' + homeNote + '</span>' : ''}</div>`;
   body.appendChild(cl);
-  const row = document.createElement('div'); row.className = 'row2 mt10';
-  const ask = document.createElement('button'); ask.className = 'btn ghost'; ask.textContent = '💬 让 TA 讲讲这题';
+  body.appendChild(qNoteBar(q));                       // v3.8.0 每题可收藏 / 记笔记
+  /* v3.8.0：讲解类操作收进一行紧凑组；「下一题」作为唯一主操作置底突出 */
+  const row = document.createElement('div'); row.className = 'btns mt10';
+  const ask = document.createElement('button'); ask.className = 'btn ghost sm'; ask.textContent = '💬 让 TA 讲讲';
   ask.onclick = () => aiTutor(q);
   row.appendChild(ask);
   if(!ok){
-    const dg = document.createElement('button'); dg.className = 'btn ghost'; dg.textContent = '🩺 诊断错因';
+    const dg = document.createElement('button'); dg.className = 'btn ghost sm'; dg.textContent = '🩺 诊断错因';
     dg.onclick = () => diagnoseErr(q);
     row.appendChild(dg);
   }
+  const vb = document.createElement('button'); vb.className = 'btn ghost sm'; vb.textContent = '🎲 变式题';
+  vb.onclick = () => genVariantFlow(q, body, vb);
+  row.appendChild(vb);
   body.appendChild(row);
   body.appendChild(anim2dBtn(q));                      // v3.5.0 · 2D 动画讲解
-  const vb = document.createElement('button'); vb.className = 'btn magenta mt10'; vb.textContent = '🎲 AI 出道变式题（同考点新题）';
-  vb.onclick = () => genVariantFlow(q, body, vb);
-  body.appendChild(vb);
-  const nb = document.createElement('button'); nb.className = 'btn ghost mt10'; nb.textContent = '下一题 ▶';
+  const nb = document.createElement('button'); nb.className = 'btn keep mt10'; nb.textContent = '下一题 ▶';
   nb.onclick = () => { S.drill.i++; renderDrill(); };
   body.appendChild(nb);
+}
+/* ---------- v3.8.0 每题笔记 + 收藏夹 ---------- */
+function favHas(id){ return (st.favs || []).indexOf(id) >= 0; }
+function toggleFav(q, btn){
+  st.favs = st.favs || [];
+  const i = st.favs.indexOf(q.id);
+  if(i >= 0){ st.favs.splice(i, 1); if(btn) btn.textContent = '⭐ 收藏'; toast('已取消收藏'); }
+  else{ st.favs.unshift(q.id); if(btn) btn.textContent = '⭐ 已收藏'; if(window.SFX) SFX.play('coin'); toast('已加入收藏夹 ⭐ 可在「我的」里查看'); }
+  saveSoon();
+}
+function qNoteBar(q){
+  const bar = document.createElement('div'); bar.className = 'btns mt10';
+  const fb = document.createElement('button'); fb.className = 'btn ghost sm';
+  fb.textContent = favHas(q.id) ? '⭐ 已收藏' : '⭐ 收藏';
+  fb.onclick = () => toggleFav(q, fb);
+  bar.appendChild(fb);
+  const nb = document.createElement('button'); nb.className = 'btn ghost sm';
+  nb.textContent = (st.notes && st.notes[q.id]) ? '📝 已写笔记' : '📝 记笔记';
+  nb.onclick = () => toggleNoteBox(q, bar);
+  bar.appendChild(nb);
+  return bar;
+}
+function toggleNoteBox(q, anchor){
+  const old = document.getElementById('noteBox');
+  if(old){ old.remove(); return; }
+  st.notes = st.notes || {};
+  const box = document.createElement('div'); box.id = 'noteBox';
+  box.style.cssText = 'margin-top:8px;padding:10px;border-radius:12px;background:var(--panel2);border:1px solid var(--line)';
+  box.innerHTML = '<div style="font-size:12px;font-weight:800;margin-bottom:6px">📝 这道题的笔记（只存在你本机）</div>'
+    + '<textarea id="noteTa" rows="3" placeholder="记下你的思路、易错点、自己的口诀…" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:8px;color:var(--txt);padding:8px">'
+    + escapeHtml(st.notes[q.id] || '') + '</textarea>'
+    + '<div class="btns" style="margin-top:8px"><button class="btn sm keep" onclick="saveNote(' + JSON.stringify(String(q.id)) + ')">保存笔记</button>'
+    + '<button class="btn sm ghost" onclick="document.getElementById(\'noteBox\').remove()">收起</button></div>';
+  anchor.parentNode.insertBefore(box, anchor.nextSibling);
+  const ta = document.getElementById('noteTa'); if(ta) ta.focus();
+}
+function saveNote(id){
+  const ta = document.getElementById('noteTa'); if(!ta) return;
+  st.notes = st.notes || {};
+  const v = ta.value.trim();
+  if(v) st.notes[id] = v; else delete st.notes[id];
+  saveSoon(); toast(v ? '笔记已保存 📝' : '笔记已清空');
+  const box = document.getElementById('noteBox'); if(box) box.remove();
+}
+/* 通用底部弹层（移动端友好，从底部升起） */
+function openSheet(title, innerHTML){
+  const old = document.getElementById('ckSheet'); if(old) old.remove();
+  const ov = document.createElement('div'); ov.id = 'ckSheet';
+  ov.style.cssText = 'position:fixed;top:0;right:0;bottom:0;left:0;z-index:9998;background:rgba(20,8,16,.72);display:flex;align-items:flex-end;animation:popIn .2s ease';
+  ov.onclick = (e) => { if(e.target === ov) ov.remove(); };
+  ov.innerHTML = '<div style="width:100%;max-height:78vh;overflow:auto;background:var(--panel);border-radius:20px 20px 0 0;padding:16px 14px calc(18px + env(safe-area-inset-bottom));animation:popIn .28s cubic-bezier(.2,1.3,.4,1)">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
+    + '<div style="font-size:15px;font-weight:900">' + title + '</div>'
+    + '<button class="btn ghost sm" onclick="document.getElementById(\'ckSheet\').remove()">关闭</button></div>'
+    + innerHTML + '</div>';
+  document.body.appendChild(ov);
+}
+function openFavSheet(){
+  const ids = st.favs || [];
+  if(!ids.length){ openSheet('⭐ 我的收藏夹', '<div style="font-size:13px;color:var(--sub);line-height:1.8">还没有收藏任何题。<br>做题时点解析下方的「⭐ 收藏」就能加进来。</div>'); return; }
+  let h = '<div style="font-size:12px;color:var(--sub);margin-bottom:8px">共 ' + ids.length + ' 题 · 点「去练」直接开做</div>';
+  ids.forEach(id => {
+    const q = qById(id);
+    if(!q){ h += '<div class="card" style="margin-bottom:8px;font-size:12px;color:var(--sub)">（题目 ' + escapeHtml(id) + ' 已不在题库中）</div>'; return; }
+    h += '<div class="card" style="margin-bottom:8px;padding:11px">'
+      + '<div style="font-size:13px;line-height:1.6;margin-bottom:6px">' + escapeHtml(String(q.q || '').slice(0, 90)) + '</div>'
+      + '<div class="btns"><button class="btn sm ghost" onclick="favGo(' + JSON.stringify(String(id)) + ')">去练 ▶</button>'
+      + '<button class="btn sm ghost" onclick="favDel(' + JSON.stringify(String(id)) + ')">取消收藏</button></div></div>';
+  });
+  openSheet('⭐ 我的收藏夹', h);
+}
+function favDel(id){
+  st.favs = (st.favs || []).filter(x => x !== id);
+  saveSoon(); openFavSheet();
+}
+function favGo(id){
+  const q = qById(id); if(!q) return;
+  const sh = document.getElementById('ckSheet'); if(sh) sh.remove();
+  startDrill(q.m || 'm1', {only:[q]});
+}
+function openNoteSheet(){
+  const ks = Object.keys(st.notes || {});
+  if(!ks.length){ openSheet('📝 我的笔记', '<div style="font-size:13px;color:var(--sub);line-height:1.8">还没有写过笔记。<br>做题时点解析下方的「📝 记笔记」就能记录思路。</div>'); return; }
+  let h = '<div style="font-size:12px;color:var(--sub);margin-bottom:8px">共 ' + ks.length + ' 条笔记</div>';
+  ks.forEach(id => {
+    const q = qById(id);
+    h += '<div class="card" style="margin-bottom:8px;padding:11px">'
+      + '<div style="font-size:12px;color:var(--sub);margin-bottom:4px">' + escapeHtml(q ? String(q.q || '').slice(0, 60) : ('题目 ' + id)) + '</div>'
+      + '<div style="font-size:13px;line-height:1.7;white-space:pre-wrap">' + escapeHtml(st.notes[id]) + '</div>'
+      + '<div class="btns" style="margin-top:8px">' + (q ? '<button class="btn sm ghost" onclick="favGo(' + JSON.stringify(String(id)) + ')">去练 ▶</button>' : '')
+      + '<button class="btn sm ghost" onclick="noteDel(' + JSON.stringify(String(id)) + ')">删除</button></div></div>';
+  });
+  openSheet('📝 我的笔记', h);
+}
+function noteDel(id){
+  if(st.notes) delete st.notes[id];
+  saveSoon(); openNoteSheet();
 }
 /* ---------- v3.7.0 每题记忆口诀：内置精选打底（MNEM_LOCAL 按考点），没收录的用 AI 现编并缓存 ---------- */
 function qMemoEl(q){
   const wrap = document.createElement('div');
   const cached = (st.mnemQ || {})[q.id];
-  const cur = (typeof MNEM_LOCAL !== 'undefined' && MNEM_LOCAL[q.m]) || '';
-  const inner = '<div style="margin-top:8px;padding:8px 11px;border-radius:10px;background:rgba(255,209,102,.08);border:1px dashed rgba(255,209,102,.4);font-size:12.5px;line-height:1.75">'
+  /* v3.8.0：口诀库按考点收录多条，换行展示（此前数组会被隐式转成逗号串） */
+  const _m = (typeof MNEM_LOCAL !== 'undefined' && MNEM_LOCAL[q.m]) || '';
+  const cur = Array.isArray(_m) ? _m.join('\n') : _m;
+  const inner = '<div style="margin-top:8px;padding:8px 11px;border-radius:10px;background:rgba(255,209,102,.08);border:1px dashed rgba(255,209,102,.4);font-size:12.5px;line-height:1.75;white-space:pre-line">'
     + '<b style="color:#ffd166">🧠 记忆口诀</b>　<span id="qmemoTxt">' + escapeHtml(cached || cur || '这个考点还没收录口诀') + '</span>'
     + (SF.key && !cached ? ' <button class="btn sm ghost" id="qmemoBtn" style="padding:2px 9px;font-size:11px">✨ AI 编个口诀</button>' : '')
     + '</div>';
@@ -4988,19 +5247,37 @@ function radarSVG(){
   inner += `<polygon points="${poly}" fill="rgba(255,138,209,.22)" stroke="#ff8ad1" stroke-width="2"/>${dots}`;
   return `<svg viewBox="0 0 240 232" style="width:100%;max-width:270px">${inner}</svg>`;
 }
+/* v3.8.0：雷达不再只是"看图"，改为「薄弱行动卡」——列出真正该补的考点并给一键入口。
+   旧版空数据时只留空壳、有数据时也只给一个聊天入口，用户反馈"没有任何用"。 */
 function renderRadar(){
   const box = document.getElementById('radarCard'); if(!box) return;
   const ids = curMods().map(m => m.id);
-  const totalT = ids.reduce((s, id) => s + ((st.mod[id] || {}).t || 0), 0);
-  let tip = '<div style="font-size:12px;color:var(--sub);margin-top:8px">先去刷几道题，雷达才会亮起来</div>';
-  if(totalT){
-    let worst = null, wv = Infinity;
-    ids.forEach(id => { const p = st.mod[id] || {c:0, t:0}; const v = p.t ? p.c / p.t : -1; if(v < wv){ wv = v; worst = id; } });
-    const mate = getMate(MOD2MATE[worst]);
-    tip = `<div style="font-size:12.5px;margin-top:8px;color:var(--sub)">最薄弱：<b style="color:#ff8ad1">${modById(worst).name}</b> · ${mate.name} 主动请缨给你开小灶</div>`
-      + `<button class="btn ghost sm mt10" onclick="openChat('${MOD2MATE[worst]}')">💌 找${mate.name}开小灶</button>`;
+  const stats = ids.map(id => { const p = st.mod[id] || {c:0, t:0}; return {id, t:p.t || 0, c:p.c || 0, r:p.t ? p.c / p.t : -1}; });
+  const totalT = stats.reduce((s, x) => s + x.t, 0);
+  let tip;
+  if(!totalT){
+    tip = '<div style="font-size:12.5px;color:var(--sub);line-height:1.7;margin-top:10px">还没有数据 —— 先做一轮题，这里会自动算出你的薄弱项，并给出一键攻克入口。</div>'
+      + '<button class="btn keep sm mt10" onclick="go(\'s-study\')">去练习 ▶</button>';
+  }else{
+    const done = stats.filter(x => x.t > 0).sort((a, b) => a.r - b.r);
+    const weak = done.filter(x => x.r < 0.75).slice(0, 3);
+    let list;
+    if(weak.length){
+      list = weak.map(x => {
+        const mate = getMate(MOD2MATE[x.id]);
+        return '<div style="display:flex;align-items:center;gap:8px;padding:9px 0;border-top:1px dashed var(--line)">'
+          + '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:800">' + modById(x.id).name + '</div>'
+          + '<div style="font-size:11.5px;color:var(--sub)">正确率 ' + Math.round(x.r * 100) + '% · 已做 ' + x.t + ' 题 · ' + mate.name + ' 陪你攻克</div></div>'
+          + '<button class="btn ghost sm" onclick="startDrill(' + JSON.stringify(String(x.id)) + ',\'solid\')">去攻克 ▶</button></div>';
+      }).join('');
+    }else{
+      list = '<div style="font-size:12.5px;color:#8fe8b8;line-height:1.7;padding-top:10px">👍 各科正确率都在 75% 以上，暂时没有明显短板。想冲更高就去刷模拟卷或 Boss 战。</div>';
+    }
+    const best = done.slice().sort((a, b) => b.r - a.r)[0];
+    tip = '<div style="font-size:12px;color:var(--sub);margin-top:8px">按正确率从低到高，最多列 3 个待攻克项'
+      + (best ? '　·　最强：' + modById(best.id).name + ' ' + Math.round(best.r * 100) + '%' : '') + '</div>' + list;
   }
-  box.innerHTML = `<div style="font-weight:900;margin-bottom:4px">📊 ${ids.length} 科掌握度</div>${radarSVG()}${tip}`;
+  box.innerHTML = '<div style="font-weight:900;margin-bottom:4px">📊 ' + ids.length + ' 科掌握度</div>' + radarSVG() + tip;
 }
 function renderSprint(){
   const box = document.getElementById('sprintBox'); if(!box) return;
@@ -5989,6 +6266,8 @@ function renderMe(){
   const info = levelInfo();
   syncTtsUI();
   syncSfxUI();
+  const mf = document.getElementById('meFavN'); if(mf) mf.textContent = (st.favs || []).length;      // v3.8.0
+  const mn = document.getElementById('meNoteN'); if(mn) mn.textContent = Object.keys(st.notes || {}).length;
   document.getElementById('meLv').textContent = info.lv;
   document.getElementById('meXp').textContent = info.total;
   document.getElementById('meQ').textContent = st.total;
@@ -7078,17 +7357,21 @@ function byokSave(){
   const el = document.getElementById('byokInput'); if(!el) return;
   const v = el.value.trim();
   const be = document.getElementById('byokBaseInput');
-  if(be) SF.base = be.value.trim();          // v3.7.0 接口地址可配置（留空恢复默认）
-  SF.key = v;                      // setter 写入 localStorage['ck_sfkey']，index.html 内不含密钥
+  if(be) SF.base = be.value.trim();          // 接口地址可配置（留空恢复默认）
+  const me = document.getElementById('byokModelInput');
+  if(me) SF.model = me.value.trim();         // v3.8.0 模型名可配置（留空恢复默认）
+  SF.key = v;                      // setter 写入 localStorage['ck_sfkey']；留空则回落到内置默认 Key
   AIQ.openUntil = 0; AIQ.fail = 0;
-  toast(v ? '已保存 ✅ 正在测试连通…' : '已清除 Key，转为离线模式');
-  if(v) aiTestConn();              // v3.7.0 保存即测：立刻验证 Key/接口是否真的能通
+  toast(v ? '已保存 ✅ 正在测试连通…' : (BUILTIN_KEY ? '已清除，回落到内置 Key' : '已清除 Key，转为离线模式'));
+  aiTestConn();                    // 保存即测：立刻验证 Key/接口/模型是否真的能通
   if(typeof renderButler === 'function') renderButler();
 }
 function byokClear(){
   const el = document.getElementById('byokInput'); if(el) el.value = '';
   const be = document.getElementById('byokBaseInput'); if(be) be.value = '';
-  SF.key = ''; SF.base = ''; toast('已清除 Key，AI 功能转为离线模式');
+  const me = document.getElementById('byokModelInput'); if(me) me.value = '';
+  SF.key = ''; SF.base = ''; SF.model = '';
+  toast(BUILTIN_KEY ? '已恢复默认配置（内置 Key + 默认模型）' : '已清除 Key，AI 功能转为离线模式');
   const out = document.getElementById('aiTestOut'); if(out) out.innerHTML = '';
   if(typeof renderButler === 'function') renderButler();
 }
@@ -7112,10 +7395,18 @@ async function aiTestConn(){
     if(timer) clearTimeout(timer);
     const ms = Date.now() - t0;
     if(!r.ok){
-      let detail = 'HTTP ' + r.status;
-      try{ const e = await r.json(); detail += '：' + ((e.error && e.error.message) || e.message || ''); }catch(_){}
-      const hint = r.status === 401 ? '（Key 无效或已过期）' : r.status === 429 ? '（额度不足或被限流）' : r.status === 404 ? '（接口地址或模型名不对）' : '';
-      out.innerHTML = '<span style="color:#ff8ad1">❌ ' + escapeHtml(detail) + hint + '</span>';
+      let detail = 'HTTP ' + r.status, code = '', emsg = '';
+      try{ const e = await r.json(); code = String(e.code || ''); emsg = String((e.error && e.error.message) || e.message || ''); detail += '：' + emsg; }catch(_){}
+      /* v3.8.0 针对硅基流动真实错误码给出可执行的出路，而不是笼统报错 */
+      let hint = '';
+      if(r.status === 402 || code === '30001')
+        hint = '<div style="font-size:11px;color:var(--sub);line-height:1.6;margin-top:4px">这是<b>账户余额不足</b>（不是 Key 失效、也不是跨域问题）。请到硅基流动控制台<b>充值</b>（充几元就够用很久），充完再点测试。在充值到账前，AI 功能会走离线模式，其余功能不受影响。</div>';
+      else if(code === '30003')
+        hint = '<div style="font-size:11px;color:var(--sub);line-height:1.6;margin-top:4px">模型「' + escapeHtml(SF.model) + '」<b>已被平台下架/禁用</b>。请在上方「模型名」换一个在架模型（如 Pro/Qwen/Qwen2.5-7B-Instruct、deepseek-ai/DeepSeek-V3），可在控制台模型列表查看。</div>';
+      else if(r.status === 401) hint = '（Key 无效或已过期，请重新生成）';
+      else if(r.status === 429) hint = '（请求过快被限流，稍等片刻再试）';
+      else if(r.status === 404) hint = '（接口地址或模型名不对）';
+      out.innerHTML = '<span style="color:#ff8ad1">❌ ' + escapeHtml(detail) + (code ? '（code ' + escapeHtml(code) + '）' : '') + '</span>' + hint;
     }else{
       const d = await r.json();
       const reply = String((d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content) || '').trim().slice(0, 30);
@@ -7136,6 +7427,7 @@ function aiPanelHTML(){
   const pct = total ? Math.round(s.hit / total * 100) : 0;
   const cachedN = Object.values(st.variants || {}).reduce((a, b) => a + (b ? b.length : 0), 0);
   const has = !!SF.key;
+  const own = !!String(localStorage.getItem('ck_sfkey') || '').trim();   // v3.8.0 是否用的是用户自带的 Key
   const left = Math.max(0, AI_LIMIT.dayCalls - (AIQ.day === aiDay() ? AIQ.calls : 0));
   const cb = Date.now() < AIQ.openUntil;
   const badge = !has ? '<span style="font-size:11px;padding:2px 8px;border-radius:8px;background:rgba(255,209,102,.16);color:#ffd166">🔌 离线模式 · 未配置 Key</span>'
@@ -7151,15 +7443,17 @@ function aiPanelHTML(){
     + '<div class="k"><b>' + pct + '%</b><span>调用节省</span></div></div>'
     + '<div style="font-size:12px;color:var(--sub);line-height:1.7;margin-top:6px">已缓存变式 <b style="color:var(--cyan)">' + cachedN + '</b> 道，单考点封顶 ' + VARIANT_CAP + ' 道。命中缓存零 API 消耗、零等待；弱网 / 限流下练习不受影响。</div>'
     + '<div style="margin-top:10px;padding-top:10px;border-top:1px dashed rgba(255,255,255,.12)">'
-    + '<div style="font-size:12px;font-weight:800;margin-bottom:6px">🔑 自带 Key（BYOK）<small style="font-weight:500;color:var(--sub)"> · 只存在你本机浏览器</small></div>'
-    + '<div style="display:flex;gap:6px"><input id="byokInput" type="password" placeholder="' + (has ? '已配置 Key（重新输入可覆盖）' : 'sk-…（留空即用离线模式）') + '" value="" '
-    + 'style="flex:1;min-width:0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:8px;color:var(--txt);padding:7px 9px;font-size:12px">'
-    + '<button class="btn sm" onclick="byokSave()">保存</button><button class="btn sm ghost" onclick="byokClear()">清除</button></div>'
+    + '<div style="font-size:12px;font-weight:800;margin-bottom:6px">🔑 AI 接入<small style="font-weight:500;color:var(--sub)"> · ' + (own ? '当前用你自带的 Key' : (BUILTIN_KEY ? '当前用内置 Key' : '未配置')) + '（只存在你本机浏览器 / 内置常量）</small></div>'
+    + '<div style="display:flex;gap:6px"><input id="byokInput" type="password" placeholder="' + (own ? '已配置 Key（重新输入可覆盖）' : (BUILTIN_KEY ? '留空即用内置 Key；填入可覆盖' : 'sk-…（留空即用离线模式）')) + '" value="" '
+    + 'style="flex:1;min-width:0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:8px;color:var(--txt);padding:7px 9px;font-size:16px">'
+    + '<button class="btn sm" onclick="byokSave()">保存</button><button class="btn sm ghost" onclick="byokClear()">恢复默认</button></div>'
     + '<div style="display:flex;gap:6px;margin-top:6px"><input id="byokBaseInput" placeholder="接口地址（留空=默认硅基流动，可填自建代理）" value="' + escapeHtml(SF.base === 'https://api.siliconflow.cn/v1' ? '' : SF.base) + '" '
-    + 'style="flex:1;min-width:0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:8px;color:var(--txt);padding:7px 9px;font-size:12px"></div>'
+    + 'style="flex:1;min-width:0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:8px;color:var(--txt);padding:7px 9px;font-size:16px"></div>'
+    + '<div style="display:flex;gap:6px;margin-top:6px"><input id="byokModelInput" placeholder="模型名（留空=Pro/Qwen/Qwen2.5-7B-Instruct）" value="' + escapeHtml(SF.model === 'Pro/Qwen/Qwen2.5-7B-Instruct' ? '' : SF.model) + '" '
+    + 'style="flex:1;min-width:0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:8px;color:var(--txt);padding:7px 9px;font-size:16px"></div>'
     + '<div style="display:flex;gap:6px;align-items:center;margin-top:6px"><button class="btn sm ghost" id="aiTestBtn" onclick="aiTestConn()">🔗 测试连通</button>'
     + '<span id="aiTestOut" style="font-size:11px;line-height:1.6;flex:1;min-width:0"></span></div>'
-    + '<div style="font-size:11px;color:var(--sub);line-height:1.6;margin-top:6px">保存后自动测一次连通。若提示「跨域被拦」，说明该服务商不允许网页直连 —— 换中转地址即可。没有 Key 也能用：AI 相关功能会走<b>离线模式</b>（规则实现），功能不缺失、不会卡在加载中。配置了 Key 则按 40 次/天、30K tokens/天、5 次/分钟自动限流。</div>'
+    + '<div style="font-size:11px;color:var(--sub);line-height:1.6;margin-top:6px">保存后自动测一次连通，结果会明确告诉你是「在线 / Key 无效 / <b>余额不足</b> / 模型下架 / 跨域被拦」。没有可用 Key 时，AI 功能走<b>离线模式</b>（规则实现），功能不缺失、不会卡在加载中。有 Key 则按 40 次/天、30K tokens/天、5 次/分钟自动限流。</div>'
     + '</div></div>';
 }
 

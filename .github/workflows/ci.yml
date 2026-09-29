@@ -82,6 +82,11 @@ jobs:
           TEST_URL=http://127.0.0.1:8900/index.html timeout 300 node tests/p0_smoke.js \
             && echo "p0_smoke PASS ✅" || { echo "p0_smoke FAIL ❌"; fail=1; }
 
+          # v3.8.0：p1_smoke 校验全站按钮层级/触控/输入防缩放 + 笔记收藏 + 雷达行动卡 + AI 内置 Key/模型可配
+          echo "=== p1_smoke（本地服务版） ==="
+          TEST_URL=http://127.0.0.1:8900/index.html timeout 300 node tests/p1_smoke.js \
+            && echo "p1_smoke PASS ✅" || { echo "p1_smoke FAIL ❌"; fail=1; }
+
           exit $fail
 
       # v3.4.1：失败留证——上传测试截图/产物
