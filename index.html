@@ -2118,7 +2118,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.10.2';  // 同步 GitHub Release 标签（v3.10.2 = 热修：① 考点口诀跨模块串库修复——mnemFor 匹配 MNEM_DATA 规则补上限同模块校验（与 QSTEP/LECTURE 对齐），政治题不再混入英语逻辑关系词口诀 ② 复仇战分界页新增「本轮考点·公式回顾 + 本轮考点口诀」两张卡——每轮答完都能扫一眼本轮必考点加深记忆，不再只有全对/通关页才有战报）
+const APP_VER = 'v3.10.3';  // 同步 GitHub Release 标签（v3.10.3 = 热修：黄金考点 AI 出题去重——gpQuiz 引入 nonce 随机种子，缓存键纳入随机因子 + 每次「换一道」回调 nonce+1，同一考点反复点「再次出题」不再命中同一道题的缓存，每次都生成全新情境/数字/选项）
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
