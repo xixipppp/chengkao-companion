@@ -5788,7 +5788,7 @@ function renderGold(kw){
           bar.className = 'row2 mt10';
           bar.innerHTML = '<button class="btn magenta gpquiz">🎯 考考我（AI 出題）</button><button class="btn ghost" onclick="gpFav(this)">⭐ 收藏</button>';
           const qb = bar.querySelector('.gpquiz');
-          qb.onclick = () => gpQuiz(p, bEl, qb);
+          qb.onclick = () => gpQuiz(p, bEl, qb, 0);
           bEl.appendChild(bar);
           const qbox = document.createElement('div'); qbox.className = 'gpqbox mt10';
           bEl.appendChild(qbox);
@@ -5806,21 +5806,27 @@ function gpFav(btn){
   toast(btn.textContent.indexOf('已') >= 0 ? '已收藏，可在「我的笔记」回看' : '已取消收藏');
 }
 /* AI 按单个考点现场出一道全新模拟题 */
-async function gpQuiz(pt, bodyEl, btn){
+async function gpQuiz(pt, bodyEl, btn, nonce){
+  nonce = nonce || 0;
   const box = bodyEl.querySelector('.gpqbox');
   if(!box) return;
   btn.disabled = true; btn.textContent = '🤖 出题ing…';
   box.innerHTML = '<div style="font-size:12px;color:var(--sub)">AI 正在按「' + escapeHtml(pt.t) + '」出题…</div>';
   const mate = getMate(GP_SUBJ === 'mat' ? 'luo' : GP_SUBJ === 'pol' ? 'xue' : 'ziyuan');
   const sys = aiPrompt(mate) + '\n\n【当前任务】你是成考专升本出题老师。只输出一个 JSON 对象，禁止任何解释或 markdown 标记。';
-  const req = '下面是《2026 黄金考点汇编》中的一个考点，请严格围绕它出一道全新模拟题（不要照抄原文例句，换情境换数字）。\n'
+  // 随机种子 + 多样性指令：让 AI 每个考点、每次出题都换数字/情境，避免雷同
+  const seed = Math.floor(Math.random() * 100000);
+  const vary = nonce ? ('这是第 ' + (nonce + 1) + ' 次出题，必须与上一次完全不同（换数字、换情境、换题干表述，避免雷同）。') : '这是第一次出题。';
+  const req = '下面是《2026 黄金考点汇编》中的一个考点，请严格围绕它出一道全新模拟题（不要照抄原文例句，换情境换数字，题干、数字、选项都要与常见题不同）。\n'
     + '科目：' + GP_NAME[GP_SUBJ] + '\n'
     + '考点标题：' + pt.t + '\n'
     + '考点内容：' + String(pt.b || '').slice(0, 700) + '\n'
+    + '本次要求：' + vary + '（随机种子 ' + seed + '，请据此生成不同内容）\n'
     + '输出格式（只输出这一行 JSON）：\n'
     + '{"t":"choice","q":"题干","o":["选项A","选项B","选项C","选项D"],"a":0,"sol":"一句话解析"}（a 为正确选项下标 0-3）';
+  // 修复：缓存键带 nonce —— 每次「换一道」换新键，不再命中旧题缓存，真正生成新题（首次访问仍缓存省 API）
   const r = await aiTask('gpquiz', [{role:'system',content:sys},{role:'user',content:req}],
-    { json:true, ck: ack('gpq', GP_SUBJ + '|' + strHash(pt.t)), ctx:{ pt:pt, subj:GP_SUBJ } });
+    { json:true, ck: ack('gpq', GP_SUBJ + '|' + strHash(pt.t) + '|' + nonce), ctx:{ pt:pt, subj:GP_SUBJ } });
   let j = null;
   if(r.src === 'ai'){
     j = extractJSON(r.text);
@@ -5830,6 +5836,8 @@ async function gpQuiz(pt, bodyEl, btn){
   if(j && j.q && Array.isArray(j.o) && j.o.length >= 2) renderGpQuiz(box, j, pt, !!j._local);
   else box.innerHTML = '<div style="font-size:12.5px;color:var(--sub)">📴 离线模式：这个考点暂时出不了新题，先看考点原文吧～</div>';
   btn.disabled = false; btn.textContent = '🎯 换一道（再来）';
+  // 关键修复：把回调改成 nonce+1，否则「换一道」永远走同一条缓存键 → 同一道题
+  btn.onclick = () => gpQuiz(pt, bodyEl, btn, nonce + 1);
 }
 function renderGpQuiz(box, j, pt, offline){
   const a = Math.max(0, Math.min(j.o.length - 1, parseInt(j.a, 10) || 0));
