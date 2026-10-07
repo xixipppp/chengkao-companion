@@ -163,6 +163,22 @@
   .btn.sec,.btn.ghost{background:var(--panel2);color:var(--txt);border:1px solid var(--line);box-shadow:none}
   .btn.sec:active,.btn.ghost:active{background:rgba(255,255,255,.07)}
   .btn.gold{background:linear-gradient(135deg,var(--gold),#f59e0b);color:#231600;box-shadow:0 7px 20px rgba(255,209,102,.22)}
+  .btn.teal{background:linear-gradient(135deg,#2dd4bf,#0ea5a4);color:#03201d;box-shadow:0 7px 20px rgba(45,212,191,.22)}
+  .c20-badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700;color:#fff;margin-right:6px}
+  .c20-pbar{height:12px;border-radius:999px;background:#0a0614;border:1px solid var(--line);overflow:hidden;margin:8px 0}
+  .c20-pbar i{display:block;height:100%;background:linear-gradient(90deg,#ff5d73,#4aa8ff,#39d98a);border-radius:999px;transition:width .4s}
+  .c20-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px}
+  .c20-mode{border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--panel2);text-align:left;cursor:pointer}
+  .c20-mode:active{transform:scale(.98)}
+  .c20-mode .mi{font-size:22px}
+  .c20-mode .mn{font-weight:700;margin-top:4px;font-size:14px}
+  .c20-mode .md{font-size:11.5px;color:var(--sub);margin-top:2px}
+  .c20-kou{background:rgba(74,168,255,.1);border:1px solid rgba(74,168,255,.3);border-radius:12px;padding:10px;font-size:13px;margin-top:10px;line-height:1.5}
+  .c20-list .ci{display:flex;align-items:flex-start;gap:8px;padding:9px 0;border-bottom:1px solid var(--line)}
+  .c20-list .ct{font-weight:600;font-size:13.5px}
+  .c20-list .cs{font-size:12px;color:var(--sub);margin-top:3px;line-height:1.5}
+  .c20-list .ck{font-size:12px;color:#9fd0ff;margin-top:3px}
+  .ochip.sel{background:rgba(45,212,191,.28);border-color:#2dd4bf;color:#d8fff6}
   .btn.danger{background:linear-gradient(135deg,#ff6b8a,#e0406b);color:#fff}
   /* 极轻量：纯文字，用于「跳过 / 稍后再说」这类不该吸引注意的操作 */
   .btn.link{background:none;border:none;box-shadow:none;color:var(--sub);font-weight:700;min-height:40px;padding:8px 10px;text-decoration:underline}
@@ -972,6 +988,7 @@
     </div>
     <button class="btn magenta mt10" onclick="startPresim()">🎯 政治考前模拟卷<small style="font-weight:600;font-size:11px"> · 35选择+6大题 · 口诀+模板 · 反复练</small></button>
     <button class="btn gold mt10" onclick="startNews()">📰 2025—2026 最新时政考题<small style="font-weight:600;font-size:11px"> · 40选择+速记卡 · 首次/第一/世界之最</small></button>
+    <button class="btn teal mt10" onclick="startCards20()">🌈 三色考点20条·速记闯关<small style="font-weight:600;font-size:11px"> · 20考点 · 5小游戏 · 闯关记忆</small></button>
     <button class="btn magenta mt10" onclick="go('s-sprint')">🔥 考前 24h 冲刺</button>
     <button class="btn ghost mt10" onclick="reviewWrong()">🔁 错题重做（只刷错题）</button>
   </section>
@@ -1137,6 +1154,12 @@
     <div id="newsBody"></div>
   </section>
 
+  <!-- ============ v3.10.6 三色考点二十条 · 速记闯关 ============ -->
+  <section class="screen" id="s-cards20">
+    <div class="back" onclick="cards20Back()">← 返回自习室</div>
+    <div id="cards20Body"></div>
+  </section>
+
   <!-- ============ ME ============ -->
   <section class="screen" id="s-me">
     <div class="back" onclick="go('s-home')">← 返回</div>
@@ -1267,6 +1290,7 @@
 <script src="data/lecture.js"></script>    <!-- v3.10.0 · 教授级讲解库（2D 动画六段式讲解内容源） -->
 <script src="data/presim_pol.js"></script> <!-- v3.10.4 · 政治考前模拟卷（仿真卷 + 口诀 + 答题模板，约 30KB，离线可用） -->
 <script src="data/news_pol.js"></script>   <!-- v3.10.5 · 2025—2026 最新时政考题（40 选择 + 39 速记口诀卡，离线可用） -->
+<script src="data/cards20_pol.js"></script> <!-- v3.10.6 · 政治三色考点二十条（20 考点 + 5 小游戏 + 闯关，离线可用） -->
 <!-- v3.4.0 · 首屏减负：data/kaodian.js(501KB 考点速记资料库) 与 data/goldpoints.js(380KB 黄金考点)
      都不参与 ALLQ 构建，只有「考点速记」页与「速记图猜考点」小游戏用到 →
      改为由 ensureBank() 按需异步加载（首屏同步解析体积 2.03MB → 1.15MB，HTML 解析与首绘不再等待）。
@@ -2134,7 +2158,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.10.5';  // 同步 GitHub Release 标签（v3.10.5 = 新增「2025—2026 最新时政考题」独立模块：基于用户汇总的 2025年7月—2026年6月核心时政要点，生成 40 道成考风格选择题（每题配记忆口诀+解析+时间分类）+ 39 张考点速记口诀翻卡；含计时练习/成绩复盘/只重做错题；数据源 data/news_pol.js）
+const APP_VER = 'v3.10.6';  // 同步 GitHub Release 标签（v3.10.6 = 新增「三色考点20条·速记闯关」独立模块：基于用户 PDF《政治（专升本）精研三色考点二十条》，20 条考点按三色分级（红必背8/蓝理解7/绿了解5），每条配要点+关键词+记忆口诀+选择题+填空；6 种记忆小游戏——闯关模式(学→测逐条通关)/闪卡记忆/连连看/选择闯关/填空闯关/排序闯关，接入全局 XP 与掌握进度持久化；数据源 data/cards20_pol.js）
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
@@ -8271,6 +8295,353 @@ function newsCards(body, d, p){
   next.onclick = () => { p.ci = (p.ci + 1) % list.length; p.cFlip = false; renderNews(); };
   row.appendChild(prev); row.appendChild(next); body.appendChild(row);
 }
+
+/* =================== v3.10.6 三色考点二十条 · 速记闯关 =================== */
+/* 数据源 data/cards20_pol.js（window.CARDS20）。记忆练习不写入主存档；
+   闯关/掌握进度写入 st.c20（持久化），并接入全局 XP / 段位系统。 */
+function cards20Back(){ go('s-study'); }
+function c20Fresh(){
+  return { mode:'home', ci:0, step:'study', order:null, fi:0, flipped:false, filter:null, remembered:{},
+           qorder:null, qs:[], idx:0, ans:{},
+           fillList:[], filli:0, fillSel:{}, fillDone:0,
+           orderP:null, orderMiss:0, xpEarned:0 };
+}
+function startCards20(){
+  const d = window.CARDS20; if(!d){ toast('考点数据未加载'); return; }
+  st.c20 = st.c20 || {};
+  S.c20 = c20Fresh();
+  const un = [], done = [];
+  d.points.forEach(p => ((st.c20[p.id] && st.c20[p.id].master) ? done : un).push(p.id));
+  S.c20.order = un.concat(done);                 // 闯关：未通关的优先，已掌握的复习
+  go('s-cards20'); renderCards20();
+}
+function c20D(){ return window.CARDS20; }
+function c20Point(id){ return c20D().points.find(p => p.id === id); }
+function c20ColorBadge(c){ const m = c20D().meta.colors[c]; return '<span class="c20-badge" style="background:' + m.c + '">' + m.n + '</span>'; }
+function c20MasterCount(){ let n = 0; c20D().points.forEach(p => { if(st.c20[p.id] && st.c20[p.id].master) n++; }); return n; }
+function renderCards20(){
+  const CS = S.c20; const body = document.getElementById('cards20Body'); if(!body) return;
+  if(CS.mode === 'home') return c20Home(body);
+  if(CS.mode === 'list') return c20List(body);
+  if(CS.mode === 'campaign') return c20Campaign(body);
+  if(CS.mode === 'flash') return c20Flash(body);
+  if(CS.mode === 'match') return c20Match(body);
+  if(CS.mode === 'choice') return c20Choice(body);
+  if(CS.mode === 'fill') return c20Fill(body);
+  if(CS.mode === 'order') return c20Order(body);
+}
+function c20Home(body){
+  const d = c20D(), m = d.meta, mc = c20MasterCount(), col = m.colors;
+  let h = '';
+  h += '<div class="card"><div style="font-size:17px;font-weight:800">🌈 ' + escapeHtml(m.title) + '</div>';
+  h += '<div style="font-size:12.5px;color:var(--sub);margin-top:4px">' + escapeHtml(m.intro) + '</div>';
+  h += '<div style="font-size:13px;margin-top:10px">🏁 闯关进度 <b>' + mc + '</b> / ' + d.points.length + ' 考点通关</div>';
+  h += '<div class="c20-pbar"><i style="width:' + Math.round(mc / d.points.length * 100) + '%"></i></div>';
+  h += '<div class="c20-grid">';
+  ['red','blue','green'].forEach(c => {
+    const n = d.points.filter(p => p.color === c).length;
+    h += '<div class="c20-mode" onclick="c20GoFlash(\'' + c + '\')"><div class="mi">' + (c === 'red' ? '🔴' : c === 'blue' ? '🔵' : '🟢') + '</div><div class="mn" style="color:' + col[c].c + '">' + col[c].n + '</div><div class="md">' + n + ' 条 · ' + col[c].d + '</div></div>';
+  });
+  h += '</div>';
+  h += '<div style="font-weight:700;margin:14px 0 6px;font-size:14px">🎮 多游戏闯关 · 多角度记忆</div>';
+  const modes = [['🚀','闯关模式','逐一通关 20 考点（学→测）','campaign'],['🃏','闪卡记忆','翻卡背要点+口诀','flash'],
+                 ['🔗','连连看','考点 ↔ 要点配对','match'],['📝','选择闯关','选择题验收记忆','choice'],
+                 ['✏️','填空闯关','选关键词填空中','fill'],['🪜','排序闯关','把要点排成顺序','order']];
+  h += '<div class="c20-grid">';
+  modes.forEach(mm => { h += '<div class="c20-mode" onclick="c20SetMode(\'' + mm[3] + '\')"><div class="mi">' + mm[0] + '</div><div class="mn">' + mm[1] + '</div><div class="md">' + mm[2] + '</div></div>'; });
+  h += '</div>';
+  h += '<button class="btn ghost mt10" style="width:100%" onclick="c20List()">📖 全部 20 条考点一览（含口诀）</button>';
+  body.innerHTML = h;
+}
+function c20SetMode(mode){
+  const CS = S.c20; CS.mode = mode;
+  if(mode === 'flash'){ CS.fi = 0; CS.flipped = false; CS.remembered = {}; CS.filter = null; }
+  if(mode === 'choice'){ CS.qorder = null; CS.idx = 0; CS.ans = {}; }
+  if(mode === 'fill'){ CS.fillList = c20BuildFill(); CS.filli = 0; CS.fillSel = {}; CS.fillDone = 0; }
+  renderCards20();
+}
+function c20GoFlash(c){ const CS = S.c20; CS.mode = 'flash'; CS.filter = c; CS.fi = 0; CS.flipped = false; CS.remembered = {}; renderCards20(); }
+function c20BackHome(){ S.c20.mode = 'home'; renderCards20(); }
+function c20List(body){
+  body = body || document.getElementById('cards20Body');
+  S.c20.mode = 'list';
+  const d = c20D();
+  let h = '<div class="card"><div style="font-weight:800;font-size:15px;margin-bottom:8px">📖 三色考点二十条（含记忆口诀）</div><div class="c20-list">';
+  d.points.forEach(p => {
+    h += '<div class="ci"><div style="flex:1"><div class="ct">' + c20ColorBadge(p.color) + escapeHtml(p.title) + '</div>';
+    h += '<div class="cs">' + escapeHtml(p.summary) + '</div>';
+    h += '<div class="ck">🧠 ' + escapeHtml(p.kou) + '</div></div></div>';
+  });
+  h += '</div><button class="btn ghost mt10" style="width:100%" onclick="c20BackHome()">← 返回三色主页</button></div>';
+  body.innerHTML = h;
+}
+/* ---- 闯关模式：未通关优先，学→测 ---- */
+function c20Campaign(body){
+  const CS = S.c20, d = c20D();
+  if(CS.ci >= CS.order.length) return c20CampaignDone(body);
+  const p = c20Point(CS.order[CS.ci]);
+  if(CS.step === 'study'){
+    let h = '<div class="card"><div style="font-size:12px;color:var(--sub)">🚀 闯关 ' + (CS.ci + 1) + ' / ' + CS.order.length + ((st.c20[p.id] && st.c20[p.id].master) ? ' · 复习' : ' · 新考点') + '</div>';
+    h += '<div style="margin:8px 0">' + c20ColorBadge(p.color) + '</div>';
+    h += '<div style="font-size:18px;font-weight:800">' + escapeHtml(p.title) + '</div>';
+    h += '<div style="margin-top:10px"><b>📌 要点</b><ul style="margin:6px 0 0 18px;line-height:1.6">' + p.pts.map(x => '<li>' + escapeHtml(x) + '</li>').join('') + '</ul></div>';
+    h += '<div class="c20-kou">🧠 ' + escapeHtml(p.kou) + '</div>';
+    h += '<button class="btn teal mt10" style="width:100%" onclick="c20CampaignTest()">📝 验收这道题 ▶</button>';
+    h += '<button class="btn ghost" style="width:100%" onclick="c20BackHome()">← 返回主页</button></div>';
+    body.innerHTML = h;
+  } else {
+    c20CampaignTest(body, p);
+  }
+}
+function c20CampaignTest(body, p){
+  const CS = S.c20; p = p || c20Point(CS.order[CS.ci]); const q = p.mcq;
+  body = body || document.getElementById('cards20Body');
+  body.innerHTML = '';
+  const head = document.createElement('div'); head.className = 'qbar';
+  head.innerHTML = '<span>🚀 闯关验收 ' + (CS.ci + 1) + '/' + CS.order.length + '</span><div class="prog"><i style="width:' + Math.round(CS.ci / CS.order.length * 100) + '%"></i></div><span>' + escapeHtml(p.title) + '</span>';
+  body.appendChild(head);
+  const qt = document.createElement('div'); qt.className = 'qtext'; qt.textContent = q.q; body.appendChild(qt);
+  let locked = false;
+  q.o.forEach((o, k) => {
+    const op = document.createElement('div'); op.className = 'opt';
+    op.innerHTML = '<div class="k">' + String.fromCharCode(65 + k) + '</div><div>' + escapeHtml(o) + '</div>';
+    op.onclick = () => {
+      if(locked) return; locked = true;
+      const ok = k === q.a;
+      const opts = body.querySelectorAll('.opt');
+      opts.forEach(x => x.classList.add('dis'));
+      if(k >= 0) opts[k].classList.add(ok ? 'ok' : 'no');
+      opts[q.a].classList.add('ok');
+      const fb = document.createElement('div'); fb.className = 'sol show ' + (ok ? 'good' : 'bad');
+      fb.innerHTML = '<div class="h">' + (ok ? '✅ 通关！' : '❌ 正确答案：' + escapeHtml(q.o[q.a])) + '</div>' + escapeHtml(q.sol || '');
+      body.appendChild(fb);
+      if(ok){
+        st.c20[p.id] = Object.assign({}, st.c20[p.id], { master:true, tries:((st.c20[p.id] && st.c20[p.id].tries) || 0) + 1, right:((st.c20[p.id] && st.c20[p.id].right) || 0) + 1 });
+        CS.xpEarned += 8; addXp(8); save();
+        popReward('+8 XP · 考点通关', '#2dd4bf');
+        const nb = document.createElement('button'); nb.className = 'btn teal mt10'; nb.textContent = '下一关 ▶';
+        nb.onclick = () => { CS.ci++; CS.step = 'study'; renderCards20(); };
+        body.appendChild(nb);
+      } else {
+        st.c20[p.id] = Object.assign({}, st.c20[p.id], { tries:((st.c20[p.id] && st.c20[p.id].tries) || 0) + 1 }); save();
+        const nb = document.createElement('button'); nb.className = 'btn magenta mt10'; nb.textContent = '再看一眼，重测';
+        nb.onclick = () => { CS.step = 'study'; renderCards20(); }; body.appendChild(nb);
+        const sk = document.createElement('button'); sk.className = 'btn ghost'; sk.textContent = '跳过本题';
+        sk.onclick = () => { CS.ci++; CS.step = 'study'; renderCards20(); }; body.appendChild(sk);
+      }
+    };
+    body.appendChild(op);
+  });
+}
+function c20CampaignDone(body){
+  const CS = S.c20, d = c20D(), mc = c20MasterCount();
+  const isBest = bestUp('c20_campaign', mc);
+  let h = '<div class="card" style="text-align:center"><div class="rank">🏆</div>';
+  h += '<div style="font-size:20px;font-weight:800;margin-top:6px">三色考点全通关！</div>';
+  h += '<div style="margin:8px 0">已掌握 <b>' + mc + '</b> / ' + d.points.length + ' 考点</div>';
+  h += '<div style="font-size:13px;color:var(--sub)">本轮获得 <b>' + CS.xpEarned + '</b> XP' + (isBest ? ' · 🏆 新纪录' : '') + '</div>';
+  h += '<div class="row2 mt10"><button class="btn teal" onclick="startCards20()">再闯一次</button><button class="btn ghost" onclick="c20BackHome()">返回主页</button></div></div>';
+  body.innerHTML = h;
+}
+/* ---- 闪卡记忆 ---- */
+function c20Flash(body){
+  const CS = S.c20, d = c20D();
+  let list = d.points; if(CS.filter) list = d.points.filter(p => p.color === CS.filter);
+  if(CS.fi >= list.length) return c20FlashDone(body, list);
+  const p = list[CS.fi];
+  if(!CS.flipped){
+    body.innerHTML = '<div class="card" style="text-align:center;cursor:pointer" onclick="c20FlipIt()">'
+      + '<div style="font-size:12px;color:var(--sub)">🃏 闪卡 ' + (CS.fi + 1) + '/' + list.length + '（点卡片翻面）</div>'
+      + '<div style="margin:10px 0">' + c20ColorBadge(p.color) + '</div>'
+      + '<div style="font-size:20px;font-weight:800">' + escapeHtml(p.title) + '</div>'
+      + '<div style="margin-top:18px;font-size:13px;color:var(--sub)">👆 点击查看要点 + 记忆口诀</div></div>';
+  } else {
+    body.innerHTML = '<div class="card"><div style="font-size:12px;color:var(--sub)">🃏 闪卡 ' + (CS.fi + 1) + '/' + list.length + '</div>'
+      + '<div style="margin:6px 0">' + c20ColorBadge(p.color) + '</div>'
+      + '<div style="font-size:17px;font-weight:800">' + escapeHtml(p.title) + '</div>'
+      + '<div style="margin-top:8px"><b>📌 要点</b><ul style="margin:6px 0 0 18px;line-height:1.6">' + p.pts.map(x => '<li>' + escapeHtml(x) + '</li>').join('') + '</ul></div>'
+      + '<div class="c20-kou">🧠 ' + escapeHtml(p.kou) + '</div>'
+      + '<div class="row2 mt10"><button class="btn teal" onclick="c20FlashRemembered(true)">✅ 记住了</button><button class="btn ghost" onclick="c20FlashRemembered(false)">🤔 还没记住</button></div></div>';
+  }
+}
+function c20FlipIt(){ S.c20.flipped = true; renderCards20(); }
+function c20FlashRemembered(ok){ S.c20.remembered[S.c20.fi] = ok; S.c20.fi++; S.c20.flipped = false; renderCards20(); }
+function c20FlashDone(body, list){
+  const CS = S.c20; let rem = 0; for(const k in CS.remembered) if(CS.remembered[k]) rem++;
+  const isBest = bestUp('c20_flash', rem); addXp(rem * 2); save();
+  body.innerHTML = '<div class="card" style="text-align:center"><div class="rank">🃏</div>'
+    + '<div style="font-size:18px;font-weight:800;margin-top:6px">闪卡过完啦</div>'
+    + '<div style="margin:8px 0">记住 ' + rem + ' / ' + list.length + ' 张</div>'
+    + '<div style="font-size:13px;color:var(--sub)">+' + rem * 2 + ' XP' + (isBest ? ' · 🏆 新纪录' : '') + '</div>'
+    + '<div class="row2 mt10"><button class="btn teal" onclick="c20FlashReplay()">再翻一遍</button><button class="btn ghost" onclick="c20BackHome()">返回主页</button></div></div>';
+}
+function c20FlashReplay(){ S.c20.fi = 0; S.c20.flipped = false; S.c20.remembered = {}; renderCards20(); }
+/* ---- 选择闯关 ---- */
+function c20Choice(body){
+  const CS = S.c20, d = c20D();
+  if(!CS.qorder){
+    const all = []; d.points.forEach(p => all.push(p.mcq));
+    CS.qs = all; CS.qorder = shuffle(all.map((_, i) => i)).slice(0, 10); CS.idx = 0; CS.ans = {};
+  }
+  const order = CS.qorder;
+  if(CS.idx >= order.length) return c20ChoiceResult(body);
+  const q = CS.qs[order[CS.idx]];
+  body.innerHTML = '';
+  const head = document.createElement('div'); head.className = 'qbar';
+  head.innerHTML = '<span>📝 选择闯关</span><div class="prog"><i style="width:' + Math.round(CS.idx / order.length * 100) + '%"></i></div><span>' + (CS.idx + 1) + '/' + order.length + '</span>';
+  body.appendChild(head);
+  const qt = document.createElement('div'); qt.className = 'qtext'; qt.textContent = q.q; body.appendChild(qt);
+  const cur = CS.ans[order[CS.idx]]; let locked = cur !== undefined;
+  q.o.forEach((o, k) => {
+    const op = document.createElement('div'); op.className = 'opt' + (locked ? (k === q.a ? ' ok' : (cur.k === k ? ' no' : '')) : '');
+    if(locked) op.classList.add('dis');
+    op.innerHTML = '<div class="k">' + String.fromCharCode(65 + k) + '</div><div>' + escapeHtml(o) + '</div>';
+    op.onclick = () => {
+      if(locked) return; locked = true;
+      const ok = k === q.a; CS.ans[order[CS.idx]] = { k, ok };
+      const opts = body.querySelectorAll('.opt');
+      opts.forEach(x => x.classList.add('dis'));
+      opts[k].classList.add(ok ? 'ok' : 'no'); opts[q.a].classList.add('ok');
+      const fb = document.createElement('div'); fb.className = 'sol show ' + (ok ? 'good' : 'bad');
+      fb.innerHTML = '<div class="h">' + (ok ? '✅ 正确' : '❌ 正确答案：' + escapeHtml(q.o[q.a])) + '</div>' + escapeHtml(q.sol || '');
+      body.appendChild(fb);
+      const nb = document.createElement('button'); nb.className = 'btn teal mt10'; nb.textContent = '下一题 ▶';
+      nb.onclick = () => { CS.idx++; renderCards20(); }; body.appendChild(nb);
+    };
+    body.appendChild(op);
+  });
+}
+function c20ChoiceResult(body){
+  const CS = S.c20, order = CS.qorder;
+  let right = 0; order.forEach(i => { if(CS.ans[i] && CS.ans[i].ok) right++; });
+  const isBest = bestUp('c20_choice', right); addXp(right * 2); save();
+  const wrongIdx = order.filter(i => !(CS.ans[i] && CS.ans[i].ok));
+  let h = '<div class="card" style="text-align:center"><div class="rank">📝</div>'
+    + '<div style="font-size:20px;font-weight:800;margin-top:6px">选择闯关结算</div>'
+    + '<div style="margin:8px 0">答对 <b>' + right + '</b> / ' + order.length + ' 题</div>';
+  if(wrongIdx.length) h += '<button class="btn magenta mt10" onclick="c20ChoiceRetry()">🔁 只重做错题（' + wrongIdx.length + '）</button>';
+  h += '<div style="font-size:13px;color:var(--sub);margin-top:6px">+' + right * 2 + ' XP' + (isBest ? ' · 🏆 新纪录' : '') + '</div>';
+  h += '<div class="row2 mt10"><button class="btn teal" onclick="c20ChoiceReplay()">再来一局</button><button class="btn ghost" onclick="c20BackHome()">返回主页</button></div></div>';
+  body.innerHTML = h;
+}
+function c20ChoiceRetry(){ const CS = S.c20; CS.qorder = CS.qorder.filter(i => !(CS.ans[i] && CS.ans[i].ok)); CS.idx = 0; renderCards20(); }
+function c20ChoiceReplay(){ S.c20.qorder = null; S.c20.idx = 0; S.c20.ans = {}; renderCards20(); }
+/* ---- 填空闯关（选关键词） ---- */
+function c20BuildFill(){
+  const d = c20D(); const pool = [], seen = {};
+  d.points.forEach(p => { p.keys.forEach(k => { if(!seen[k]){ seen[k] = 1; pool.push(k); } }); p.fill.ans.forEach(a => { if(!seen[a]){ seen[a] = 1; pool.push(a); } }); });
+  const qs = [];
+  d.points.forEach(p => {
+    const ans = p.fill.ans.slice(), k = ans.length;
+    let cand = ans.slice(), t = 0;
+    while(cand.length < 4 && t < 300){ const x = pool[Math.floor(Math.random() * pool.length)]; if(cand.indexOf(x) < 0) cand.push(x); t++; }
+    qs.push({ id:p.id, stem:p.fill.t, ans:ans, cands:shuffle(cand), k:k });
+  });
+  return shuffle(qs).slice(0, 10);
+}
+function c20Fill(body){
+  const CS = S.c20;
+  if(!CS.fillList || !CS.fillList.length){ CS.fillList = c20BuildFill(); CS.filli = 0; CS.fillSel = {}; }
+  if(CS.filli >= CS.fillList.length) return c20FillResult(body);
+  const it = CS.fillList[CS.filli], sel = CS.fillSel[CS.filli] || [], done = sel.length === it.k;
+  let h = '<div class="card"><div style="font-size:12px;color:var(--sub)">✏️ 填空闯关 ' + (CS.filli + 1) + '/' + CS.fillList.length + '</div>';
+  h += '<div class="qtext" style="font-size:14px;line-height:1.7">' + escapeHtml(it.stem).replace(/___/g, '<span style="border-bottom:2px solid #4aa8ff;padding:0 6px">＿＿＿＿</span>') + '</div>';
+  h += '<div style="font-size:12.5px;color:var(--sub);margin:8px 0">选出正确的 <b>' + it.k + '</b> 个关键词（顺序不限）</div>';
+  h += '<div class="ochips" id="fillChips">';
+  it.cands.forEach(c => { h += '<div class="ochip' + (sel.indexOf(c) >= 0 ? ' sel' : '') + '" onclick="c20FillPick(\'' + encodeURIComponent(c) + '\')">' + escapeHtml(c) + '</div>'; });
+  h += '</div>';
+  if(done){
+    const ok = it.ans.every(a => sel.indexOf(a) >= 0) && sel.every(s => it.ans.indexOf(s) >= 0);
+    if(ok){
+      CS.fillDone++;
+      h += '<div class="sol show good"><div class="h">✅ 答对！</div>' + escapeHtml(c20Point(it.id).kou) + '</div>';
+      h += '<button class="btn teal mt10" onclick="c20FillNext()">下一题 ▶</button>';
+    } else {
+      h += '<div class="sol show bad"><div class="h">❌ 再看看</div>正确答案：' + it.ans.map(a => escapeHtml(a)).join('、') + '<br>' + escapeHtml(c20Point(it.id).summary) + '</div>';
+      h += '<button class="btn ghost mt10" onclick="c20FillReset()">重选</button><button class="btn teal" onclick="c20FillNext()">跳过 ▶</button>';
+    }
+  }
+  h += '</div>'; body.innerHTML = h;
+}
+function c20FillPick(c){ c = decodeURIComponent(c); const CS = S.c20, it = CS.fillList[CS.filli]; let sel = CS.fillSel[CS.filli] || []; const i = sel.indexOf(c); if(i >= 0) sel.splice(i, 1); else { if(sel.length >= it.k) sel.shift(); sel.push(c); } CS.fillSel[CS.filli] = sel; renderCards20(); }
+function c20FillNext(){ S.c20.filli++; S.c20.fillSel[S.c20.filli] = []; renderCards20(); }
+function c20FillReset(){ S.c20.fillSel[S.c20.filli] = []; renderCards20(); }
+function c20FillResult(body){
+  const CS = S.c20; const isBest = bestUp('c20_fill', CS.fillDone); addXp(CS.fillDone * 2); save();
+  body.innerHTML = '<div class="card" style="text-align:center"><div class="rank">✏️</div>'
+    + '<div style="font-size:18px;font-weight:800;margin-top:6px">填空闯关结算</div>'
+    + '<div style="margin:8px 0">答对 <b>' + CS.fillDone + '</b> / ' + CS.fillList.length + ' 题</div>'
+    + '<div style="font-size:13px;color:var(--sub)">+' + CS.fillDone * 2 + ' XP' + (isBest ? ' · 🏆 新纪录' : '') + '</div>'
+    + '<div class="row2 mt10"><button class="btn teal" onclick="c20FillReplay()">再来一局</button><button class="btn ghost" onclick="c20BackHome()">返回主页</button></div></div>';
+}
+function c20FillReplay(){ S.c20.fillList = c20BuildFill(); S.c20.filli = 0; S.c20.fillSel = {}; S.c20.fillDone = 0; renderCards20(); }
+/* ---- 连连看 ---- */
+function c20Match(body){
+  const d = c20D();
+  const picks = shuffle(d.points).slice(0, 8);
+  const pairs = picks.map(p => [p.title, p.summary]);
+  const rightItems = shuffle(pairs.map(p => p[1]));
+  let selL = null, done = 0, miss = 0;
+  body.innerHTML = '<div class="card"><div style="font-weight:700;margin-bottom:8px">🔗 连连看 · 考点 ↔ 要点（先点左边，再点右边）</div><div class="mrow"><div class="mcol" id="mcolL"></div><div class="mcol" id="mcolR"></div></div><div style="font-size:12.5px;color:var(--sub);margin-top:8px" id="mstat">配对 0/8 · 失误 0</div></div>';
+  const L = document.getElementById('mcolL'), R = document.getElementById('mcolR');
+  const stat = () => { document.getElementById('mstat').textContent = '配对 ' + done + '/8 · 失误 ' + miss; };
+  pairs.forEach(p => {
+    const a = document.createElement('div'); a.className = 'mchip'; a.textContent = p[0];
+    a.onclick = () => { if(a.classList.contains('ok')) return; L.querySelectorAll('.mchip').forEach(x => x.style.borderColor = ''); a.style.borderColor = '#2dd4bf'; selL = { el:a, val:p[1] }; };
+    L.appendChild(a);
+  });
+  rightItems.forEach(val => {
+    const b = document.createElement('div'); b.className = 'mchip'; b.textContent = val;
+    b.onclick = () => {
+      if(b.classList.contains('ok') || !selL) return;
+      if(selL.val === val){
+        selL.el.classList.add('ok'); b.classList.add('ok'); selL.el.style.borderColor = ''; selL = null; done++; stat();
+        if(done === 8){
+          const perfect = miss === 0, isBest = bestUp('c20_match', 8 - miss); addXp(Math.max(6, 18 - miss * 3)); save();
+          body.innerHTML = '<div class="card" style="text-align:center"><div class="rank">🔗</div><div style="font-size:18px;font-weight:800;margin-top:6px">' + (perfect ? '✨ 零失误' : '配对完成') + '</div><div style="margin:8px 0">' + (perfect ? '考点已经成对入脑' : '失误 ' + miss + ' 次，明天连连看再见面') + '</div><div style="font-size:13px;color:var(--sub)">+' + Math.max(6, 18 - miss * 3) + ' XP' + (isBest ? ' · 🏆 新纪录' : '') + '</div><div class="row2 mt10"><button class="btn teal" onclick="c20MatchReplay()">再来一局</button><button class="btn ghost" onclick="c20BackHome()">返回主页</button></div></div>';
+        }
+      } else { miss++; stat(); const aEl = selL.el; selL = null; aEl.style.borderColor = ''; b.classList.add('no'); setTimeout(() => b.classList.remove('no'), 450); }
+    };
+    R.appendChild(b);
+  });
+}
+function c20MatchReplay(){ renderCards20(); }
+/* ---- 排序闯关 ---- */
+function c20Order(body){
+  const CS = S.c20, d = c20D();
+  if(!CS.orderP){ const cand = d.points.filter(p => p.pts.length >= 3); CS.orderP = shuffle(cand)[0]; CS.orderMiss = 0; }
+  const p = CS.orderP, steps = p.pts, shuffled = shuffle(steps.map((s, i) => ({ s, i })));
+  let pos = 0;
+  body.innerHTML = '<div class="card"><div style="font-weight:700;margin-bottom:4px">🪜 排序闯关 · 把要点排成正确顺序</div>'
+    + '<div style="font-size:12px;color:var(--sub);margin-bottom:6px">' + c20ColorBadge(p.color) + escapeHtml(p.title) + '</div>'
+    + '<div id="oSlots" style="margin:10px 0;display:flex;flex-direction:column;gap:6px"></div>'
+    + '<div class="ochips" id="oChips"></div>'
+    + '<div style="font-size:12.5px;color:var(--sub);margin-top:8px" id="ostat">失误 ' + CS.orderMiss + '</div>'
+    + '<button class="btn ghost mt10" style="width:100%" onclick="c20OrderReplay()">🔄 换一题</button></div>';
+  const slots = document.getElementById('oSlots');
+  steps.forEach((_, i) => { const dd = document.createElement('div'); dd.className = 'mchip'; dd.style.opacity = '.5'; dd.textContent = (i + 1) + '. ……'; slots.appendChild(dd); });
+  const chips = document.getElementById('oChips');
+  shuffled.forEach(item => {
+    const b = document.createElement('div'); b.className = 'ochip'; b.textContent = item.s;
+    b.onclick = () => {
+      if(b.dataset.done) return;
+      if(item.i === pos){
+        b.dataset.done = 1; b.style.opacity = '.5'; b.style.borderColor = '#2dd4bf';
+        slots.children[pos].textContent = (pos + 1) + '. ' + item.s; pos++;
+        if(pos === steps.length){
+          const isBest = bestUp('c20_order', Math.max(0, 100 - CS.orderMiss * 20)); addXp(CS.orderMiss === 0 ? 16 : 10); save();
+          slots.innerHTML = ''; chips.innerHTML = '';
+          document.getElementById('ostat').textContent = '完成！失误 ' + CS.orderMiss + (CS.orderMiss === 0 ? ' · 顺序已刻进脑子 ✨' : '');
+          const bx = document.createElement('div'); bx.className = 'row2 mt10';
+          bx.innerHTML = '<button class="btn teal" onclick="c20OrderReplay()">再来一题</button><button class="btn ghost" onclick="c20BackHome()">返回主页</button>';
+          body.appendChild(bx);
+        }
+      } else { CS.orderMiss++; document.getElementById('ostat').textContent = '失误 ' + CS.orderMiss; b.classList.add('no'); setTimeout(() => b.classList.remove('no'), 450); }
+    };
+    chips.appendChild(b);
+  });
+}
+function c20OrderReplay(){ S.c20.orderP = null; renderCards20(); }
 
 /* =================== 启动 =================== */
 restoreDrill();          // 恢复上次中断的刷题进度（如有）
