@@ -14,7 +14,7 @@
      - runtime 缓存名与版本解耦（ck-rt 固定），升级不再清掉 27MB 模型/考点图；
      - cache.put 全部吞配额异常（QuotaExceeded 不再让网络成功的资源渲染失败）；
      - precache 单项失败从静默改 console.warn，便于排查缺块。 */
-const CACHE_PREFIX = 'ck-v3.10.2';
+const CACHE_PREFIX = 'ck-v3.10.4';
 const PRECACHE = CACHE_PREFIX + '-pre';
 const RUNTIME = 'ck-rt';   // 与版本解耦：升级只清旧 precache，保留运行期缓存
 
@@ -30,6 +30,7 @@ const PRECACHE_URLS = [
   './data/mnemonics.js',       // v3.9.0 · 考点级记忆口诀库（同步加载，断网也要能显示）
   './data/stepmnem.js',        // v3.10.0 · 题级做题步骤 + 考场速记口诀引擎（同步加载，断网也要能显示）
   './data/lecture.js',         // v3.10.0 · 教授级讲解库（2D 动画六段式讲解，断网也要能播）
+  './data/presim_pol.js',      // v3.10.4 · 政治考前模拟卷数据源（断网也要能练）
   './assets/heroine.jpg',
   './assets/xue.jpg',
   './assets/luo.jpg',
