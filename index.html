@@ -970,6 +970,7 @@
       <button class="btn gold" onclick="startMock()">📝 全真模拟卷</button>
       <button class="btn ghost" onclick="startBoss()">👹 Boss 模拟战</button>
     </div>
+    <button class="btn magenta mt10" onclick="startPresim()">🎯 政治考前模拟卷<small style="font-weight:600;font-size:11px"> · 35选择+6大题 · 口诀+模板 · 反复练</small></button>
     <button class="btn magenta mt10" onclick="go('s-sprint')">🔥 考前 24h 冲刺</button>
     <button class="btn ghost mt10" onclick="reviewWrong()">🔁 错题重做（只刷错题）</button>
   </section>
@@ -1123,6 +1124,12 @@
     <div id="mockBody"></div>
   </section>
 
+  <!-- ============ v3.10.4 考前模拟 · 政治仿真卷（选择+简答+论述 · 口诀+模板） ============ -->
+  <section class="screen" id="s-presim">
+    <div class="back" onclick="presimBack()">← 返回自习室</div>
+    <div id="presimBody"></div>
+  </section>
+
   <!-- ============ ME ============ -->
   <section class="screen" id="s-me">
     <div class="back" onclick="go('s-home')">← 返回</div>
@@ -1251,6 +1258,7 @@
 <script src="data/mnemonics.js"></script>
 <script src="data/stepmnem.js"></script>   <!-- v3.10.0 · 题级「做题步骤 + 考场速记口诀」引擎 -->
 <script src="data/lecture.js"></script>    <!-- v3.10.0 · 教授级讲解库（2D 动画六段式讲解内容源） -->
+<script src="data/presim_pol.js"></script> <!-- v3.10.4 · 政治考前模拟卷（仿真卷 + 口诀 + 答题模板，约 30KB，离线可用） -->
 <!-- v3.4.0 · 首屏减负：data/kaodian.js(501KB 考点速记资料库) 与 data/goldpoints.js(380KB 黄金考点)
      都不参与 ALLQ 构建，只有「考点速记」页与「速记图猜考点」小游戏用到 →
      改为由 ensureBank() 按需异步加载（首屏同步解析体积 2.03MB → 1.15MB，HTML 解析与首绘不再等待）。
@@ -2118,7 +2126,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.10.3';  // 同步 GitHub Release 标签（v3.10.3 = 热修：黄金考点 AI 出题去重——gpQuiz 引入 nonce 随机种子，缓存键纳入随机因子 + 每次「换一道」回调 nonce+1，同一考点反复点「再次出题」不再命中同一道题的缓存，每次都生成全新情境/数字/选项）
+const APP_VER = 'v3.10.4';  // 同步 GitHub Release 标签（v3.10.4 = 新增「政治考前模拟卷」独立模块：专升本《政治》考前仿真卷全卷复刻——35 选择 + 4 简答 + 2 论述，每题配记忆口诀 + 答题模板 + 解析；含选择题计时速通/成绩复盘/仅重做错题、大题关键词+模板对照、30 张高频考点口诀翻卡、考场急救排错口诀与万能套话；数据源 data/presim_pol.js）
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
@@ -7798,6 +7806,280 @@ function bindPWA(){
       });
     });
   }).catch(() => { /* 注册失败（file:// 或旧浏览器）不影响主功能 */ });
+}
+
+/* =================== v3.10.4 · 考前模拟 · 政治仿真卷 ===================
+   面向「基础差 + 时间紧」的整卷速通：35 选择题（每题配记忆口诀 + 解析）
+   + 4 简答 + 2 论述（每题配关键词框架 + 答题模板 + 标准答案）+ 口诀速记卡 + 考场急救。
+   数据源 data/presim_pol.js（window.PRESIM_POL）。不写入主存档，纯练习。 */
+function presimData(){ return (window.PRESIM_POL && window.PRESIM_POL.mcq && window.PRESIM_POL.mcq.length) ? window.PRESIM_POL : null; }
+function presimFmt(s){ s = Math.max(0, s|0); return String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0'); }
+function presimFresh(){ return { mode:'home', mi:0, mAns:{}, order:null, bi:0, bShown:{}, ci:0, cFlip:false, t0:Date.now() }; }
+function startPresim(){
+  S.presim = presimFresh();
+  go('s-presim'); renderPresim(); presimTickStart();
+}
+function presimTickStart(){
+  presimTickStop();
+  window.__presimH = setInterval(presimTick, 1000);
+  presimTick();
+}
+function presimTickStop(){ if(window.__presimH){ clearInterval(window.__presimH); window.__presimH = null; } }
+function presimTick(){
+  const el = document.getElementById('presimTimer'), p = S.presim;
+  if(!el || !p || !p.t0) return;
+  el.textContent = '⏱ ' + presimFmt(Math.floor((Date.now() - p.t0)/1000));
+}
+function presimBack(){
+  const p = S.presim;
+  if(!p || p.mode === 'home'){ presimTickStop(); go('s-study'); return; }
+  p.mode = 'home'; renderPresim();
+}
+function presimResetMcq(p, order){ p.mode='mcq'; p.mi=0; p.mAns={}; p.order=order||null; p.t0=Date.now(); renderPresim(); presimTickStart(); }
+function presimOrder(p, d){
+  if(p.order && p.order.length && p.order.some(i => i >= 0 && i < d.mcq.length)) return p.order;
+  return d.mcq.map((q, i) => i);
+}
+
+function renderPresim(){
+  const body = document.getElementById('presimBody'); if(!body) return;
+  const d = presimData();
+  if(!d){ body.innerHTML = '<div class="card" style="padding:14px">数据加载中…若长时间空白，请返回后重进「考前模拟」。</div>'; return; }
+  const p = S.presim || (S.presim = presimFresh());
+  body.innerHTML = '';
+  if(p.mode === 'mcq')    return presimMcq(body, d, p);
+  if(p.mode === 'result') return presimResult(body, d, p);
+  if(p.mode === 'big')    return presimBig(body, d, p);
+  if(p.mode === 'cards')  return presimCards(body, d, p);
+  if(p.mode === 'rescue') return presimRescue(body, d, p);
+  return presimHome(body, d, p);
+}
+
+function presimHome(body, d, p){
+  const m = d.meta;
+  const head = document.createElement('div'); head.className = 'card';
+  head.innerHTML = '<div style="font-weight:900;font-size:15px">🎯 ' + escapeHtml(m.subject) + '考前模拟 · ' + escapeHtml(m.title) + '</div>'
+    + '<div style="font-size:12px;color:var(--sub);line-height:1.85;margin-top:7px">'
+    + '📚 来源：' + escapeHtml(m.src) + '<br>'
+    + '📝 结构：' + escapeHtml(m.parts) + '（满分 ' + m.total + '）<br>'
+    + '📊 比例：' + escapeHtml(m.ratio) + '<br>'
+    + '💡 ' + escapeHtml(m.tip) + '</div>';
+  body.appendChild(head);
+
+  const ansN = Object.keys(p.mAns || {}).length;
+  const rightN = Object.keys(p.mAns || {}).filter(k => p.mAns[k] && p.mAns[k].ok).length;
+  const bigN = Object.keys(p.bShown || {}).filter(k => p.bShown[k]).length;
+  const bigTotal = d.short.length + d.essay.length;
+  const prog = document.createElement('div'); prog.className = 'card';
+  prog.innerHTML = '<div style="font-weight:800;margin-bottom:6px">📈 本卷进度</div>'
+    + '<div style="font-size:12.5px;color:var(--sub);line-height:1.95">'
+    + '选择题：已做 <b style="color:var(--txt)">' + ansN + '</b>/' + d.mcq.length
+    + '，正确 <b style="color:var(--green)">' + rightN + '</b>'
+    + (ansN ? '（正确率 ' + Math.round(rightN / ansN * 100) + '%，折合 ' + Math.round(rightN / d.mcq.length * 70) + '/70 分）' : '')
+    + '<br>大题：已看 <b style="color:var(--txt)">' + bigN + '</b>/' + bigTotal + ' 道</div>';
+  body.appendChild(prog);
+
+  const add = (label, cls, fn) => { const b = document.createElement('button'); b.className = 'btn ' + cls + ' mt10'; b.innerHTML = label; b.onclick = fn; body.appendChild(b); };
+  add('📝 整卷模拟 · 计时从头做一遍（选择70分）', 'magenta', () => presimResetMcq(p));
+  add('⚡ 选择题速通（35 题 · 答完即出口诀+解析）', 'gold', () => { if(!Object.keys(p.mAns || {}).length) presimResetMcq(p); else { p.mode = 'mcq'; renderPresim(); presimTickStart(); } });
+  add('📐 大题模板（简答 4 + 论述 2 · 关键词+套路）', 'ghost', () => { p.mode = 'big'; p.bi = 0; renderPresim(); });
+  add('🧠 高频考点口诀卡（30 张 · 翻卡记忆）', 'ghost', () => { p.mode = 'cards'; p.cFlip = false; renderPresim(); });
+  add('🚑 考场急救 · 排错口诀 + 万能套话', 'ghost', () => { p.mode = 'rescue'; renderPresim(); });
+}
+
+function presimMcq(body, d, p){
+  const order = presimOrder(p, d);
+  if(p.mi >= order.length){ p.mode = 'result'; return renderPresim(); }
+  const idx = order[p.mi], q = d.mcq[idx];
+  const bar = document.createElement('div'); bar.className = 'card';
+  bar.innerHTML = '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><b>选择题 ' + (p.mi + 1) + '/' + order.length + '</b>'
+    + '<span style="font-size:11.5px;color:var(--sub)">' + (p.order ? '错题重练' : '单选 · 每题 2 分') + '</span>'
+    + '<span id="presimTimer" style="margin-left:auto;color:var(--gold);font-weight:800;font-variant-numeric:tabular-nums"></span></div>';
+  body.appendChild(bar);
+  const qt = document.createElement('div'); qt.className = 'qtext'; qt.style.marginTop = '12px'; qt.textContent = q.q;
+  body.appendChild(qt);
+  const rec = p.mAns[idx];
+  q.o.forEach((o, k) => {
+    const op = document.createElement('div'); op.className = 'opt';
+    op.innerHTML = '<div class="k">' + String.fromCharCode(65 + k) + '</div><div>' + escapeHtml(o) + '</div>';
+    if(rec !== undefined){
+      op.classList.add('dis');
+      if(k === q.a) op.classList.add('ok');
+      else if(rec.sel === k) op.classList.add('no');
+    } else {
+      op.onclick = () => { p.mAns[idx] = { sel:k, ok:(k === q.a) }; renderPresim(); };
+    }
+    body.appendChild(op);
+  });
+  if(rec !== undefined) presimMcqFeedback(body, d, p, q, idx, rec);
+}
+
+function presimMcqFeedback(body, d, p, q, idx, rec){
+  const order = presimOrder(p, d);
+  const sol = document.createElement('div'); sol.className = 'sol show ' + (rec.ok ? 'good' : 'bad');
+  sol.innerHTML = '<div class="h">' + (rec.ok ? '✅ 答对了！' : '❌ 正确答案：' + String.fromCharCode(65 + q.a) + '. ' + escapeHtml(q.o[q.a])) + '</div>'
+    + '<div style="margin-top:7px;padding:8px 10px;border-radius:10px;background:rgba(255,209,102,.12);border:1px solid rgba(255,209,102,.35)"><b style="color:var(--gold)">🧠 口诀：</b>' + escapeHtml(q.kou) + '</div>'
+    + '<div style="margin-top:7px;color:var(--sub)">📖 ' + escapeHtml(q.sol) + '</div>';
+  body.appendChild(sol);
+  const row = document.createElement('div'); row.className = 'row2 mt10';
+  const redo = document.createElement('button'); redo.className = 'btn ghost'; redo.textContent = '🔁 重做本题';
+  redo.onclick = () => { delete p.mAns[idx]; renderPresim(); };
+  const next = document.createElement('button'); next.className = 'btn magenta';
+  next.textContent = (p.mi < order.length - 1) ? '下一题 ▶' : '查看成绩 🏁';
+  next.onclick = () => { p.mi++; renderPresim(); };
+  row.appendChild(redo); row.appendChild(next); body.appendChild(row);
+}
+
+function presimResult(body, d, p){
+  const total = d.mcq.length;
+  const rightN = Object.keys(p.mAns).filter(k => p.mAns[k] && p.mAns[k].ok).length;
+  const ansN = Object.keys(p.mAns).length;
+  const score = Math.round(rightN / total * 70);
+  const used = p.t0 ? Math.floor((Date.now() - p.t0) / 1000) : 0;
+  presimTickStop();
+  const card = document.createElement('div'); card.className = 'card';
+  card.innerHTML = '<div class="rank">' + score + '<span style="font-size:22px">分</span></div>'
+    + '<div style="text-align:center;color:var(--sub);margin:8px 0 6px">选择题答对 ' + rightN + '/' + total
+    + '（作答 ' + ansN + ' 题）· 折合 ' + score + '/70 分 · 用时 ' + presimFmt(used) + '</div>'
+    + '<div style="text-align:center;font-size:12px;color:var(--sub)">大题（简答+论述 80 分）到「大题模板」逐条对照自评</div>';
+  body.appendChild(card);
+
+  const wrongs = d.mcq.filter((q, i) => p.mAns[i] && !p.mAns[i].ok);
+  const t = document.createElement('div'); t.className = 'sec-title';
+  t.innerHTML = '<span class="bar"></span>错题复盘<small>' + wrongs.length + ' 题</small>'; body.appendChild(t);
+  if(!wrongs.length){
+    const ok = document.createElement('div'); ok.className = 'card';
+    ok.innerHTML = '<div style="text-align:center;font-weight:800;color:var(--green)">🎉 全对！这套卷子的选择题你已经拿下，快去背大题模板吧！</div>';
+    body.appendChild(ok);
+  } else {
+    wrongs.forEach(q => {
+      const r = document.createElement('div'); r.className = 'rev r-no';
+      r.innerHTML = '<div class="rq">' + q.no + '. ' + escapeHtml(q.q) + '</div>'
+        + '<div class="ra">答案：' + String.fromCharCode(65 + q.a) + '. ' + escapeHtml(q.o[q.a]) + '</div>'
+        + '<div class="rm">🧠 ' + escapeHtml(q.kou) + '</div>';
+      body.appendChild(r);
+    });
+  }
+  const add = (label, cls, fn) => { const b = document.createElement('button'); b.className = 'btn ' + cls + ' mt10'; b.innerHTML = label; b.onclick = fn; body.appendChild(b); };
+  add('🔁 重做整套选择题', 'magenta', () => presimResetMcq(p));
+  if(wrongs.length) add('🎯 只重做错题（' + wrongs.length + ' 题）', 'gold', () => {
+    const idxs = d.mcq.map((q, i) => i).filter(i => p.mAns[i] && !p.mAns[i].ok);
+    idxs.forEach(i => { delete p.mAns[i]; });
+    p.order = idxs; p.mi = 0; p.mode = 'mcq'; p.t0 = Date.now();
+    renderPresim(); presimTickStart();
+  });
+  add('📐 去做大题（模板 + 标准答案）', 'ghost', () => { p.mode = 'big'; p.bi = 0; renderPresim(); });
+  add('🚑 考场急救 · 万能套话', 'ghost', () => { p.mode = 'rescue'; renderPresim(); });
+}
+
+function presimBig(body, d, p){
+  const all = d.short.concat(d.essay);
+  if(p.bi < 0) p.bi = 0; if(p.bi >= all.length) p.bi = all.length - 1;
+  const q = all[p.bi];
+  const isEssay = p.bi >= d.short.length;
+  const bar = document.createElement('div'); bar.className = 'card';
+  bar.innerHTML = '<div style="display:flex;align-items:center;gap:8px"><b>' + (isEssay ? '📝 论述题' : '✍️ 简答题') + ' ' + q.no + '</b>'
+    + '<span style="font-size:11.5px;color:var(--sub)">' + (isEssay ? '20 分' : '10 分') + '</span>'
+    + '<span style="margin-left:auto;font-size:12px;color:var(--sub)">' + (p.bi + 1) + '/' + all.length + '</span></div>';
+  body.appendChild(bar);
+  const qt = document.createElement('div'); qt.className = 'qtext'; qt.style.marginTop = '12px'; qt.textContent = q.q;
+  body.appendChild(qt);
+
+  const kou = document.createElement('div'); kou.className = 'card';
+  kou.style.background = 'rgba(255,209,102,.10)'; kou.style.borderColor = 'rgba(255,209,102,.35)';
+  kou.innerHTML = '<b style="color:var(--gold)">🧠 记忆口诀</b><div style="margin-top:5px;font-size:13.5px;line-height:1.75">' + escapeHtml(q.kou) + '</div>';
+  body.appendChild(kou);
+
+  const kw = document.createElement('div'); kw.className = 'card';
+  kw.innerHTML = '<b>🔑 答题关键词（踩点得分）</b><ul style="margin:7px 0 0;padding-left:18px;font-size:13px;line-height:1.85">'
+    + q.keys.map(k => '<li>' + escapeHtml(k) + '</li>').join('') + '</ul>';
+  body.appendChild(kw);
+
+  const shown = !!p.bShown[q.no];
+  const btn = document.createElement('button'); btn.className = 'btn ' + (shown ? 'ghost' : 'magenta') + ' mt10';
+  btn.textContent = shown ? '🙈 遮住答案（自测复述）' : '👀 对照答案模板（先自己写一遍再点）';
+  btn.onclick = () => { p.bShown[q.no] = !shown; renderPresim(); };
+  body.appendChild(btn);
+
+  if(shown){
+    const tpl = document.createElement('div'); tpl.className = 'card';
+    tpl.innerHTML = '<b>📐 答题模板（照此结构写）</b><div style="margin-top:6px;font-size:13px;line-height:1.9">' + escapeHtml(q.template) + '</div>';
+    body.appendChild(tpl);
+    const sol = document.createElement('div'); sol.className = 'card';
+    sol.innerHTML = '<b>📖 标准答案</b><div style="margin-top:6px;font-size:12.5px;line-height:1.85;color:var(--sub)">' + escapeHtml(q.sol) + '</div>';
+    body.appendChild(sol);
+  }
+
+  const row = document.createElement('div'); row.className = 'row2 mt10';
+  const prev = document.createElement('button'); prev.className = 'btn ghost'; prev.textContent = '◀ 上一题';
+  prev.disabled = (p.bi === 0); prev.onclick = () => { if(p.bi > 0){ p.bi--; renderPresim(); } };
+  const next = document.createElement('button'); next.className = 'btn magenta';
+  next.textContent = (p.bi < all.length - 1) ? '下一题 ▶' : '过完一轮 ✅';
+  next.onclick = () => { if(p.bi < all.length - 1){ p.bi++; renderPresim(); } else { toast('大题过完一轮，继续背口诀！'); p.mode = 'home'; renderPresim(); } };
+  row.appendChild(prev); row.appendChild(next); body.appendChild(row);
+}
+
+function presimCards(body, d, p){
+  const list = d.cards; if(p.ci >= list.length) p.ci = 0;
+  const c = list[p.ci];
+  const bar = document.createElement('div'); bar.className = 'card';
+  bar.innerHTML = '<div style="display:flex;align-items:center"><b>🧠 高频考点口诀卡</b>'
+    + '<span style="margin-left:auto;font-size:12px;color:var(--sub)">' + (p.ci + 1) + '/' + list.length + '</span></div>';
+  body.appendChild(bar);
+  const card = document.createElement('div'); card.className = 'card';
+  card.style.minHeight = '150px'; card.style.display = 'flex'; card.style.flexDirection = 'column';
+  card.style.justifyContent = 'center'; card.style.textAlign = 'center'; card.style.cursor = 'pointer'; card.style.marginTop = '10px';
+  if(!p.cFlip){
+    card.innerHTML = '<div style="font-size:12px;color:var(--sub)">考点</div>'
+      + '<div style="font-size:22px;font-weight:900;margin:10px 0">' + escapeHtml(c.t) + '</div>'
+      + '<div style="font-size:11.5px;color:var(--dim)">👆 点一下看口诀</div>';
+  } else {
+    card.innerHTML = '<div style="font-size:12px;color:var(--sub)">' + escapeHtml(c.t) + ' 的口诀</div>'
+      + '<div style="font-size:19px;font-weight:900;color:var(--gold);margin:10px 0;line-height:1.5">' + escapeHtml(c.kou) + '</div>'
+      + (c.full ? '<div style="font-size:12px;color:var(--sub);line-height:1.75">' + escapeHtml(c.full) + '</div>' : '');
+  }
+  card.onclick = () => { p.cFlip = !p.cFlip; renderPresim(); };
+  body.appendChild(card);
+  const row = document.createElement('div'); row.className = 'row2 mt10';
+  const prev = document.createElement('button'); prev.className = 'btn ghost'; prev.textContent = '◀ 上一张';
+  prev.onclick = () => { p.ci = (p.ci - 1 + list.length) % list.length; p.cFlip = false; renderPresim(); };
+  const next = document.createElement('button'); next.className = 'btn magenta'; next.textContent = '下一张 ▶';
+  next.onclick = () => { p.ci = (p.ci + 1) % list.length; p.cFlip = false; renderPresim(); };
+  row.appendChild(prev); row.appendChild(next); body.appendChild(row);
+}
+
+function presimRescue(body, d, p){
+  const s1 = document.createElement('div'); s1.className = 'sec-title';
+  s1.innerHTML = '<span class="bar"></span>选择题排错 · 蒙题兜底'; body.appendChild(s1);
+  const c1 = document.createElement('div'); c1.className = 'card';
+  c1.innerHTML = '<ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.95">'
+    + d.traps.map(x => '<li>' + escapeHtml(x) + '</li>').join('') + '</ul>';
+  body.appendChild(c1);
+
+  const s2 = document.createElement('div'); s2.className = 'sec-title';
+  s2.innerHTML = '<span class="bar"></span>四类题答题公式'; body.appendChild(s2);
+  d.formulas.forEach(f => {
+    const c = document.createElement('div'); c.className = 'card';
+    c.innerHTML = '<b>' + escapeHtml(f.name) + '</b> <span style="font-size:11px;color:var(--gold)">［' + escapeHtml(f.tag) + '］</span>'
+      + '<ol style="margin:7px 0 0;padding-left:18px;font-size:12.5px;line-height:1.9">'
+      + f.steps.map(s => '<li>' + escapeHtml(s) + '</li>').join('') + '</ol>';
+    body.appendChild(c);
+  });
+
+  const s3 = document.createElement('div'); s3.className = 'sec-title';
+  s3.innerHTML = '<span class="bar"></span>考场急救套话<small>大题绝不空题</small>'; body.appendChild(s3);
+  const c3 = document.createElement('div'); c3.className = 'card';
+  c3.innerHTML = '<div style="font-size:12px;color:var(--sub);margin-bottom:7px">完全没思路时，分点抄上这些，凑分保底：</div>'
+    + '<ul style="margin:0;padding-left:18px;font-size:13px;line-height:2.05">'
+    + d.rescue.map(x => '<li>' + escapeHtml(x) + '</li>').join('') + '</ul>';
+  body.appendChild(c3);
+  const copy = document.createElement('button'); copy.className = 'btn ghost mt10'; copy.textContent = '📋 复制全部急救套话';
+  copy.onclick = () => {
+    const txt = d.rescue.join('\n');
+    if(navigator.clipboard) navigator.clipboard.writeText(txt).then(() => toast('已复制，考前多读几遍'), () => toast('复制失败'));
+    else toast('复制失败');
+  };
+  body.appendChild(copy);
 }
 
 /* =================== 启动 =================== */
