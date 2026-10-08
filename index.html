@@ -1306,7 +1306,7 @@
 <script src="data/news_pol.js"></script>   <!-- v3.10.7 · 2025—2026 最新时政考题（完整版：96 选择 + 56 速记口诀卡，离线可用） -->
 <script src="data/cards20_pol.js"></script> <!-- v3.10.6 · 政治三色考点二十条（20 考点 + 5 小游戏 + 闯关，离线可用） -->
 <script src="data/zuoda_pol.js"></script>  <!-- v3.10.9 · 主观题抢分：万能模板 + 6高频考点 + 关键词踩点(12题) + 逻辑排序 + 完整作答智能评分 + 错题本，离线可用 -->
-<script src="data/borrow_pol.js"></script> <!-- v3.10.10 · 选择题借词·大题反推：选择题题干+选项 → 反推大题得分关键词，离线可用 -->
+<script src="data/borrow_pol.js"></script> <!-- v3.10.11 · 选择题借词·大题反推：选择题题干+选项 → 反推大题得分关键词 + 选项淘金（从正确选项挑规范表述），离线可用 -->
 <!-- v3.4.0 · 首屏减负：data/kaodian.js(501KB 考点速记资料库) 与 data/goldpoints.js(380KB 黄金考点)
      都不参与 ALLQ 构建，只有「考点速记」页与「速记图猜考点」小游戏用到 →
      改为由 ensureBank() 按需异步加载（首屏同步解析体积 2.03MB → 1.15MB，HTML 解析与首绘不再等待）。
@@ -2174,7 +2174,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.10.10';  // 同步 GitHub Release 标签（v3.10.10 = 新增「🔁 选择题借词·大题反推」模块：给选择题题干+选项，训练从选择题提炼大题得分关键词的保底凑分能力；数据源 data/borrow_pol.js，自习室入口 startBorrow，复用 zuodaKwScore 评分）
+const APP_VER = 'v3.10.11';  // 同步 GitHub Release 标签（v3.10.11 = 「🔁 选择题借词」模块新增「💎 选项淘金」模式：选择题+选项，从正确选项里点击挑出规范表述，淘金式评分；数据源 data/borrow_pol.js 每题加 cor/gold/dross，自学入口 startBorrow 内 gold 模式）
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
@@ -8987,10 +8987,13 @@ function zuodaClearWrong(){ st.zuoda.wrong = {}; st.zuoda.weak = {}; save(); ren
 
 /* =================== 选择题借词·大题反推（v3.10.10） =================== */
 /* 数据源 data/borrow_pol.js（window.BORROW）。进度/错题/薄弱关键词写入 st.borrow（localStorage）。
-   纯前端、无后端、离线可用。核心：给选择题（题干+选项）→ 写“可借的大题得分关键词”→ 复用 zuodaKwScore 宽容比对。 */
+   纯前端、无后端、离线可用。两个模式：
+   - kw 借词练习：给选择题（题干+选项）→ 写“可借的大题得分关键词”→ 复用 zuodaKwScore 宽容比对。
+   - gold 选项淘金：给选择题+选项（标正确项）→ 从候选表述里点击挑出规范表述（金/沙混合）→ 命中率评分。 */
 function borrowD(){ return window.BORROW; }
 function borrowFresh(){
-  return { mode:'home', idx:0, input:'', done:false, result:null };
+  return { mode:'home', idx:0, input:'', done:false, result:null,
+    goldIdx:0, goldPool:null, goldPick:[], goldDone:false, goldResult:null };
 }
 function startBorrow(){
   st.borrow = st.borrow || { wrong:{}, weak:{} };
@@ -9014,6 +9017,7 @@ function renderBorrow(){
   const p = S.borrow || (S.borrow = borrowFresh());
   body.innerHTML = '';
   if(p.mode === 'kw')    return borrowKw(body, d, p);
+  if(p.mode === 'gold')  return borrowGold(body, d, p);
   if(p.mode === 'wrong') return borrowWrong(body, d, p);
   return borrowHome(body, d, p);
 }
@@ -9021,6 +9025,7 @@ function borrowGo(mode){
   const p = S.borrow;
   p.mode = mode;
   if(mode === 'kw'){ p.idx = 0; p.input = ''; p.done = false; p.result = null; }
+  if(mode === 'gold'){ p.goldIdx = 0; p.goldPool = null; p.goldPick = []; p.goldDone = false; p.goldResult = null; }
   renderBorrow();
 }
 function borrowHome(body, d, p){
@@ -9030,6 +9035,7 @@ function borrowHome(body, d, p){
   h += '<div style="font-size:12.5px;color:var(--sub);margin-top:6px">' + escapeHtml(m.tip) + '</div></div>';
   h += '<div class="c20-grid">';
   h += '<div class="c20-mode" onclick="borrowGo(\'kw\')"><div class="mi">🔁</div><div class="mn">借词练习</div><div class="md">' + d.items.length + ' 道选择题 · 反推大题关键词</div></div>';
+  h += '<div class="c20-mode" onclick="borrowGo(\'gold\')"><div class="mi">💎</div><div class="mn">选项淘金</div><div class="md">' + d.items.length + ' 道选择题 · 从正确选项里挑规范表述</div></div>';
   h += '</div>';
   const wn = Object.keys(st.borrow.wrong || {}).length;
   const weak = borrowWeakTop(6);
@@ -9087,6 +9093,94 @@ function borrowResult(body, d, p){
   h += '<button class="btn ghost mt10" style="width:100%" onclick="borrowBack()">← 返回</button>';
   body.innerHTML = h;
 }
+function borrowGoldBuild(it){
+  // 规范表述(金) + 干扰表述(沙) 混合洗牌
+  const pool = [];
+  (it.gold || []).forEach(t => pool.push({ t, g:true }));
+  (it.dross || []).forEach(t => pool.push({ t, g:false }));
+  return shuffle(pool);
+}
+function borrowGold(body, d, p){
+  if(p.goldDone) return borrowGoldResult(body, d, p);
+  if(p.goldIdx >= d.items.length) p.goldIdx = 0;
+  const it = d.items[p.goldIdx];
+  if(!p.goldPool) p.goldPool = borrowGoldBuild(it);
+  let h = '<div class="card"><div style="font-weight:800;font-size:14px">💎 选项淘金 · ' + (p.goldIdx+1) + '/' + d.items.length + '</div>';
+  h += '<div style="font-size:12px;color:var(--sub);margin-top:4px">先看清正确选项，再从下面的表述里「淘」出规范表述（可多选，点卡片选择）。规范表述就是能直接搬进大题得分的标准话术。</div></div>';
+  h += '<div class="card mt10"><div style="font-weight:700;margin-bottom:6px">【选择题】</div>';
+  h += '<div style="font-size:13.5px;line-height:1.7;color:var(--txt)">' + escapeHtml(it.stem) + '</div>';
+  h += '<div style="margin-top:8px;font-size:12px;color:var(--sub)">选项：</div><div style="margin-top:4px">';
+  (it.opts || []).forEach((o, i) => {
+    const mark = i === it.cor ? ' <b style="color:var(--green)">✅正确</b>' : '';
+    h += '<div style="font-size:12.5px;color:var(--txt);padding:3px 0">· ' + escapeHtml(o) + mark + '</div>';
+  });
+  h += '</div></div>';
+  h += '<div style="font-weight:700;margin:12px 0 6px;font-size:13px">从正确选项里淘出规范表述（点击选择）：</div>';
+  h += '<div style="display:flex;flex-wrap:wrap;gap:8px">';
+  p.goldPool.forEach((c, i) => {
+    const sel = p.goldPick.indexOf(i) >= 0;
+    const bg = sel ? 'background:rgba(186,117,23,.18);border:1px solid var(--gold);color:var(--gold)' : 'background:var(--bg);border:1px solid var(--line);color:var(--txt)';
+    h += '<div onclick="borrowGoldToggle(' + i + ')" style="padding:9px 12px;border-radius:12px;font-size:13px;cursor:pointer;' + bg + '">' + escapeHtml(c.t) + '</div>';
+  });
+  h += '</div>';
+  h += '<div style="font-size:11.5px;color:var(--dim);margin-top:8px">已选 ' + p.goldPick.length + ' 项 · 正确选项里的规范表述共 ' + (it.gold ? it.gold.length : 0) + ' 条</div>';
+  h += '<button class="btn gold mt10" style="width:100%" onclick="borrowGoldSubmit()">提交 · 看淘金结果</button>';
+  h += '<button class="btn ghost mt10" style="width:100%" onclick="borrowBack()">← 返回</button>';
+  body.innerHTML = h;
+}
+function borrowGoldToggle(i){
+  const p = S.borrow;
+  const k = p.goldPick.indexOf(i);
+  if(k >= 0) p.goldPick.splice(k, 1); else p.goldPick.push(i);
+  renderBorrow();
+}
+function borrowGoldSubmit(){
+  const p = S.borrow, d = borrowD();
+  const it = d.items[p.goldIdx];
+  const pool = p.goldPool || [];
+  const goldIdxs = [], drossIdxs = [];
+  pool.forEach((c, i) => { if(c.g) goldIdxs.push(i); else drossIdxs.push(i); });
+  const pick = p.goldPick;
+  const goldHit = goldIdxs.filter(i => pick.indexOf(i) >= 0).length / (goldIdxs.length || 1);
+  const drossHit = drossIdxs.filter(i => pick.indexOf(i) >= 0).length / (drossIdxs.length || 1);
+  let score = Math.round(goldHit * 100 - drossHit * 50);
+  if(score < 0) score = 0; if(score > 100) score = 100;
+  const missed = goldIdxs.filter(i => pick.indexOf(i) < 0).map(i => pool[i].t);
+  p.goldResult = { score, goldHit, drossHit, missed };
+  if(score < 60){
+    const wid = it.id + ':gold';
+    st.borrow.wrong[wid] = { stem: it.stem, missed };
+    missed.forEach(k => { st.borrow.weak[k] = (st.borrow.weak[k] || 0) + 1; });
+    save();
+  } else { addXp(6); }
+  p.goldDone = true;
+  renderBorrow();
+}
+function borrowGoldResult(body, d, p){
+  const it = d.items[p.goldIdx];
+  const r = p.goldResult;
+  const pool = p.goldPool || [];
+  let h = '<div class="card"><div style="font-weight:800;font-size:14px">💎 淘金结果 · 得分 ' + r.score + '/100</div>';
+  h += '<div style="font-size:13px;margin-top:6px">规范表述命中 <b style="color:var(--green)">' + Math.round(r.goldHit * 100) + '%</b>' + (r.drossHit > 0 ? '　·　误淘沙砾 <b style="color:var(--red)">' + Math.round(r.drossHit * 100) + '%</b>' : '') + '</div>';
+  h += '<div style="margin-top:8px">';
+  pool.forEach((c, i) => {
+    const picked = p.goldPick.indexOf(i) >= 0;
+    const tag = c.g ? (picked ? '✅ 淘中' : '⚠️ 漏淘') : (picked ? '❌ 误淘沙砾' : '· 沙砾（未选对）');
+    const col = c.g ? (picked ? 'var(--green)' : 'var(--amber)') : (picked ? 'var(--red)' : 'var(--dim)');
+    h += '<div style="font-size:12.5px;color:' + col + ';padding:2px 0">' + tag + '：' + escapeHtml(c.t) + '</div>';
+  });
+  h += '</div></div>';
+  h += '<div class="card mt10"><div style="font-weight:700;margin-bottom:6px">✅ 正确选项（规范表述来源）</div>';
+  h += '<div style="font-size:13px;line-height:1.8;color:var(--txt)">' + escapeHtml(it.opts[it.cor]) + '</div>';
+  h += '<div style="margin-top:8px"><b style="color:var(--gold)">🧠 借词口诀：</b>' + escapeHtml(it.kou) + '</div></div>';
+  const last = p.goldIdx >= d.items.length - 1;
+  h += '<div class="row2 mt10">' + (last ? '<button class="btn gold" onclick="borrowGoldReset()">完成 · 回主页</button>' : '<button class="btn gold" onclick="borrowGoldNext()">下一题 ▶</button>') + '<button class="btn ghost" onclick="borrowGoldRetry()">重做本题</button></div>';
+  h += '<button class="btn ghost mt10" style="width:100%" onclick="borrowBack()">← 返回</button>';
+  body.innerHTML = h;
+}
+function borrowGoldNext(){ const p = S.borrow; p.goldIdx++; p.goldPool = null; p.goldPick = []; p.goldDone = false; p.goldResult = null; renderBorrow(); }
+function borrowGoldRetry(){ const p = S.borrow; p.goldPool = null; p.goldPick = []; p.goldDone = false; p.goldResult = null; renderBorrow(); }
+function borrowGoldReset(){ const p = S.borrow; p.mode = 'home'; p.goldIdx = 0; p.goldPool = null; p.goldPick = []; p.goldDone = false; p.goldResult = null; renderBorrow(); }
 function borrowNext(){ const p = S.borrow; p.idx++; p.input = ''; p.done = false; p.result = null; renderBorrow(); }
 function borrowRetry(){ const p = S.borrow; p.input = ''; p.done = false; p.result = null; renderBorrow(); }
 function borrowReset(){ const p = S.borrow; p.mode = 'home'; p.idx = 0; p.done = false; p.result = null; renderBorrow(); }
