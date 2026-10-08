@@ -990,6 +990,7 @@
     <button class="btn gold mt10" onclick="startNews()">📰 2025—2026 最新时政考题<small style="font-weight:600;font-size:11px"> · 完整版96选择+56速记卡 · 会议主题/数字/首次/世界之最</small></button>
     <button class="btn teal mt10" onclick="startCards20()">🌈 三色考点20条·速记闯关<small style="font-weight:600;font-size:11px"> · 20考点 · 5小游戏 · 闯关记忆</small></button>
     <button class="btn magenta mt10" onclick="startZuoda()">✍️ 主观题抢分训练<small style="font-weight:600;font-size:11px"> · 简答/论述 · 模板+踩点+排序+完整作答评分 · 绝不空卷</small></button>
+    <button class="btn gold mt10" onclick="startBorrow()">🔁 选择题借词 · 大题反推<small style="font-weight:600;font-size:11px"> · 给选择题 · 反推大题得分关键词 · 考场借词凑分</small></button>
     <button class="btn gold mt10" onclick="go('s-sprint')">🔥 考前 24h 冲刺</button>
     <button class="btn ghost mt10" onclick="reviewWrong()">🔁 错题重做（只刷错题）</button>
   </section>
@@ -1167,6 +1168,12 @@
     <div id="zuodaBody"></div>
   </section>
 
+  <!-- ============ 选择题借词·大题反推 ============ -->
+  <section class="screen" id="s-borrow">
+    <div class="back" onclick="borrowBack()">← 返回自习室</div>
+    <div id="borrowBody"></div>
+  </section>
+
   <!-- ============ ME ============ -->
   <section class="screen" id="s-me">
     <div class="back" onclick="go('s-home')">← 返回</div>
@@ -1299,6 +1306,7 @@
 <script src="data/news_pol.js"></script>   <!-- v3.10.7 · 2025—2026 最新时政考题（完整版：96 选择 + 56 速记口诀卡，离线可用） -->
 <script src="data/cards20_pol.js"></script> <!-- v3.10.6 · 政治三色考点二十条（20 考点 + 5 小游戏 + 闯关，离线可用） -->
 <script src="data/zuoda_pol.js"></script>  <!-- v3.10.9 · 主观题抢分：万能模板 + 6高频考点 + 关键词踩点(12题) + 逻辑排序 + 完整作答智能评分 + 错题本，离线可用 -->
+<script src="data/borrow_pol.js"></script> <!-- v3.10.10 · 选择题借词·大题反推：选择题题干+选项 → 反推大题得分关键词，离线可用 -->
 <!-- v3.4.0 · 首屏减负：data/kaodian.js(501KB 考点速记资料库) 与 data/goldpoints.js(380KB 黄金考点)
      都不参与 ALLQ 构建，只有「考点速记」页与「速记图猜考点」小游戏用到 →
      改为由 ensureBank() 按需异步加载（首屏同步解析体积 2.03MB → 1.15MB，HTML 解析与首绘不再等待）。
@@ -2166,7 +2174,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.10.9';  // 同步 GitHub Release 标签（v3.10.9 = 主观题模块升级：踩点练习 6→12 题 + 新增「✍️ 完整作答·智能评分」离线规则评分模式（关键词覆盖70%+分点结构30%，含评级与参考答案对照）；数据源 data/zuoda_pol.js，自习室入口 startZuoda）
+const APP_VER = 'v3.10.10';  // 同步 GitHub Release 标签（v3.10.10 = 新增「🔁 选择题借词·大题反推」模块：给选择题题干+选项，训练从选择题提炼大题得分关键词的保底凑分能力；数据源 data/borrow_pol.js，自习室入口 startBorrow，复用 zuodaKwScore 评分）
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
@@ -8976,6 +8984,141 @@ function zuodaScoreNext(){ const p = S.zuoda; p.scoreIdx++; p.scoreInput = ''; p
 function zuodaScoreRetry(){ const p = S.zuoda; p.scoreInput = ''; p.scoreDone = false; p.scoreResult = null; renderZuoda(); }
 function zuodaScoreReset(){ const p = S.zuoda; p.mode = 'home'; p.scoreIdx = 0; p.scoreDone = false; p.scoreResult = null; renderZuoda(); }
 function zuodaClearWrong(){ st.zuoda.wrong = {}; st.zuoda.weak = {}; save(); renderZuoda(); }
+
+/* =================== 选择题借词·大题反推（v3.10.10） =================== */
+/* 数据源 data/borrow_pol.js（window.BORROW）。进度/错题/薄弱关键词写入 st.borrow（localStorage）。
+   纯前端、无后端、离线可用。核心：给选择题（题干+选项）→ 写“可借的大题得分关键词”→ 复用 zuodaKwScore 宽容比对。 */
+function borrowD(){ return window.BORROW; }
+function borrowFresh(){
+  return { mode:'home', idx:0, input:'', done:false, result:null };
+}
+function startBorrow(){
+  st.borrow = st.borrow || { wrong:{}, weak:{} };
+  S.borrow = borrowFresh();
+  go('s-borrow'); renderBorrow();
+}
+function borrowBack(){
+  const p = S.borrow;
+  if(!p || p.mode === 'home'){ go('s-study'); return; }
+  p.mode = 'home'; renderBorrow();
+}
+function borrowWeakTop(n){
+  const w = (st.borrow && st.borrow.weak) || {};
+  return Object.keys(w).map(k => ({ k, n: w[k] })).sort((a,b)=>b.n-a.n).slice(0,n);
+}
+function renderBorrow(){
+  const body = document.getElementById('borrowBody'); if(!body) return;
+  const d = borrowD();
+  if(!d){ body.innerHTML = '<div class="card">数据加载中…若长时间空白，请返回后重进「选择题借词」。</div>'; return; }
+  st.borrow = st.borrow || { wrong:{}, weak:{} };
+  const p = S.borrow || (S.borrow = borrowFresh());
+  body.innerHTML = '';
+  if(p.mode === 'kw')    return borrowKw(body, d, p);
+  if(p.mode === 'wrong') return borrowWrong(body, d, p);
+  return borrowHome(body, d, p);
+}
+function borrowGo(mode){
+  const p = S.borrow;
+  p.mode = mode;
+  if(mode === 'kw'){ p.idx = 0; p.input = ''; p.done = false; p.result = null; }
+  renderBorrow();
+}
+function borrowHome(body, d, p){
+  const m = d.meta;
+  let h = '';
+  h += '<div class="card"><div style="font-size:16px;font-weight:800">🔁 ' + escapeHtml(m.title) + '</div>';
+  h += '<div style="font-size:12.5px;color:var(--sub);margin-top:6px">' + escapeHtml(m.tip) + '</div></div>';
+  h += '<div class="c20-grid">';
+  h += '<div class="c20-mode" onclick="borrowGo(\'kw\')"><div class="mi">🔁</div><div class="mn">借词练习</div><div class="md">' + d.items.length + ' 道选择题 · 反推大题关键词</div></div>';
+  h += '</div>';
+  const wn = Object.keys(st.borrow.wrong || {}).length;
+  const weak = borrowWeakTop(6);
+  h += '<div class="card mt10"><div style="font-weight:700;margin-bottom:6px">🔁 我的练习记录</div>';
+  h += '<div style="font-size:12.5px;color:var(--sub);line-height:1.9">错题本：<b style="color:var(--txt)">' + wn + '</b> 道　·　薄弱关键词 TOP：' + (weak.length ? weak.map(x => escapeHtml(x.k)).join('、') : '暂无') + '</div>';
+  h += '<button class="btn ghost mt10" style="width:100%" onclick="borrowGo(\'wrong\')">查看错题本 / 薄弱关键词</button></div>';
+  body.innerHTML = h;
+}
+function borrowKw(body, d, p){
+  if(p.done) return borrowResult(body, d, p);
+  if(p.idx >= d.items.length) p.idx = 0;
+  const it = d.items[p.idx];
+  let h = '<div class="card"><div style="font-weight:800;font-size:14px">🔁 借词练习 · ' + (p.idx+1) + '/' + d.items.length + '</div>';
+  h += '<div style="font-size:12px;color:var(--sub);margin-top:4px">把这题当成大题来答：写出你能“借”到的得分关键词 / 框架词（空格或逗号分隔多个）。</div></div>';
+  h += '<div class="card mt10"><div style="font-weight:700;margin-bottom:6px">【选择题题干】</div>';
+  h += '<div style="font-size:13.5px;line-height:1.7;color:var(--txt)">' + escapeHtml(it.stem) + '</div>';
+  h += '<div style="margin-top:8px;font-size:12px;color:var(--sub)">选项：</div><div style="margin-top:4px">';
+  (it.opts || []).forEach(o => { h += '<div style="font-size:12.5px;color:var(--txt);padding:3px 0">· ' + escapeHtml(o) + '</div>'; });
+  h += '</div></div>';
+  h += '<textarea id="borrowInput" style="width:100%;min-height:84px;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--txt);font-size:14px;box-sizing:border-box;resize:vertical" placeholder="例如：对立统一 普遍性与特殊性 两点论与重点论（多个用空格隔开）">' + escapeHtml(p.input) + '</textarea>';
+  h += '<div style="font-size:11.5px;color:var(--dim);margin-top:6px">提示：本题可借得分关键词共 ' + it.kws.length + ' 个</div>';
+  h += '<button class="btn gold mt10" style="width:100%" onclick="borrowSubmit()">提交 · 看借词结果</button>';
+  h += '<button class="btn ghost mt10" style="width:100%" onclick="borrowBack()">← 返回</button>';
+  body.innerHTML = h;
+}
+function borrowSubmit(){
+  const p = S.borrow, d = borrowD();
+  const it = d.items[p.idx];
+  const input = (document.getElementById('borrowInput').value || '').trim();
+  p.input = input;
+  const r = zuodaKwScore(input, it.kws);
+  p.result = r;
+  if(r.score < 60){
+    st.borrow.wrong[it.id] = { stem: it.stem, missed: r.missed };
+    r.missed.forEach(k => { st.borrow.weak[k] = (st.borrow.weak[k] || 0) + 1; });
+    save();
+  } else { addXp(6); }
+  p.done = true;
+  renderBorrow();
+}
+function borrowResult(body, d, p){
+  const it = d.items[p.idx];
+  const r = p.result;
+  let h = '<div class="card"><div style="font-weight:800;font-size:14px">🔁 借词结果 · 得分 ' + r.score + '/100</div>';
+  h += '<div style="font-size:13px;margin-top:6px">命中 <b style="color:var(--green)">' + r.hit + '</b> / ' + r.total + ' 个可借关键词</div>';
+  if(r.missed.length){ h += '<div style="margin-top:6px;color:var(--red)">❌ 漏掉可从本题借的词：' + r.missed.map(x => escapeHtml(x)).join('、') + '（已记入薄弱关键词）</div>'; }
+  else { h += '<div style="margin-top:6px;color:var(--green)">✅ 借词思维稳了，大题可凭这些词凑分</div>'; }
+  h += '</div>';
+  h += '<div class="card mt10"><div style="font-weight:700;margin-bottom:6px">📖 可借框架词 + 参考答案</div>';
+  h += '<div style="font-size:13px;line-height:1.8;color:var(--txt)">' + escapeHtml(it.answer) + '</div>';
+  h += '<div style="margin-top:8px"><b style="color:var(--gold)">🧠 借词口诀：</b>' + escapeHtml(it.kou) + '</div>';
+  h += '<div style="margin-top:8px"><b style="color:var(--green)">✅ 完整可借关键词：</b>' + it.kws.map(k => escapeHtml(k.w)).join('、') + '</div></div>';
+  const last = p.idx >= d.items.length - 1;
+  h += '<div class="row2 mt10">' + (last ? '<button class="btn gold" onclick="borrowReset()">完成 · 回主页</button>' : '<button class="btn gold" onclick="borrowNext()">下一题 ▶</button>') + '<button class="btn ghost" onclick="borrowRetry()">重做本题</button></div>';
+  h += '<button class="btn ghost mt10" style="width:100%" onclick="borrowBack()">← 返回</button>';
+  body.innerHTML = h;
+}
+function borrowNext(){ const p = S.borrow; p.idx++; p.input = ''; p.done = false; p.result = null; renderBorrow(); }
+function borrowRetry(){ const p = S.borrow; p.input = ''; p.done = false; p.result = null; renderBorrow(); }
+function borrowReset(){ const p = S.borrow; p.mode = 'home'; p.idx = 0; p.done = false; p.result = null; renderBorrow(); }
+function borrowWrong(body, d, p){
+  const wrong = st.borrow.wrong || {};
+  const weak = borrowWeakTop(20);
+  let h = '<div class="card"><div style="font-weight:800;font-size:15px">🔁 我的错题本 / 薄弱关键词</div>';
+  h += '<div style="font-size:12px;color:var(--sub);margin-top:6px">借词没达标的题都会在这里；薄弱关键词按出错次数排序（考前重点背）。</div></div>';
+  if(weak.length){
+    h += '<div class="card mt10"><div style="font-weight:700;margin-bottom:6px">⚠️ 薄弱关键词 TOP（考前重点背）</div><div style="margin-top:4px">';
+    weak.forEach(x => { h += '<span style="display:inline-block;margin:4px 6px 0 0;padding:5px 9px;border-radius:20px;background:rgba(186,117,23,.12);color:var(--amber);font-size:12.5px"> ' + escapeHtml(x.k) + ' <b>×' + x.n + '</b></span>'; });
+    h += '</div></div>';
+  }
+  const keys = Object.keys(wrong);
+  if(keys.length){
+    h += '<div class="card mt10"><div style="font-weight:700;margin-bottom:6px">📋 错题列表（' + keys.length + ' 道）</div>';
+    keys.forEach(k => {
+      const w = wrong[k];
+      const it = d.items.find(i => i.id === k);
+      h += '<div style="padding:10px;margin:8px 0;border-radius:10px;border:1px solid var(--line);background:var(--bg)"><div style="font-weight:700;font-size:13px;color:var(--txt)">' + escapeHtml(w.stem) + '</div>';
+      if(w.missed && w.missed.length){ h += '<div style="font-size:12px;color:var(--red);margin-top:4px">漏掉可借词：' + w.missed.map(x => escapeHtml(x)).join('、') + '</div>'; }
+      if(it){ h += '<div style="font-size:12px;color:var(--gold);margin-top:4px">🧠 ' + escapeHtml(it.kou) + '</div>'; }
+      h += '</div>';
+    });
+    h += '<button class="btn ghost mt10" style="width:100%" onclick="borrowClearWrong()">清空错题本</button>';
+  } else {
+    h += '<div class="card mt10" style="text-align:center;color:var(--green);font-weight:700">🎉 暂无错题，借词能力稳了！</div>';
+  }
+  h += '<button class="btn ghost mt10" style="width:100%" onclick="borrowBack()">← 返回借词主页</button>';
+  body.innerHTML = h;
+}
+function borrowClearWrong(){ st.borrow.wrong = {}; st.borrow.weak = {}; save(); renderBorrow(); }
 
 /* =================== 启动 =================== */
 restoreDrill();          // 恢复上次中断的刷题进度（如有）
