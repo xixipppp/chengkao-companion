@@ -991,6 +991,7 @@
     <button class="btn teal mt10" onclick="startCards20()">🌈 三色考点20条·速记闯关<small style="font-weight:600;font-size:11px"> · 20考点 · 5小游戏 · 闯关记忆</small></button>
     <button class="btn magenta mt10" onclick="startZuoda()">✍️ 主观题抢分训练<small style="font-weight:600;font-size:11px"> · 简答/论述 · 模板+踩点+排序+完整作答评分 · 绝不空卷</small></button>
     <button class="btn gold mt10" onclick="startBorrow()">🔁 选择题借词 · 大题反推<small style="font-weight:600;font-size:11px"> · 给选择题 · 反推大题得分关键词 · 考场借词凑分</small></button>
+    <button class="btn teal mt10" onclick="startPhon()">🔤 英语语音辨析<small style="font-weight:600;font-size:11px"> · 第1大题 · 4词选读音不同 · 答错弹规律</small></button>
     <button class="btn gold mt10" onclick="go('s-sprint')">🔥 考前 24h 冲刺</button>
     <button class="btn ghost mt10" onclick="reviewWrong()">🔁 错题重做（只刷错题）</button>
   </section>
@@ -1174,6 +1175,12 @@
     <div id="borrowBody"></div>
   </section>
 
+  <!-- ============ 英语语音辨析（v3.10.12） ============ -->
+  <section class="screen" id="s-phon">
+    <div class="back" onclick="phonBack()">← 返回自习室</div>
+    <div id="phonBody"></div>
+  </section>
+
   <!-- ============ ME ============ -->
   <section class="screen" id="s-me">
     <div class="back" onclick="go('s-home')">← 返回</div>
@@ -1307,6 +1314,7 @@
 <script src="data/cards20_pol.js"></script> <!-- v3.10.6 · 政治三色考点二十条（20 考点 + 5 小游戏 + 闯关，离线可用） -->
 <script src="data/zuoda_pol.js"></script>  <!-- v3.10.9 · 主观题抢分：万能模板 + 6高频考点 + 关键词踩点(12题) + 逻辑排序 + 完整作答智能评分 + 错题本，离线可用 -->
 <script src="data/borrow_pol.js"></script> <!-- v3.10.11 · 选择题借词·大题反推：选择题题干+选项 → 反推大题得分关键词 + 选项淘金（从正确选项挑规范表述），离线可用 -->
+<script src="data/phon_pol.js"></script>  <!-- v3.10.12 · 英语语音辨析：4 词选读音不同项 + 规律提示，离线可用 -->
 <!-- v3.4.0 · 首屏减负：data/kaodian.js(501KB 考点速记资料库) 与 data/goldpoints.js(380KB 黄金考点)
      都不参与 ALLQ 构建，只有「考点速记」页与「速记图猜考点」小游戏用到 →
      改为由 ensureBank() 按需异步加载（首屏同步解析体积 2.03MB → 1.15MB，HTML 解析与首绘不再等待）。
@@ -2174,7 +2182,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.10.11';  // 同步 GitHub Release 标签（v3.10.11 = 「🔁 选择题借词」模块新增「💎 选项淘金」模式：选择题+选项，从正确选项里点击挑出规范表述，淘金式评分；数据源 data/borrow_pol.js 每题加 cor/gold/dross，自学入口 startBorrow 内 gold 模式）
+const APP_VER = 'v3.10.12';  // 同步 GitHub Release 标签（v3.10.12 = 新增「🔤 英语语音辨析」练习模块：成考英语第1大题语音知识，给 4 词选读音不同项，答错弹出发音规律提示；数据源 data/phon_pol.js，自习室入口 startPhon，复用两级返回与既有 CSS 类）
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
@@ -9213,6 +9221,129 @@ function borrowWrong(body, d, p){
   body.innerHTML = h;
 }
 function borrowClearWrong(){ st.borrow.wrong = {}; st.borrow.weak = {}; save(); renderBorrow(); }
+
+/* =================== 英语语音辨析（v3.10.12） =================== */
+/* 数据源 data/phon_pol.js（window.PHON）。错题写入 st.phon.wrong（localStorage）。纯前端、离线可用。 */
+function phonD(){ return window.PHON; }
+function phonFresh(){ return { mode:'home', idx:0, picked:null, done:false, score:0, wrongThis:[] }; }
+function startPhon(){
+  if(!phonD()){ toast('语音题库未加载'); return; }
+  st.phon = st.phon || { wrong:{} };
+  S.phon = phonFresh();
+  go('s-phon'); renderPhon();
+}
+function phonBack(){
+  const p = S.phon;
+  if(!p){ go('s-study'); return; }
+  if(p.mode !== 'home'){ p.mode='home'; p.idx=0; p.picked=null; p.done=false; renderPhon(); }
+  else go('s-study');
+}
+function renderPhon(){
+  const body = document.getElementById('phonBody'); if(!body) return;
+  const d = phonD(); if(!d){ body.innerHTML='<div class="card">题库加载中…</div>'; return; }
+  const p = S.phon;
+  if(p.mode === 'quiz')  return phonQuiz(body, d, p);
+  if(p.mode === 'done')  return phonDone(body, d, p);
+  if(p.mode === 'wrong') return phonWrong(body, d, p);
+  return phonHome(body, d, p);
+}
+function phonGo(mode){
+  const p = S.phon; p.mode = mode;
+  if(mode === 'quiz'){ p.idx=0; p.picked=null; p.done=false; p.score=0; }
+  renderPhon();
+}
+function phonHome(body, d, p){
+  const wrongCount = Object.keys(st.phon.wrong||{}).length;
+  let h = '';
+  h += '<div class="mehead" style="padding:14px 16px 6px"><div class="metitle">🔤 '+d.meta.title+'</div><div class="mesub" style="font-size:12.5px;line-height:1.6">'+escapeHtml(d.meta.tip)+'</div></div>';
+  h += '<div class="c20-grid">';
+  h += '<div class="c20-mode" onclick="phonGo(\'quiz\')"><div class="mi">🎧</div><div class="mn">开始练习</div><div class="md">'+d.questions.length+' 题 · 选出读音不同的项</div></div>';
+  if(wrongCount>0) h += '<div class="c20-mode" onclick="phonGo(\'wrong\')"><div class="mi">🔁</div><div class="mn">错题本</div><div class="md">'+wrongCount+' 道待巩固</div></div>';
+  h += '</div>';
+  h += '<div class="card mt10"><div style="font-weight:700;margin-bottom:8px">📌 高频异读组合速查（背熟可认出大部分题）</div>';
+  h += '<div style="font-size:12px;line-height:1.75">';
+  d.cheat.forEach(function(r){
+    h += '<div style="margin-bottom:8px"><b style="color:var(--cyan)">'+escapeHtml(r[0])+'</b>：'+escapeHtml(r[1])+'<br><span style="opacity:.72">例：'+escapeHtml(r[2])+'</span></div>';
+  });
+  h += '</div></div>';
+  if(wrongCount>0) h += '<button class="btn ghost mt10" style="width:100%" onclick="phonClearWrong()">清空错题本</button>';
+  h += '<button class="btn ghost mt10" style="width:100%" onclick="phonBack()">← 返回自习室</button>';
+  body.innerHTML = h;
+}
+function phonQuiz(body, d, p){
+  const q = d.questions[p.idx];
+  if(!q){ p.mode='done'; return renderPhon(); }
+  let h = '';
+  h += '<div style="padding:14px 16px 6px"><div class="mesub" style="font-size:13px;font-weight:600">第 '+(p.idx+1)+' / '+d.questions.length+' 题 · 画线部分读音与其他三项不同的一项是？</div></div>';
+  h += '<div style="padding:0 16px">';
+  q.items.forEach(function(it, i){
+    const label = 'ABCD'[i];
+    let cls = 'btn ', style = 'width:100%;text-align:left;margin-bottom:8px;';
+    if(p.done){
+      if(i === q.answer) cls += 'teal';
+      else if(i === p.picked) cls += 'ghost', style += 'border:2px solid var(--red);';
+      else cls += 'ghost';
+    } else { cls += 'sec'; style += 'cursor:pointer;'; }
+    const wordHtml = escapeHtml(it.w).split(escapeHtml(it.u)).join('<u style="text-decoration:underline;font-weight:700;padding:0 1px">'+escapeHtml(it.u)+'</u>');
+    h += '<button class="'+cls+'" style="'+style+'" '+(p.done?'':'onclick="phonPick('+i+')"')+'>'+label+'. '+wordHtml+'</button>';
+  });
+  h += '</div>';
+  if(p.done){
+    const correct = (p.picked === q.answer);
+    h += '<div class="card mt10" style="'+(correct?'border-left:4px solid var(--green)':'border-left:4px solid var(--red)')+'">';
+    h += '<div style="font-weight:700;margin-bottom:6px">'+(correct?'✅ 答对了！':'❌ 正确答案：'+'ABCD'[q.answer]+'（'+escapeHtml(q.items[q.answer].w)+'）')+'</div>';
+    h += '<div style="font-size:12.5px;line-height:1.75">📖 规律：'+escapeHtml(q.rule)+'</div>';
+    h += '</div>';
+    const last = (p.idx >= d.questions.length-1);
+    h += '<button class="btn teal mt10" style="width:100%" onclick="phonNext()">'+(last?'查看结果 ▶':'下一题 ▶')+'</button>';
+  }
+  h += '<button class="btn ghost mt10" style="width:100%" onclick="phonBack()">← 返回</button>';
+  body.innerHTML = h;
+}
+function phonPick(i){
+  const p = S.phon; const d = phonD();
+  if(p.done) return;
+  p.picked = i; p.done = true;
+  const q = d.questions[p.idx];
+  if(i === q.answer){ p.score++; delete st.phon.wrong[q.id]; }
+  else { st.phon.wrong[q.id] = (st.phon.wrong[q.id]||0)+1; }
+  save(); renderPhon();
+}
+function phonNext(){
+  const p = S.phon; const d = phonD();
+  p.idx++; p.picked = null; p.done = false;
+  if(p.idx >= d.questions.length){ p.mode = 'done'; }
+  renderPhon();
+}
+function phonDone(body, d, p){
+  let h = '';
+  h += '<div class="mehead" style="padding:16px"><div class="metitle">🎉 本次结果</div></div>';
+  h += '<div class="card" style="text-align:center;padding:22px"><div style="font-size:36px;font-weight:800;color:var(--cyan)">'+p.score+' / '+d.questions.length+'</div><div class="mesub" style="margin-top:6px">答对 '+p.score+' 题'+(p.score===d.questions.length?' · 全部正确，语音稳了！':' · 错 '+(d.questions.length-p.score)+' 道，已记入错题本')+'</div></div>';
+  h += '<button class="btn teal mt10" style="width:100%" onclick="phonGo(\'quiz\')">🔄 再来一轮</button>';
+  h += '<button class="btn ghost mt10" style="width:100%" onclick="phonBack()">← 返回主页</button>';
+  body.innerHTML = h;
+}
+function phonWrong(body, d, p){
+  const ids = Object.keys(st.phon.wrong||{});
+  let h = '';
+  h += '<div class="mehead" style="padding:14px 16px 6px"><div class="metitle">🔁 错题本</div><div class="mesub" style="font-size:12.5px">点击任意题重练，答对即从错题本移除</div></div>';
+  if(ids.length === 0){ h += '<div class="card mt10">暂无错题，棒！</div>'; }
+  else {
+    h += '<div style="padding:0 16px">';
+    ids.forEach(function(id){
+      const q = d.questions.find(function(x){ return x.id===id; }); if(!q) return;
+      h += '<button class="btn sec mt10" style="width:100%;text-align:left" onclick="phonWrongGo(\''+id+'\')">'+escapeHtml(q.items.map(function(x){return x.w;}).join(' / '))+'</button>';
+    });
+    h += '</div>';
+  }
+  h += '<button class="btn ghost mt10" style="width:100%" onclick="phonBack()">← 返回</button>';
+  body.innerHTML = h;
+}
+function phonWrongGo(id){
+  const d = phonD(); const q = d.questions.find(function(x){ return x.id===id; }); if(!q) return;
+  const p = S.phon; p.mode='quiz'; p.idx = d.questions.indexOf(q); p.picked=null; p.done=false; renderPhon();
+}
+function phonClearWrong(){ st.phon.wrong = {}; save(); renderPhon(); }
 
 /* =================== 启动 =================== */
 restoreDrill();          // 恢复上次中断的刷题进度（如有）
