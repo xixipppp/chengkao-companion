@@ -987,7 +987,7 @@
       <button class="btn ghost" onclick="startBoss()">👹 Boss 模拟战</button>
     </div>
     <button class="btn magenta mt10" onclick="startPresim()">🎯 政治考前模拟卷<small style="font-weight:600;font-size:11px"> · 35选择+6大题 · 口诀+模板 · 反复练</small></button>
-    <button class="btn gold mt10" onclick="startNews()">📰 2025—2026 最新时政考题<small style="font-weight:600;font-size:11px"> · 40选择+速记卡 · 首次/第一/世界之最</small></button>
+    <button class="btn gold mt10" onclick="startNews()">📰 2025—2026 最新时政考题<small style="font-weight:600;font-size:11px"> · 完整版96选择+56速记卡 · 会议主题/数字/首次/世界之最</small></button>
     <button class="btn teal mt10" onclick="startCards20()">🌈 三色考点20条·速记闯关<small style="font-weight:600;font-size:11px"> · 20考点 · 5小游戏 · 闯关记忆</small></button>
     <button class="btn magenta mt10" onclick="go('s-sprint')">🔥 考前 24h 冲刺</button>
     <button class="btn ghost mt10" onclick="reviewWrong()">🔁 错题重做（只刷错题）</button>
@@ -1289,7 +1289,7 @@
 <script src="data/stepmnem.js"></script>   <!-- v3.10.0 · 题级「做题步骤 + 考场速记口诀」引擎 -->
 <script src="data/lecture.js"></script>    <!-- v3.10.0 · 教授级讲解库（2D 动画六段式讲解内容源） -->
 <script src="data/presim_pol.js"></script> <!-- v3.10.4 · 政治考前模拟卷（仿真卷 + 口诀 + 答题模板，约 30KB，离线可用） -->
-<script src="data/news_pol.js"></script>   <!-- v3.10.5 · 2025—2026 最新时政考题（40 选择 + 39 速记口诀卡，离线可用） -->
+<script src="data/news_pol.js"></script>   <!-- v3.10.7 · 2025—2026 最新时政考题（完整版：96 选择 + 56 速记口诀卡，离线可用） -->
 <script src="data/cards20_pol.js"></script> <!-- v3.10.6 · 政治三色考点二十条（20 考点 + 5 小游戏 + 闯关，离线可用） -->
 <!-- v3.4.0 · 首屏减负：data/kaodian.js(501KB 考点速记资料库) 与 data/goldpoints.js(380KB 黄金考点)
      都不参与 ALLQ 构建，只有「考点速记」页与「速记图猜考点」小游戏用到 →
@@ -2158,7 +2158,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.10.6';  // 同步 GitHub Release 标签（v3.10.6 = 新增「三色考点20条·速记闯关」独立模块：基于用户 PDF《政治（专升本）精研三色考点二十条》，20 条考点按三色分级（红必背8/蓝理解7/绿了解5），每条配要点+关键词+记忆口诀+选择题+填空；6 种记忆小游戏——闯关模式(学→测逐条通关)/闪卡记忆/连连看/选择闯关/填空闯关/排序闯关，接入全局 XP 与掌握进度持久化；数据源 data/cards20_pol.js）
+const APP_VER = 'v3.10.7';  // 同步 GitHub Release 标签（v3.10.7 = 升级「2025—2026 最新时政考题」为完整版：基于用户整理的 2025年7月—2026年6月完整时政资料，选择题 40→96（覆盖会议主题/具体数字/首次·第一·世界之最/奖项/外交），速记口诀卡 39→56；原模块结构 home/mcq/result/cards 不变，仅替换 data/news_pol.js 数据；入口文案同步更新）
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
