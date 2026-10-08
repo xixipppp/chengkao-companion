@@ -2182,7 +2182,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.10.12';  // 同步 GitHub Release 标签（v3.10.12 = 新增「🔤 英语语音辨析」练习模块：成考英语第1大题语音知识，给 4 词选读音不同项，答错弹出发音规律提示；数据源 data/phon_pol.js，自习室入口 startPhon，复用两级返回与既有 CSS 类）
+const APP_VER = 'v3.10.13';  // 同步 GitHub Release 标签（v3.10.13 = 「🔤 英语语音辨析」数据源从手搓23题升级为题库总库 SUBJ_BANK 的 91 道历年真题语音题，自动从解析派生画线字母与规律；renderPhon 画线高亮改为大小写不敏感以兼容真题首字母大写；gen_phon.js 生成器）
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
@@ -9284,7 +9284,7 @@ function phonQuiz(body, d, p){
       else if(i === p.picked) cls += 'ghost', style += 'border:2px solid var(--red);';
       else cls += 'ghost';
     } else { cls += 'sec'; style += 'cursor:pointer;'; }
-    const wordHtml = escapeHtml(it.w).split(escapeHtml(it.u)).join('<u style="text-decoration:underline;font-weight:700;padding:0 1px">'+escapeHtml(it.u)+'</u>');
+    const wordHtml = escapeHtml(it.w).replace(new RegExp('('+it.u.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','i'), '<u style="text-decoration:underline;font-weight:700;padding:0 1px">$1</u>');
     h += '<button class="'+cls+'" style="'+style+'" '+(p.done?'':'onclick="phonPick('+i+')"')+'>'+label+'. '+wordHtml+'</button>';
   });
   h += '</div>';
