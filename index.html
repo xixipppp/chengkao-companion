@@ -989,7 +989,7 @@
     <button class="btn magenta mt10" onclick="startPresim()">🎯 政治考前模拟卷<small style="font-weight:600;font-size:11px"> · 35选择+6大题 · 口诀+模板 · 反复练</small></button>
     <button class="btn gold mt10" onclick="startNews()">📰 2025—2026 最新时政考题<small style="font-weight:600;font-size:11px"> · 完整版96选择+56速记卡 · 会议主题/数字/首次/世界之最</small></button>
     <button class="btn teal mt10" onclick="startCards20()">🌈 三色考点20条·速记闯关<small style="font-weight:600;font-size:11px"> · 20考点 · 5小游戏 · 闯关记忆</small></button>
-    <button class="btn magenta mt10" onclick="startZuoda()">✍️ 主观题抢分训练<small style="font-weight:600;font-size:11px"> · 简答/论述 · 万能模板+踩点+排序 · 绝不空卷</small></button>
+    <button class="btn magenta mt10" onclick="startZuoda()">✍️ 主观题抢分训练<small style="font-weight:600;font-size:11px"> · 简答/论述 · 模板+踩点+排序+完整作答评分 · 绝不空卷</small></button>
     <button class="btn gold mt10" onclick="go('s-sprint')">🔥 考前 24h 冲刺</button>
     <button class="btn ghost mt10" onclick="reviewWrong()">🔁 错题重做（只刷错题）</button>
   </section>
@@ -1298,7 +1298,7 @@
 <script src="data/presim_pol.js"></script> <!-- v3.10.4 · 政治考前模拟卷（仿真卷 + 口诀 + 答题模板，约 30KB，离线可用） -->
 <script src="data/news_pol.js"></script>   <!-- v3.10.7 · 2025—2026 最新时政考题（完整版：96 选择 + 56 速记口诀卡，离线可用） -->
 <script src="data/cards20_pol.js"></script> <!-- v3.10.6 · 政治三色考点二十条（20 考点 + 5 小游戏 + 闯关，离线可用） -->
-<script src="data/zuoda_pol.js"></script>  <!-- v3.10.8 · 主观题抢分（简答+论述）：万能模板 + 6高频考点 + 关键词踩点 + 逻辑排序 + 错题本，离线可用 -->
+<script src="data/zuoda_pol.js"></script>  <!-- v3.10.9 · 主观题抢分：万能模板 + 6高频考点 + 关键词踩点(12题) + 逻辑排序 + 完整作答智能评分 + 错题本，离线可用 -->
 <!-- v3.4.0 · 首屏减负：data/kaodian.js(501KB 考点速记资料库) 与 data/goldpoints.js(380KB 黄金考点)
      都不参与 ALLQ 构建，只有「考点速记」页与「速记图猜考点」小游戏用到 →
      改为由 ensureBank() 按需异步加载（首屏同步解析体积 2.03MB → 1.15MB，HTML 解析与首绘不再等待）。
@@ -2166,7 +2166,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.10.8';  // 同步 GitHub Release 标签（v3.10.8 = 新增「✍️ 主观题抢分训练」模块：基于用户整理的成考政治主观题方法论与 6 大高频考点，纯前端实现万能模板速记 + 6高频考点浏览 + 关键词踩点练 + 逻辑排序练 + 错题本/薄弱关键词；数据源 data/zuoda_pol.js，自习室入口 startZuoda，复用 S/st/addXp/escapeHtml）
+const APP_VER = 'v3.10.9';  // 同步 GitHub Release 标签（v3.10.9 = 主观题模块升级：踩点练习 6→12 题 + 新增「✍️ 完整作答·智能评分」离线规则评分模式（关键词覆盖70%+分点结构30%，含评级与参考答案对照）；数据源 data/zuoda_pol.js，自习室入口 startZuoda）
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
@@ -8653,12 +8653,13 @@ function c20OrderReplay(){ S.c20.orderP = null; renderCards20(); }
 
 /* =================== v3.10.8 · 主观题抢分（简答+论述） =================== */
 /* 数据源 data/zuoda_pol.js（window.ZUODA）。练习进度/错题/薄弱关键词写入 st.zuoda（localStorage）。
-   纯前端、无后端、离线可用。MVP：万能模板速记 + 6 高频考点浏览 + A关键词踩点 + B逻辑排序 + 错题本/薄弱词。 */
+   纯前端、无后端、离线可用。v3.10.9：万能模板速记 + 6 高频考点浏览 + A关键词踩点(12题) + B逻辑排序 + D完整作答智能评分（离线规则版） + 错题本/薄弱词。 */
 function zuodaD(){ return window.ZUODA; }
 function zuodaFresh(){
   return { mode:'home', tmplTab:'jian', hfIdx:0,
     kwIdx:0, kwInput:'', kwDone:false, kwResult:null,
-    orderIdx:0, orderPick:[], orderShuffled:null, orderDone:false, orderResult:null };
+    orderIdx:0, orderPick:[], orderShuffled:null, orderDone:false, orderResult:null,
+    scoreIdx:0, scoreInput:'', scoreDone:false, scoreResult:null };
 }
 function startZuoda(){
   st.zuoda = st.zuoda || { wrong:{}, weak:{} };
@@ -8685,6 +8686,7 @@ function renderZuoda(){
   if(p.mode === 'hf')    return zuodaHf(body, d, p);
   if(p.mode === 'kw')    return zuodaKw(body, d, p);
   if(p.mode === 'order') return zuodaOrder(body, d, p);
+  if(p.mode === 'score') return zuodaScore(body, d, p);
   if(p.mode === 'wrong') return zuodaWrong(body, d, p);
   return zuodaHome(body, d, p);
 }
@@ -8693,6 +8695,7 @@ function zuodaGo(mode){
   p.mode = mode;
   if(mode === 'kw'){ p.kwIdx = 0; p.kwInput = ''; p.kwDone = false; p.kwResult = null; }
   if(mode === 'order'){ p.orderIdx = 0; p.orderPick = []; p.orderShuffled = null; p.orderDone = false; p.orderResult = null; }
+  if(mode === 'score'){ p.scoreIdx = 0; p.scoreInput = ''; p.scoreDone = false; p.scoreResult = null; }
   renderZuoda();
 }
 function zuodaHome(body, d, p){
@@ -8702,8 +8705,9 @@ function zuodaHome(body, d, p){
   h += '<div style="font-size:12.5px;color:var(--sub);margin-top:6px">' + escapeHtml(m.tip) + '</div></div>';
   const cards = [
     ['📐','万能模板速记','简答三步 / 论述五段 / 应急套写 / 金句 / 兜底句','tmpl'],
-    ['🎯','关键词踩点练','6 大高频考点 · 输入关键词，规则比对得分','kw'],
+    ['🎯','关键词踩点练','6 大高频考点 · 12 题 · 输入关键词，规则比对得分','kw'],
     ['🪜','逻辑排序练','6 大高频考点 · 把要点排成正确顺序','order'],
+    ['✍️','完整作答·智能评分','6 高频考点 · 写完整答案，离线条理评分','score'],
     ['📚','6 高频考点现成答案','背现成答案 + 结构提示 + 口诀','hf']
   ];
   h += '<div class="c20-grid">';
@@ -8751,11 +8755,13 @@ function zuodaHf(body, d, p){
   h += '<div style="margin-top:8px"><b style="color:var(--green)">✅ 得分关键词：</b>' + hf.kws.map(k => escapeHtml(k.w)).join('、') + '</div></div>';
   h += '<div class="row2 mt10"><button class="btn ghost" onclick="zuodaHfPrev()">◀ 上一题</button><button class="btn magenta" onclick="zuodaHfNext()">下一题 ▶</button></div>';
   h += '<button class="btn teal mt10" style="width:100%" onclick="zuodaGo(\'kw\')">🎯 去踩点练习这些关键词</button>';
+  h += '<button class="btn magenta mt10" style="width:100%" onclick="zuodaHfToScore()">✍️ 用本题自测 · 智能评分</button>';
   h += '<button class="btn ghost mt10" style="width:100%" onclick="zuodaBack()">← 返回主观题主页</button>';
   body.innerHTML = h;
 }
 function zuodaHfPrev(){ const p = S.zuoda, d = zuodaD(); p.hfIdx = (p.hfIdx - 1 + d.highfreq.length) % d.highfreq.length; renderZuoda(); }
 function zuodaHfNext(){ const p = S.zuoda, d = zuodaD(); p.hfIdx = (p.hfIdx + 1) % d.highfreq.length; renderZuoda(); }
+function zuodaHfToScore(){ const p = S.zuoda; p.mode = 'score'; p.scoreIdx = p.hfIdx; p.scoreInput = ''; p.scoreDone = false; p.scoreResult = null; renderZuoda(); }
 function zuodaKw(body, d, p){
   if(p.kwDone) return zuodaKwResult(body, d, p);
   if(p.kwIdx >= d.kw.length) p.kwIdx = 0;
@@ -8901,6 +8907,74 @@ function zuodaWrong(body, d, p){
   h += '<button class="btn ghost mt10" style="width:100%" onclick="zuodaBack()">← 返回主观题主页</button>';
   body.innerHTML = h;
 }
+function zuodaScore(body, d, p){
+  if(p.scoreDone) return zuodaScoreResult(body, d, p);
+  if(p.scoreIdx >= d.highfreq.length) p.scoreIdx = 0;
+  const hf = d.highfreq[p.scoreIdx];
+  let h = '<div class="card"><div style="font-weight:800;font-size:14px">✍️ 完整作答 · 智能评分 ' + (p.scoreIdx+1) + '/' + d.highfreq.length + '</div>';
+  h += '<div style="font-size:12px;color:var(--sub);margin-top:4px">读完题后在下方写完整答案，系统按「得分关键词覆盖(70%) + 分点结构(30%)」规则评分（离线规则版，非联网 AI，可作自测参考）。</div></div>';
+  h += '<div class="card mt10"><div style="font-weight:800;font-size:14px;color:var(--magenta)">' + escapeHtml(hf.q) + '</div>';
+  h += '<div style="font-size:11.5px;color:var(--dim);margin-top:6px">本题得分关键词（写答案时尽量覆盖）：' + hf.kws.map(k => escapeHtml(k.w)).join('、') + '</div>';
+  h += '<textarea id="zuodaScoreInput" style="width:100%;min-height:150px;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--txt);font-size:14px;box-sizing:border-box;resize:vertical" placeholder="在此写完整答案（建议分点：①…②…③…，尽量覆盖上面的得分关键词）">' + escapeHtml(p.scoreInput) + '</textarea></div>';
+  h += '<button class="btn magenta mt10" style="width:100%" onclick="zuodaScoreSubmit()">提交 · 智能评分</button>';
+  h += '<div class="row2 mt10"><button class="btn ghost" onclick="zuodaScorePrev()">◀ 上一题</button><button class="btn ghost" onclick="zuodaScoreNext()">下一题 ▶</button></div>';
+  h += '<button class="btn ghost mt10" style="width:100%" onclick="zuodaBack()">← 返回</button>';
+  body.innerHTML = h;
+}
+function zuodaScoreFull(input, hf){
+  const s = (input || '').trim();
+  const kw = zuodaKwScore(s, hf.kws);
+  const hasPoints = /[①②③]/.test(s) || /(^|\n)\s*[\d一二三四五]\s*[、.)]/.test(s) || /(第一|第二|首先|其次|最后|一方面|另一方面)/.test(s);
+  const lenOk = s.length >= 80;
+  const segCount = s.split(/[。.！!？?\n]/).filter(function(x){ return x.trim().length >= 8; }).length;
+  const segOk = segCount >= 3;
+  const struct = (hasPoints ? 40 : 0) + (lenOk ? 30 : 0) + (segOk ? 30 : 0);
+  const score = Math.round(kw.score * 0.7 + struct * 0.3);
+  return { kw: kw, struct: struct, score: score };
+}
+function zuodaTier(s){
+  if(s >= 85) return ['优秀 🏆', '踩点全面、分点清晰，这道题稳拿高分！'];
+  if(s >= 70) return ['良好 ✨', '踩点较全，补上漏掉的关键词就更稳了。'];
+  if(s >= 60) return ['及格 ✍️', '基本踩到采分点，但关键词缺漏较多，背熟再写。'];
+  return ['待加强 💪', '采分点偏少，建议先背模板与现成答案，再回来自测。'];
+}
+function zuodaScoreSubmit(){
+  const p = S.zuoda, d = zuodaD();
+  const hf = d.highfreq[p.scoreIdx];
+  const input = (document.getElementById('zuodaScoreInput').value || '').trim();
+  p.scoreInput = input;
+  const r = zuodaScoreFull(input, hf);
+  p.scoreResult = r;
+  if(r.score < 60){
+    st.zuoda.wrong['score_' + hf.id] = { ref: hf.id, q: hf.q, missed: r.kw.missed };
+    r.kw.missed.forEach(function(k){ st.zuoda.weak[k] = (st.zuoda.weak[k] || 0) + 1; });
+    save();
+  } else { addXp(8); }
+  p.scoreDone = true;
+  renderZuoda();
+}
+function zuodaScoreResult(body, d, p){
+  const hf = d.highfreq[p.scoreIdx];
+  const r = p.scoreResult;
+  const tier = zuodaTier(r.score);
+  let h = '<div class="card"><div style="font-weight:800;font-size:14px">✍️ 智能评分结果 · 总分 ' + r.score + '/100</div>';
+  h += '<div style="margin-top:6px;padding:8px 10px;border-radius:9px;background:rgba(233,30,99,.08);color:var(--magenta);font-weight:700">评级：' + tier[0] + '</div>';
+  h += '<div style="font-size:12.5px;color:var(--sub);margin-top:4px">' + tier[1] + '</div>';
+  h += '<div style="margin-top:8px;font-size:13px">关键词覆盖：<b style="color:var(--green)">' + r.kw.hit + '/' + r.kw.total + '</b>（占比 70%）　结构分：<b>' + r.struct + '</b>/100（占比 30%）</div>';
+  if(r.kw.missed.length){ h += '<div style="margin-top:6px;color:var(--red)">❌ 漏掉采分关键词：' + r.kw.missed.map(function(x){ return escapeHtml(x); }).join('、') + '（已记入薄弱关键词）</div>'; }
+  else { h += '<div style="margin-top:6px;color:var(--green)">✅ 关键词全中！</div>'; }
+  h += '</div>';
+  h += '<div class="card mt10"><div style="font-weight:700;margin-bottom:6px">📖 参考答案（对照自测）</div><div style="font-size:13px;line-height:1.8;color:var(--txt);white-space:pre-wrap">' + escapeHtml(hf.answer) + '</div>';
+  h += '<div style="margin-top:8px"><b style="color:var(--gold)">🧠 口诀：</b>' + escapeHtml(hf.kou) + '</div></div>';
+  const last = p.scoreIdx >= d.highfreq.length - 1;
+  h += '<div class="row2 mt10">' + (last ? '<button class="btn magenta" onclick="zuodaScoreReset()">完成 · 回主页</button>' : '<button class="btn magenta" onclick="zuodaScoreNext()">下一题 ▶</button>') + '<button class="btn ghost" onclick="zuodaScoreRetry()">重写本题</button></div>';
+  h += '<button class="btn ghost mt10" style="width:100%" onclick="zuodaBack()">← 返回</button>';
+  body.innerHTML = h;
+}
+function zuodaScorePrev(){ const p = S.zuoda, d = zuodaD(); p.scoreIdx = (p.scoreIdx - 1 + d.highfreq.length) % d.highfreq.length; p.scoreInput = ''; p.scoreDone = false; p.scoreResult = null; renderZuoda(); }
+function zuodaScoreNext(){ const p = S.zuoda; p.scoreIdx++; p.scoreInput = ''; p.scoreDone = false; p.scoreResult = null; renderZuoda(); }
+function zuodaScoreRetry(){ const p = S.zuoda; p.scoreInput = ''; p.scoreDone = false; p.scoreResult = null; renderZuoda(); }
+function zuodaScoreReset(){ const p = S.zuoda; p.mode = 'home'; p.scoreIdx = 0; p.scoreDone = false; p.scoreResult = null; renderZuoda(); }
 function zuodaClearWrong(){ st.zuoda.wrong = {}; st.zuoda.weak = {}; save(); renderZuoda(); }
 
 /* =================== 启动 =================== */
