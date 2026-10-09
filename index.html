@@ -2219,7 +2219,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.10.18';  // 同步 GitHub Release 标签（v3.10.18 = 记忆类模块（英语高频词汇/固定搭配&语法大招/2026政治时政）答题卡片上方加「角色气泡」，由角色对话式提供关键词（口诀=欢欢大招 / 读音），先教后答）
+const APP_VER = 'v3.10.19';  // 同步 GitHub Release 标签（v3.10.19 = 语音辨析融合升级：新增板块一「哑巴静音字母专项」9 组×5题（雪梨老师 9 大规则，XX,X哑巴 口诀 + 哑巴字母标注 + 哑巴特例词库），板块二组合专项保留 16 组；主页按板块分区渲染）
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
@@ -9290,6 +9290,7 @@ function renderPhon(){
   if(p.mode==='quiz' || p.mode==='drill') return phonRenderQ(body,d,p);
   if(p.mode==='drile') return phonDrillDone(body,d,p);
   if(p.mode==='wrong') return phonWrong(body,d,p);
+  if(p.mode==='silentwrong') return phonSilentWrong(body,d,p);
   if(p.mode==='fav')   return phonViewFav(body,d,p);
   if(p.mode==='note')  return phonViewNote(body,d,p);
   if(p.mode==='rule')  return phonRule(body,d,p);
@@ -9336,8 +9337,8 @@ function phonHome(body,d,p){
   const wrongCount = Object.keys(st.phon.wrong||{}).length;
   let h='';
   h += '<div class="mehead" style="padding:14px 16px 6px"><div class="metitle">🔤 语音辨析 · 专项突破</div>'
-     + '<div class="mesub" style="font-size:12.5px;line-height:1.6">第1大题（5分）。先预诊断定位弱项，再按规则专项攻克：规则卡先教 → 微专项测验 → 掌握度结算。背熟 P0 四组（开闭音节 / c·g / oo / th）基本稳拿分。</div></div>';
-  h += '<button class="btn magenta mt10" style="width:100%" onclick="phonGo(\'diag\')">🔍 预诊断（17 组闪电测 · 不记成绩，定位最弱）</button>';
+     + '<div class="mesub" style="font-size:12.5px;line-height:1.6">第1大题（5分）。板块一先背熟 9 条「XX，X哑巴」口诀；板块二背熟高频组合规律。流程：预诊断定位弱项 → 规则卡先教 → 微专项测验 → 掌握度结算。</div></div>';
+  h += '<button class="btn magenta mt10" style="width:100%" onclick="phonGo(\'diag\')">🔍 预诊断（'+phonGroups().length+' 组闪电测 · 不记成绩，定位最弱）</button>';
   const weak = phonWeak();
   const weakHas = weak.some(function(x){return x.wrong>0;});
   h += '<div class="card mt10"><div style="font-weight:700;margin-bottom:8px">📉 最弱专项（按错题干聚合）</div>';
@@ -9351,27 +9352,41 @@ function phonHome(body,d,p){
          + '<button class="btn sm ghost" onclick="phonGo(\'rule\','+x.i+')">去攻克 ▶</button></div>';
     });
   } else {
-    h += '<div style="font-size:12.5px;line-height:1.7">暂时没有错题～ 建议从 <b style="color:var(--green)">P0</b> 四组开始：开闭音节 / c·g / oo / th。也可先做一次「预诊断」看看哪组最弱。</div>';
+    h += '<div style="font-size:12.5px;line-height:1.7">暂时没有错题～ 建议从 <b style="color:var(--green)">板块一</b> 9 条哑巴口诀背起，再巩固 <b style="color:var(--green)">P0</b> 组合（开闭音节 / c·g / oo / th）。也可先做一次「预诊断」。</div>';
   }
   h += '</div>';
-  h += '<div class="c20-grid">';
-  phonGroups().forEach(function(g,i){
-    const mk=(st.phon.master||{})[i];
-    const rate=mk?Math.round((mk.rate||0)*100):0;
-    const mastered=mk&&mk.mastered; const due=phonDue(i); const qn=phonQof(i).length;
-    const col = g.prio==='P0'?'c-green':g.prio==='P1'?'c-amber':'c-gray';
-    const badge = mastered?'✅':(due?'🔁复习':'');
-    h += '<div class="c20-mode '+col+'" onclick="phonGo(\'rule\','+i+')">'
-       + '<div class="mi">'+g.prio+'</div>'
-       + '<div class="mn">'+escapeHtml(g.name)+'</div>'
-       + '<div class="md">'+(qn===0?'规则卡':('掌握 '+rate+'%'))+(badge?' · '+badge:'')+'</div></div>';
+  const sections=[['silent','🤫 板块一 · 哑巴静音字母专项（雪梨老师 9 大规则）'],['combo','🔤 板块二 · 元音 & 辅音组合专项']];
+  sections.forEach(function(s){
+    const sg=[]; phonGroups().forEach(function(g,i){ if((g.board||'combo')===s[0]) sg.push([g,i]); });
+    if(!sg.length) return;
+    h += '<div class="mehead" style="padding:14px 16px 6px"><div class="metitle">'+s[1]+'</div></div>';
+    h += '<div class="c20-grid">';
+    sg.forEach(function(pair){
+      const g=pair[0], i=pair[1];
+      const mk=(st.phon.master||{})[i];
+      const rate=mk?Math.round((mk.rate||0)*100):0;
+      const mastered=mk&&mk.mastered; const due=phonDue(i); const qn=phonQof(i).length;
+      const col = g.prio==='P0'?'c-green':g.prio==='P1'?'c-amber':'c-gray';
+      const badge = mastered?'✅':(due?'🔁复习':'');
+      h += '<div class="c20-mode '+col+'" onclick="phonGo(\'rule\','+i+')">'
+         + '<div class="mi">'+g.prio+'</div>'
+         + '<div class="mn">'+escapeHtml(g.name)+'</div>'
+         + '<div class="md">'+(qn===0?'规则卡':('掌握 '+rate+'%'))+(badge?' · '+badge:'')+'</div></div>';
+    });
+    h += '</div>';
   });
-  h += '</div>';
-  h += '<details class="card mt10" style="font-size:12px;line-height:1.75"><summary style="font-weight:700;cursor:pointer">📌 高频异读组合速查（背熟可认出大部分题）</summary><div style="margin-top:8px">';
-  d.cheat.forEach(function(r){
+  h += '<details class="card mt10" style="font-size:12px;line-height:1.75"><summary style="font-weight:700;cursor:pointer">📌 哑巴字母口诀（XX，X哑巴 · 雪梨老师 9 大规则）</summary><div style="margin-top:8px">';
+  (d.silentCheat||[]).forEach(function(r){
+    h += '<div style="margin-bottom:8px"><b style="color:var(--gold)">'+escapeHtml(r[0])+'</b>：'+escapeHtml(r[1])+'<br><span style="opacity:.72">例：'+escapeHtml(r[2])+'</span></div>';
+  });
+  h += '</div></details>';
+  h += '<details class="card mt10" style="font-size:12px;line-height:1.75"><summary style="font-weight:700;cursor:pointer">📌 高频组合发音速查（背熟可认出大部分题）</summary><div style="margin-top:8px">';
+  (d.cheat||[]).forEach(function(r){
     h += '<div style="margin-bottom:8px"><b style="color:var(--cyan)">'+escapeHtml(r[0])+'</b>：'+escapeHtml(r[1])+'<br><span style="opacity:.72">例：'+escapeHtml(r[2])+'</span></div>';
   });
   h += '</div></details>';
+  const silentWrongIds = Object.keys(st.phon.wrong||{}).filter(function(id){ const q=phonQuestion(id); const g=q?phonGroups()[q.cat]:null; return g && g.board==='silent'; });
+  if(silentWrongIds.length>0) h += '<button class="btn ghost mt10" style="width:100%" onclick="phonGo(\'silentwrong\')">🤫 哑巴特例词库（'+silentWrongIds.length+' 词）</button>';
   if(wrongCount>0) h += '<button class="btn ghost mt10" style="width:100%" onclick="phonGo(\'wrong\')">🔁 错题本（'+wrongCount+' 道）</button>';
   h += '<div style="padding:0 16px;display:flex;gap:8px;margin-top:10px">'
      + '<button class="btn sm ghost" style="flex:1" onclick="phonGo(\'fav\')">⭐ 收藏 '+phonFavCount()+'</button>'
@@ -9387,6 +9402,9 @@ function phonRule(body,d,p){
   let h='';
   h += '<div class="mehead" style="padding:14px 16px 6px"><div class="metitle">'+g.prio+' · '+escapeHtml(g.name)+'</div>'
      + '<div class="mesub" style="font-size:12.5px">先看懂这条规律，再去练题～</div></div>';
+  if(g.mn){ h += '<div class="card mt10" style="border-left:4px solid var(--gold);background:rgba(255,210,80,.08)">'
+     + '<div style="font-weight:700;margin-bottom:4px">🎯 前置口诀</div>'
+     + '<div style="font-size:15px;line-height:1.7;color:var(--gold);font-weight:700">'+escapeHtml(g.mn)+'</div></div>'; }
   h += '<div class="card mt10" style="border-left:4px solid var(--cyan)">'
      + '<div style="font-weight:700;margin-bottom:6px">📖 规律</div>'
      + '<div style="font-size:13px;line-height:1.8">'+escapeHtml(g.pat)+'</div>'
@@ -9536,6 +9554,17 @@ function phonWrong(body,d,p){
   body.innerHTML=h;
 }
 function phonWrongGo(id){ const d=phonD(); const q=d.questions.find(function(x){return x.id===id;}); if(!q) return; const p=S.phon; p.mode='quiz'; p.queue=[d.questions.indexOf(q)]; p.idx=0; p.picked=null; p.done=false; renderPhon(); }
+function phonSilentWrong(body,d,p){
+  const ids=Object.keys(st.phon.wrong||{}).filter(function(id){
+    const q=d.questions.find(function(x){return x.id===id;}); const g=q?phonGroups()[q.cat]:null; return g && g.board==='silent';
+  });
+  let h='';
+  h += '<div class="mehead" style="padding:14px 16px 6px"><div class="metitle">🤫 哑巴特例词库</div><div class="mesub" style="font-size:12.5px">板块一答错的单词自动收进来。点击任意词重练，答对即从词库移除。</div></div>';
+  if(ids.length===0){ h+='<div class="card mt10">暂无哑巴特例词，棒！</div>'; }
+  else { h+='<div style="padding:0 16px">'; ids.forEach(function(id){ const q=d.questions.find(function(x){return x.id===id;}); if(!q) return; h+='<button class="btn sec mt10" style="width:100%;text-align:left" onclick="phonWrongGo('+jstr(id)+')">'+escapeHtml(q.items.map(function(x){return x.w;}).join(' / '))+'</button>'; }); h+='</div>'; }
+  h += '<button class="btn ghost mt10" style="width:100%" onclick="phonBack()">← 返回</button>';
+  body.innerHTML=h;
+}
 function phonClearWrong(){ st.phon.wrong={}; save(); renderPhon(); }
 function phonQuestion(id){ const d=phonD(); return d && d.questions.find(function(x){return x.id===id;}); }
 function phonFavCount(){ return Object.keys(st.phon.fav||{}).length; }
