@@ -677,6 +677,7 @@
 .chat-q{display:flex;gap:9px;align-items:flex-end;animation:pop .32s ease}
 .chat-q .chat-av{width:42px;height:42px;border-radius:13px;object-fit:cover;object-position:50% 14%;flex:0 0 auto;border:1px solid rgba(255,255,255,.16);box-shadow:0 4px 14px rgba(0,0,0,.45)}
 .chat-q .qbubble{max-width:85%;animation:pop .32s ease .04s both}
+.mem-coach{margin:2px 16px 10px}
 .chat-replies{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
 .chat-replies .opt{width:auto;max-width:88%;align-self:flex-end;text-align:left;margin-bottom:0;border-radius:16px 16px 4px 16px;
   background:linear-gradient(135deg, color-mix(in srgb, var(--acc) 24%, var(--panel)), var(--panel));
@@ -2218,7 +2219,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.10.17';  // 同步 GitHub Release 标签（v3.10.17 = 语音辨析升级为「专项突破」：91 题按 17 组发音规则归类，预诊断→规则卡先教→微专项测验→掌握度结算→间隔复练；数据源 data/phon_pol.js 新增 groups + 每题 cat）
+const APP_VER = 'v3.10.18';  // 同步 GitHub Release 标签（v3.10.18 = 记忆类模块（英语高频词汇/固定搭配&语法大招/2026政治时政）答题卡片上方加「角色气泡」，由角色对话式提供关键词（口诀=欢欢大招 / 读音），先教后答）
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
@@ -10078,6 +10079,31 @@ function memMakeQ(key, i, kind){
     opts: opts.map(function(x){ return dir === 'e2c' ? x.cn : x.en; }),
     answer: opts.indexOf(it) };
 }
+/* v3.10.18 · 记忆类模块「角色气泡」：题目卡片上方由一个角色以对话方式提供关键词（先教后答）。
+   - trick 模块（2026政治时政）：关键词 = ph（欢欢大招记忆口诀）
+   - phonetic 模块（英语高频词汇）：关键词 = ph（音标，先读再选）
+   - 无 ph（固定搭配）：给「回忆搭配/规则」式提示
+   答完后气泡切换为该角色的对/错点评，强化「恋人陪练」对话感。角色取 meta.mate（默认雪见/教练）。 */
+const COACH_OPEN = ['先记住这个关键词 ——', '听好，考点关键词：', '别急着选，先把关键词给你：', '我把关键词放这儿：'];
+function memCoachQ(d, q, p){
+  const mate = getMate((d.meta && d.meta.mate) || 'xue');
+  let line;
+  if(p && p.done){
+    const ok = (p.picked === q.answer);
+    line = pick(ok ? mate.lines.correct : mate.lines.wrong);
+  } else if(q.ph && d.meta.phType === 'phonetic'){
+    line = '先读一遍 <b style="color:var(--gold)">/' + escapeHtml(q.ph) + '/</b>，再选它的意思～';
+  } else if(q.ph){
+    line = pick(COACH_OPEN) + ' <b style="color:var(--gold)">' + escapeHtml(q.ph) + '</b>';
+  } else if(d.meta && d.meta.phType === 'trick'){
+    line = '这个考点没有口诀，关键词都藏在题干里，回忆一下会议内容再选。';
+  } else {
+    line = '关键词在题干里，先回忆搭配 / 语法规则，再选一个。';
+  }
+  return '<div class="chat-q mem-coach">'
+    + '<img class="chat-av" src="' + mate.img + '" alt="' + escapeHtml(mate.name) + '" onerror="this.style.display=\'none\'">'
+    + '<div class="bubble qbubble"><div class="who">' + escapeHtml(mate.name) + '</div>' + line + '</div></div>';
+}
 function memQuiz(body, key, d, p){
   if(p.q === null || p.q === undefined){
     if(p.idx >= p.queue.length){ p.mode = 'done'; return renderMem(); }
@@ -10087,6 +10113,7 @@ function memQuiz(body, key, d, p){
   let h = '';
   h += '<div style="padding:14px 16px 6px"><span class="ph-chip">' + escapeHtml(memCatName(key, q.cat)) + '</span>'
      + '<div style="font-size:12.5px;color:var(--sub);font-weight:600;margin-top:8px">第 ' + (p.idx+1) + ' / ' + total + ' 题 · ' + escapeHtml(q.sub) + '</div></div>';
+  h += memCoachQ(d, q, p);   // v3.10.18 · 角色气泡：由角色先给关键词（对话式引导）
   h += '<div class="card" style="margin:0 16px;text-align:center;padding:18px 14px">';
   if(kind === 'listen'){
     h += '<button class="btn magenta" style="font-size:15px;padding:14px 22px" onclick="memSpeakQ()">🔊 点击播放读音</button>'
@@ -10095,7 +10122,8 @@ function memQuiz(body, key, d, p){
     h += '<div class="' + (isEn ? 'ph-en' : '') + '" style="font-size:' + (isEn ? '21px' : '19px') + ';font-weight:800;line-height:1.45">' + escapeHtml(q.prompt) + '</div>';
     if(isEn && audio) h += '<button class="btn sm ghost" style="margin-top:10px" onclick="memSpeakQ()">🔊 朗读</button>';
   }
-  if(q.ph){
+  /* v3.10.18：非听音模式下，口诀/音标已由上方「角色气泡」提供，卡片不再重复（听音模式保留原行为） */
+  if(q.ph && kind === 'listen'){
     if(d.meta.phType === 'phonetic') h += '<div style="font-size:12px;color:var(--sub);margin-top:8px">🔊 音标 /' + escapeHtml(q.ph) + '/</div>';
     else h += '<div style="font-size:12.5px;color:var(--gold);margin-top:8px">💡 大招：' + escapeHtml(q.ph) + '</div>';
   }
