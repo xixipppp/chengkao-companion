@@ -677,12 +677,18 @@
 .chat-q{display:flex;gap:9px;align-items:flex-end;animation:pop .32s ease}
 .chat-q .chat-av{width:42px;height:42px;border-radius:13px;object-fit:cover;object-position:50% 14%;flex:0 0 auto;border:1px solid rgba(255,255,255,.16);box-shadow:0 4px 14px rgba(0,0,0,.45)}
 .chat-q .qbubble{max-width:85%;animation:pop .32s ease .04s both}
-.mem-coach{margin:2px 16px 10px}
+.mem-coach{margin:2px 0 10px}
 .chat-replies{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
 .chat-replies .opt{width:auto;max-width:88%;align-self:flex-end;text-align:left;margin-bottom:0;border-radius:16px 16px 4px 16px;
   background:linear-gradient(135deg, color-mix(in srgb, var(--acc) 24%, var(--panel)), var(--panel));
   border-color:color-mix(in srgb, var(--acc) 42%, var(--line));box-shadow:0 4px 14px rgba(0,0,0,.3)}
 .chat-replies .opt .k{background:color-mix(in srgb, var(--acc) 34%, var(--panel2))}
+/* v3.10.20：.chat-replies .opt 的选择器权重高于 .opt.ok/.opt.no，导致聊天气泡选项
+   在「已作答」状态下丢失 对/错 的绿/红高亮（主刷题页同样受影响）。此处补齐更高权重的覆盖。 */
+.chat-replies .opt.ok{border-color:var(--green);background:rgba(91,227,167,.12)}
+.chat-replies .opt.no{border-color:var(--red);background:rgba(255,122,156,.12)}
+.chat-replies .opt.ok .k{background:var(--green);color:#062018;border-color:var(--green)}
+.chat-replies .opt.no .k{background:var(--red);color:#2a0910;border-color:var(--red)}
 .chat-replies .selfbtn{align-self:flex-end}
 @keyframes pop{from{opacity:0;transform:translateY(9px) scale(.98)}to{opacity:1;transform:none}}
 .coachline{border-radius:16px 16px 16px 4px}
@@ -2219,7 +2225,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.10.19';  // 同步 GitHub Release 标签（v3.10.19 = 语音辨析融合升级：新增板块一「哑巴静音字母专项」9 组×5题（雪梨老师 9 大规则，XX,X哑巴 口诀 + 哑巴字母标注 + 哑巴特例词库），板块二组合专项保留 16 组；主页按板块分区渲染）
+const APP_VER = 'v3.10.20';  // 同步 GitHub Release 标签（v3.10.20 = 记忆类模块答题页对齐主刷题模板：进度条/连击/题干气泡+朗读慢速停止/聊天气泡选项/排除法/解析卡/收藏·笔记·让TA讲讲；并修复 2026 政治时政「人工智能全球治理」错位前缀）
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
@@ -9994,7 +10000,7 @@ function memCnt(key){
   return memCnt._m[key];
 }
 function memCatName(key, id){ const d = memD(key); if(!d || !d.cats) return id; const c = d.cats.find(function(x){ return x.id === id; }); return c ? c.name : id; }
-function memFresh(){ return { key:null, mode:'home', cat:'all', kind:'quiz', queue:[], idx:0, q:null, picked:null, done:false, score:0, match:null, lastMatch:null }; }
+function memFresh(){ return { key:null, mode:'home', cat:'all', kind:'quiz', queue:[], idx:0, q:null, picked:null, done:false, score:0, match:null, lastMatch:null, combo:0, used5050:false, elim:[] }; }
 function memStopTimer(){ if(memStopTimer._t){ clearInterval(memStopTimer._t); memStopTimer._t = null; } }
 function memOpen(key){
   const d = memD(key); if(!d){ toast('题库未加载'); return; }
@@ -10012,7 +10018,7 @@ function memSetCat(id){ const p = S.mem; if(!p) return; p.cat = id; renderMem();
 function memPracticeIds(ids){
   const p = S.mem; if(!p) return;
   if(!ids.length){ toast('没有可练的'); return; }
-  p.kind = 'quiz'; p.queue = shuffle(ids.map(Number)); p.idx = 0; p.q = null; p.picked = null; p.done = false; p.score = 0; p.match = null; p.mode = 'quiz'; renderMem();
+  p.kind = 'quiz'; p.queue = shuffle(ids.map(Number)); p.idx = 0; p.q = null; p.picked = null; p.done = false; p.score = 0; p.match = null; p.combo = 0; p.used5050 = false; p.elim = []; p.mode = 'quiz'; renderMem();
 }
 function memGo(mode){
   const p = S.mem; if(!p) return; const key = p.key;
@@ -10020,13 +10026,13 @@ function memGo(mode){
   if(mode === 'quiz' || mode === 'listen'){
     p.kind = (mode === 'listen') ? 'listen' : 'quiz';
     p.queue = memBuildQueue(key, p.cat, mode === 'listen' ? 12 : 15);
-    p.idx = 0; p.q = null; p.picked = null; p.done = false; p.score = 0; p.match = null; p.mode = 'quiz'; renderMem(); return;
+    p.idx = 0; p.q = null; p.picked = null; p.done = false; p.score = 0; p.match = null; p.combo = 0; p.used5050 = false; p.elim = []; p.mode = 'quiz'; renderMem(); return;
   }
   if(mode === 'match'){ p.match = memBuildMatch(key, p.cat); p.lastMatch = null; p.mode = 'match'; renderMem(); return; }
   if(mode === 'wrong'){
     const all = memAll(key); const ks = Object.keys(st.mem[key].wrong||{}).filter(function(k){ return all[k]; });
     if(!ks.length){ toast('错词本是空的'); return; }
-    p.kind = 'quiz'; p.queue = shuffle(ks.map(Number)); p.idx = 0; p.q = null; p.picked = null; p.done = false; p.score = 0; p.match = null; p.mode = 'quiz'; renderMem(); return;
+    p.kind = 'quiz'; p.queue = shuffle(ks.map(Number)); p.idx = 0; p.q = null; p.picked = null; p.done = false; p.score = 0; p.match = null; p.combo = 0; p.used5050 = false; p.elim = []; p.mode = 'quiz'; renderMem(); return;
   }
   if(mode === 'fav'){ p.mode = 'fav'; renderMem(); return; }
   if(mode === 'note'){ p.mode = 'note'; renderMem(); return; }
@@ -10133,56 +10139,113 @@ function memCoachQ(d, q, p){
     + '<img class="chat-av" src="' + mate.img + '" alt="' + escapeHtml(mate.name) + '" onerror="this.style.display=\'none\'">'
     + '<div class="bubble qbubble"><div class="who">' + escapeHtml(mate.name) + '</div>' + line + '</div></div>';
 }
+/* v3.10.20 · 记忆类模块答题页对齐「主刷题页」模板：
+   顶部进度条(.qbar) + 连击徽章 + 题干气泡(.qtext + 朗读/慢速/停止)
+   + 聊天气泡式选项(.chat-replies > .opt.chat-opt) + 排除法 + 解析卡(.sol.show)
+   + 底部操作条(收藏 / 记笔记 / 让 TA 讲讲)。仅改渲染层，memMakeQ/memPick/memNext/收藏/笔记等保持不变。 */
 function memQuiz(body, key, d, p){
   if(p.q === null || p.q === undefined){
     if(p.idx >= p.queue.length){ p.mode = 'done'; return renderMem(); }
-    p.q = memMakeQ(key, p.queue[p.idx], p.kind); p.picked = null; p.done = false;
+    p.q = memMakeQ(key, p.queue[p.idx], p.kind); p.picked = null; p.done = false; p.elim = [];
   }
   const q = p.q, total = p.queue.length, isEn = q.dir === 'e2c', kind = p.kind || 'quiz', audio = !!d.meta.audio;
+  const mate = getMate((d.meta && d.meta.mate) || 'xue');
+  const combo = p.combo || 0;
+  const can5050 = !p.done && !p.used5050 && affLv(st.aff[mate.id] || 0) >= 3;
+  const pct = Math.round((p.idx + (p.done ? 1 : 0)) / total * 100);
   let h = '';
-  h += '<div style="padding:14px 16px 6px"><span class="ph-chip">' + escapeHtml(memCatName(key, q.cat)) + '</span>'
-     + '<div style="font-size:12.5px;color:var(--sub);font-weight:600;margin-top:8px">第 ' + (p.idx+1) + ' / ' + total + ' 题 · ' + escapeHtml(q.sub) + '</div></div>';
-  h += memCoachQ(d, q, p);   // v3.10.18 · 角色气泡：由角色先给关键词（对话式引导）
-  h += '<div class="card" style="margin:0 16px;text-align:center;padding:18px 14px">';
+  /* ① 顶部进度条（与主刷题页 .qbar 同款） */
+  h += '<div style="padding:14px 16px 8px">'
+     + '<div class="qbar" style="margin-bottom:5px"><span>' + escapeHtml(memCatName(key, q.cat)) + '</span>'
+     + '<div class="prog"><i style="width:' + pct + '%"></i></div>'
+     + '<span>' + (p.idx + 1) + '/' + total + '</span></div>'
+     + '<div style="font-size:12.5px;color:var(--sub);font-weight:600">' + escapeHtml(q.sub) + '</div></div>';
+  h += '<div class="chat" style="padding:0 16px">';
+  /* ② 连击徽章（本地回合连击，不触碰全局 st.combo） */
+  if(combo >= 3) h += '<div><span class="combobadge">' + (combo >= 8 ? '🔥🔥 火力全开 x' : '🔥 连击 x') + combo + (combo >= 5 ? ' · 好感加成' : '') + '</span></div>';
+  /* ③ 角色气泡先给关键词（v3.10.18 保留） */
+  h += memCoachQ(d, q, p);
+  /* ④ 题干气泡 + 语音控件（对齐主刷题页 .chat-q / .qtext / ttsbar） */
+  h += '<div class="chat-q"><img class="chat-av" src="' + mate.img + '" alt="' + escapeHtml(mate.name) + '" onerror="this.style.display=\'none\'">'
+     + '<div class="bubble qbubble">';
   if(kind === 'listen'){
-    h += '<button class="btn magenta" style="font-size:15px;padding:14px 22px" onclick="memSpeakQ()">🔊 点击播放读音</button>'
-       + '<div style="font-size:12.5px;color:var(--sub);margin-top:10px">听读音，选出正确的释义</div>';
+    h += '<div class="qtext">🎧 听读音，选出正确的释义</div>'
+       + '<div class="ttsbar"><button class="ttsbtn" onclick="memSpeakQ()"><span>🔊</span>播放读音</button>'
+       + '<button class="ttsbtn" onclick="memTts(\'stop\')"><span>⏹</span>停止</button></div>';
   } else {
-    h += '<div class="' + (isEn ? 'ph-en' : '') + '" style="font-size:' + (isEn ? '21px' : '19px') + ';font-weight:800;line-height:1.45">' + escapeHtml(q.prompt) + '</div>';
-    if(isEn && audio) h += '<button class="btn sm ghost" style="margin-top:10px" onclick="memSpeakQ()">🔊 朗读</button>';
+    h += '<div class="qtext">' + escapeHtml(q.prompt) + '</div>'
+       + '<div class="ttsbar">'
+       + '<button class="ttsbtn" onclick="memTts(\'read\')"><span>🔊</span>朗读</button>'
+       + '<button class="ttsbtn" onclick="memTts(\'slow\')"><span>🐢</span>慢速</button>'
+       + '<button class="ttsbtn" onclick="memTts(\'stop\')"><span>⏹</span>停止</button>'
+       + '</div>';
   }
-  /* v3.10.18：非听音模式下，口诀/音标已由上方「角色气泡」提供，卡片不再重复（听音模式保留原行为） */
-  if(q.ph && kind === 'listen'){
-    if(d.meta.phType === 'phonetic') h += '<div style="font-size:12px;color:var(--sub);margin-top:8px">🔊 音标 /' + escapeHtml(q.ph) + '/</div>';
-    else h += '<div style="font-size:12.5px;color:var(--gold);margin-top:8px">💡 大招：' + escapeHtml(q.ph) + '</div>';
-  }
-  h += '</div>';
-  h += '<div style="padding:10px 16px 0">';
+  h += '</div></div>';
+  /* ⑤ 选项：聊天气泡样式 */
+  h += '<div class="chat-replies">';
   q.opts.forEach(function(txt, i){
-    const label = 'ABCD'[i];
-    let cls = 'btn ', style = 'width:100%;text-align:left;margin-bottom:8px;';
-    if(p.done){ if(i === q.answer) cls += 'teal'; else if(i === p.picked){ cls += 'ghost'; style += 'border:2px solid var(--red);'; } else cls += 'ghost'; }
-    else { cls += 'sec'; style += 'cursor:pointer;'; }
-    h += '<button class="' + cls + '" style="' + style + '" ' + (p.done ? '' : 'onclick="memPick(' + i + ')"') + '>' + label + '. ' + escapeHtml(txt) + '</button>';
+    let cls = 'opt chat-opt';
+    if(p.elim && p.elim.indexOf(i) >= 0) cls += ' off';
+    if(p.done){ cls += ' dis'; if(i === q.answer) cls += ' ok'; else if(i === p.picked) cls += ' no'; }
+    const spk = (audio && isEn && !p.done) ? '<div class="ttsmini" onclick="event.stopPropagation();try{speak(' + jstr(txt) + ',{lang:\'en-US\'});}catch(e){}">🔊</div>' : '';
+    h += '<div class="' + cls + '" ' + (p.done ? '' : 'onclick="memPick(' + i + ')"') + '><div class="k">' + 'ABCD'[i] + '</div><div>' + escapeHtml(txt) + '</div>' + spk + '</div>';
   });
-  h += '</div>';
+  if(can5050) h += '<button class="btn ghost sm selfbtn" onclick="memUse5050()">🔍 ' + escapeHtml(mate.name) + '的「排除法」（本轮 1 次）</button>';
+  h += '</div></div>';
+  /* ⑥ 解析卡 + 底部操作条（对齐主刷题页 .sol.show / 收藏·笔记·让 TA 讲讲） */
+  h += '<div style="padding:0 16px">';
   if(p.done){
     const ok = (p.picked === q.answer);
-    h += '<div class="card" style="margin:0 16px;border-left:4px solid ' + (ok ? 'var(--green)' : 'var(--red)') + '">'
-       + '<div style="font-weight:800;margin-bottom:6px">' + (ok ? '✅ 答对了！+2 XP' : '❌ 正确答案：' + 'ABCD'[q.answer] + '. ' + escapeHtml(q.opts[q.answer])) + '</div>'
-       + '<div style="font-size:13px;line-height:1.7"><span class="ph-en">' + escapeHtml(q.en) + '</span> —— ' + escapeHtml(q.cn) + '</div></div>';
-    const last = (p.idx >= total - 1);
-    h += '<button class="btn teal mt10" style="width:100%" onclick="memNext()">' + (last ? '查看结果 ▶' : '下一题 ▶') + '</button>';
+    h += '<div class="sol show ' + (ok ? 'good' : 'bad') + '"><div class="h">'
+       + (ok ? '✅ 这题你答对了 · 已保存' : '❌ 这题你答错了 · 正确答案：' + 'ABCD'[q.answer] + '. ' + escapeHtml(q.opts[q.answer]))
+       + '</div><div style="font-size:13px;line-height:1.7"><span class="ph-en">' + escapeHtml(q.en) + '</span> —— ' + escapeHtml(q.cn) + '</div>'
+       + (q.ph ? '<div style="margin-top:6px;color:var(--gold);font-size:12.5px">' + (d.meta.phType === 'phonetic' ? '🔊 音标 /' + escapeHtml(q.ph) + '/' : '💡 大招：' + escapeHtml(q.ph)) + '</div>' : '')
+       + '</div>';
   }
-  h += '<div class="row2 mt10" style="padding:0 16px">';
   const favOn = !!(st.mem[key].fav && st.mem[key].fav[q.i]);
-  h += '<button class="btn sm ' + (favOn ? 'gold' : 'ghost') + '" style="flex:1" onclick="memToggleFav(' + q.i + ')">' + (favOn ? '⭐ 已收藏' : '☆ 收藏') + '</button>';
-  h += '<button class="btn sm ghost" style="flex:1" onclick="memNoteOpen(' + q.i + ')">📝 笔记</button>';
-  h += '</div>';
-  h += '<div class="c20-pbar" style="margin:12px 16px 0"><i style="width:' + Math.round((p.idx + (p.done?1:0)) / total * 100) + '%"></i></div>';
+  h += '<div class="btns mt10">'
+     + '<button class="btn sm ' + (favOn ? 'gold' : 'ghost') + '" onclick="memToggleFav(' + q.i + ')">' + (favOn ? '⭐ 已收藏' : '⭐ 收藏') + '</button>'
+     + '<button class="btn sm ghost" onclick="memNoteOpen(' + q.i + ')">📝 记笔记</button>'
+     + '<button class="btn sm ghost" onclick="memTutor()">💬 让 TA 讲讲</button>'
+     + '</div>';
+  if(p.done){
+    const last = (p.idx >= total - 1);
+    h += '<button class="btn keep mt10" style="width:100%" onclick="memNext()">' + (last ? '查看结果 ▶' : '下一题 ▶') + '</button>';
+  }
   h += '<button class="btn ghost mt10" style="width:100%" onclick="memBack()">← 返回主页</button>';
+  h += '</div>';
   body.innerHTML = h;
   if(kind === 'listen' && !p.done){ try{ speak(q.en, { lang:'en-US' }); }catch(e){} }
+}
+/* 记忆题朗读文本：听音模式读单词；其它模式读题干 + 选项 */
+function memTtsText(q){
+  if(q.kind === 'listen') return q.en;
+  let s = String(q.prompt || '');
+  if(q.opts && q.opts.length) s += '。' + q.opts.map(function(o, i){ return 'ABCD'[i] + '，' + o; }).join('。');
+  return s;
+}
+function memTts(mode){
+  const p = S.mem, q = p && p.q; if(!p || !q) return;
+  if(mode === 'stop'){ try{ stopSpeak(); }catch(e){} return; }
+  const zh = /[\u4e00-\u9fa5]/.test(String(q.prompt || ''));
+  const lang = (q.kind === 'listen' || !zh) ? 'en-US' : 'zh-CN';
+  try{ speak(memTtsText(q), { lang: lang, rate: mode === 'slow' ? 0.62 : 1 }); }catch(e){}
+}
+/* 「排除法」：本轮 1 次，划掉两个明显错误的选项（与主刷题页同一门槛 affLv≥3） */
+function memUse5050(){
+  const p = S.mem, q = p && p.q; if(!p || !q || p.done || p.used5050) return;
+  const wrongIdx = [];
+  q.opts.forEach(function(_, i){ if(i !== q.answer) wrongIdx.push(i); });
+  if(wrongIdx.length < 2) return;
+  p.used5050 = true; p.elim = shuffle(wrongIdx).slice(0, 2);
+  renderMem(); toast('🔍 已划掉两个明显错误的选项');
+}
+/* 「让 TA 讲讲」：把记忆条目包装成一道选择题交给通用 AI 讲师（模块 id 仅用于挑角色/科目上下文） */
+const MEM2MOD = { vocab:'e4', collo:'e4', news26:'p4' };
+function memTutor(){
+  const p = S.mem, q = p && p.q; if(!p || !q) return;
+  const m = MEM2MOD[p.key] || 'p4';
+  aiTutor({ m:m, id:'mem_' + p.key + '_' + q.i, q:q.prompt, o:q.opts, a:q.answer, t:'choice', sol:(q.en + ' —— ' + q.cn) });
 }
 function memSpeakQ(){ const p = S.mem; if(p && p.q){ try{ speak(p.q.en, { lang:'en-US' }); }catch(e){} } }
 function memSpeakItem(id){ const it = memAll(S.mem.key)[id]; if(it && it.en){ try{ speak(it.en, { lang:'en-US' }); }catch(e){} } }
@@ -10190,13 +10253,13 @@ function memPick(i){
   const p = S.mem, q = p && p.q; if(!p || !q || p.done) return;
   p.picked = i; p.done = true;
   const key = p.key; const it = memAll(key)[q.i]; const k = String(q.i);
-  if(i === q.answer){ p.score++; addXp(2); try{ SFX.play('click'); }catch(e){} delete st.mem[key].wrong[k]; }
-  else { st.mem[key].wrong[k] = { en:it.en, cn:it.cn, c:it.c, n:((st.mem[key].wrong[k] && st.mem[key].wrong[k].n) || 0) + 1 }; }
+  if(i === q.answer){ p.score++; p.combo = (p.combo || 0) + 1; addXp(2); try{ SFX.play('click'); }catch(e){} delete st.mem[key].wrong[k]; }
+  else { p.combo = 0; st.mem[key].wrong[k] = { en:it.en, cn:it.cn, c:it.c, n:((st.mem[key].wrong[k] && st.mem[key].wrong[k].n) || 0) + 1 }; }
   save(); renderMem();
 }
 function memNext(){
   const p = S.mem; if(!p) return;
-  p.idx++; p.q = null; p.picked = null; p.done = false;
+  p.idx++; p.q = null; p.picked = null; p.done = false; p.elim = [];
   if(p.idx >= p.queue.length) p.mode = 'done';
   renderMem();
 }
