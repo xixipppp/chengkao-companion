@@ -1013,6 +1013,9 @@
     <button class="btn gold mt10" onclick="startBorrow()">🔁 选择题借词 · 大题反推<small style="font-weight:600;font-size:11px"> · 给选择题 · 反推大题得分关键词 · 考场借词凑分</small></button>
     <button class="btn teal mt10" onclick="startPhon()">🔤 英语语音辨析<small style="font-weight:600;font-size:11px"> · 第1大题 · 4词选读音不同 · 答错弹规律 · 可收藏/笔记</small></button>
     <button class="btn teal mt10" onclick="startPhrase()">🧩 英语必背词组速记<small style="font-weight:600;font-size:11px"> · 257词组·10大类 · 记忆答题+听音选义+短语填空+配对 · 错词本</small></button>
+    <button class="btn teal mt10" onclick="memOpen('vocab')">📚 英语高频词汇<small style="font-weight:600;font-size:11px"> · 真题高频词 · 看词选义/听音选义/配对 · 错词本+收藏笔记</small></button>
+    <button class="btn gold mt10" onclick="memOpen('collo')">🔗 固定搭配+语法大招<small style="font-weight:600;font-size:11px"> · 搭配填空/选择 · 语法口诀速记 · 错词本+收藏笔记</small></button>
+    <button class="btn magenta mt10" onclick="memOpen('news26')">📰 2026政治时政<small style="font-weight:600;font-size:11px"> · 会议/热词/数据自测 · 口诀 · 错词本+收藏笔记</small></button>
     <button class="btn gold mt10" onclick="go('s-sprint')">🔥 考前 24h 冲刺</button>
     <button class="btn ghost mt10" onclick="reviewWrong()">🔁 错题重做（只刷错题）</button>
   </section>
@@ -1203,6 +1206,8 @@
   </section>
 
   <!-- ============ 词组速记（v3.10.14） ============ -->
+  <section class="screen" id="s-mem"><div id="memBody"></div></section>
+
   <section class="screen" id="s-phrase">
     <div class="back" onclick="phraseBack()">← 返回自习室</div>
     <div id="phraseBody"></div>
@@ -1342,7 +1347,10 @@
 <script src="data/zuoda_pol.js"></script>  <!-- v3.10.9 · 主观题抢分：万能模板 + 6高频考点 + 关键词踩点(12题) + 逻辑排序 + 完整作答智能评分 + 错题本，离线可用 -->
 <script src="data/borrow_pol.js"></script> <!-- v3.10.11 · 选择题借词·大题反推：选择题题干+选项 → 反推大题得分关键词 + 选项淘金（从正确选项挑规范表述），离线可用 -->
 <script src="data/phon_pol.js"></script>  <!-- v3.10.12 · 英语语音辨析：4 词选读音不同项 + 规律提示，离线可用 -->
-<script src="data/phrase_pol.js"></script> <!-- v3.10.14 · 词组速记：成考英语必背词组 257 条（10 大类）+ 记忆答题 + 配对记忆小游戏 + 错词本，离线可用 -->
+<script src="data/phrase_pol.js"></script>
+<script src="data/vocab_pol.js"></script>
+<script src="data/collo_pol.js"></script>
+<script src="data/news26_pol.js"></script> <!-- v3.10.14 · 词组速记：成考英语必背词组 257 条（10 大类）+ 记忆答题 + 配对记忆小游戏 + 错词本，离线可用 -->
 <!-- v3.4.0 · 首屏减负：data/kaodian.js(501KB 考点速记资料库) 与 data/goldpoints.js(380KB 黄金考点)
      都不参与 ALLQ 构建，只有「考点速记」页与「速记图猜考点」小游戏用到 →
      改为由 ensureBank() 按需异步加载（首屏同步解析体积 2.03MB → 1.15MB，HTML 解析与首绘不再等待）。
@@ -2210,7 +2218,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.10.15';  // 同步 GitHub Release 标签（v3.10.15 = 词组模块新增「听音选义」「短语填空」两种小游戏 + 强化朗读；语音辨析模块新增笔记本与收藏。数据源 data/phrase_pol.js / data/phon_pol.js）
+const APP_VER = 'v3.10.16';  // 同步 GitHub Release 标签（v3.10.16 = 新增通用记忆引擎 memEngine：英语高频词汇 / 固定搭配+语法大招 / 2026政治时政 三个练习模块，含看词选义·听音选义·配对记忆·错词本·收藏/笔记。数据源 data/vocab_pol.js / data/collo_pol.js / data/news26_pol.js）
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
@@ -3063,6 +3071,7 @@ function go(t){
   else if(t === 's-games') renderGames();
   else if(t === 's-sprint') renderSprint();
   else if(t === 's-phrase') renderPhrase();
+  else if(t === 's-mem') renderMem();
   else if(t === 's-butler') renderButler();
   else if(t === 's-readanime') renderReadAnime();
   /* v3.4.0：管家自动轻感知（屏幕切换触发，60s 节流；只规划不执行） */
@@ -9812,6 +9821,427 @@ function phraseReviewWrong(){
   p.idx = 0; p.q = null; p.picked = null; p.done = false; p.score = 0; p.match = null; p.mode = 'quiz';
   renderPhrase();
 }
+
+/* =================== 通用记忆练习引擎 memEngine（v3.10.16）===================
+   三文档共用：vocab(英语高频词汇) / collo(固定搭配+语法大招) / news26(2026政治时政)。
+   数据源：window.VOCAB / window.COLLO / window.NEWS26（各自 data/*_pol.js）。
+   状态：S.mem={key,mode,cat,kind,queue,idx,q,picked,done,score,match,lastMatch}；
+         st.mem[key]={wrong,best,fav,notes}。纯前端、离线可用。 */
+const MEM_SRC = { vocab:function(){ return window.VOCAB; }, collo:function(){ return window.COLLO; }, news26:function(){ return window.NEWS26; } };
+const MEM_COLOR = { vocab:'teal', collo:'gold', news26:'magenta' };
+function memD(key){ return MEM_SRC[key] ? MEM_SRC[key]() : null; }
+function memAll(key){
+  const d = memD(key); if(!d || !d.list) return [];
+  if(!memAll._c) memAll._c = {};
+  if(!memAll._c[key]) memAll._c[key] = d.list.map(function(x, i){ return { i:i, c:x[0], en:x[1], cn:x[2], ph:(x[3]||'') }; });
+  return memAll._c[key];
+}
+function memCnt(key){
+  const d = memD(key); if(!d || !d.list) return { cn:{}, en:{} };
+  if(!memCnt._m) memCnt._m = {};
+  if(!memCnt._m[key]){
+    const cn = {}, en = {};
+    d.list.forEach(function(x){ cn[x[2]] = (cn[x[2]]||0)+1; en[x[1]] = (en[x[1]]||0)+1; });
+    memCnt._m[key] = { cn:cn, en:en };
+  }
+  return memCnt._m[key];
+}
+function memCatName(key, id){ const d = memD(key); if(!d || !d.cats) return id; const c = d.cats.find(function(x){ return x.id === id; }); return c ? c.name : id; }
+function memFresh(){ return { key:null, mode:'home', cat:'all', kind:'quiz', queue:[], idx:0, q:null, picked:null, done:false, score:0, match:null, lastMatch:null }; }
+function memStopTimer(){ if(memStopTimer._t){ clearInterval(memStopTimer._t); memStopTimer._t = null; } }
+function memOpen(key){
+  const d = memD(key); if(!d){ toast('题库未加载'); return; }
+  st.mem = st.mem || {}; st.mem[key] = st.mem[key] || { wrong:{}, best:{}, fav:{}, notes:{} };
+  S.mem = memFresh(); S.mem.key = key;
+  go('s-mem'); renderMem();
+}
+function memBack(){
+  memStopTimer();
+  const p = S.mem; if(!p){ go('s-study'); return; }
+  if(p.mode !== 'home'){ p.mode = 'home'; p.match = null; p.queue = []; p.q = null; p.picked = null; p.done = false; renderMem(); }
+  else go('s-study');
+}
+function memSetCat(id){ const p = S.mem; if(!p) return; p.cat = id; renderMem(); }
+function memPracticeIds(ids){
+  const p = S.mem; if(!p) return;
+  if(!ids.length){ toast('没有可练的'); return; }
+  p.kind = 'quiz'; p.queue = shuffle(ids.map(Number)); p.idx = 0; p.q = null; p.picked = null; p.done = false; p.score = 0; p.match = null; p.mode = 'quiz'; renderMem();
+}
+function memGo(mode){
+  const p = S.mem; if(!p) return; const key = p.key;
+  memStopTimer();
+  if(mode === 'quiz' || mode === 'listen'){
+    p.kind = (mode === 'listen') ? 'listen' : 'quiz';
+    p.queue = memBuildQueue(key, p.cat, mode === 'listen' ? 12 : 15);
+    p.idx = 0; p.q = null; p.picked = null; p.done = false; p.score = 0; p.match = null; p.mode = 'quiz'; renderMem(); return;
+  }
+  if(mode === 'match'){ p.match = memBuildMatch(key, p.cat); p.lastMatch = null; p.mode = 'match'; renderMem(); return; }
+  if(mode === 'wrong'){
+    const all = memAll(key); const ks = Object.keys(st.mem[key].wrong||{}).filter(function(k){ return all[k]; });
+    if(!ks.length){ toast('错词本是空的'); return; }
+    p.kind = 'quiz'; p.queue = shuffle(ks.map(Number)); p.idx = 0; p.q = null; p.picked = null; p.done = false; p.score = 0; p.match = null; p.mode = 'quiz'; renderMem(); return;
+  }
+  if(mode === 'fav'){ p.mode = 'fav'; renderMem(); return; }
+  if(mode === 'note'){ p.mode = 'note'; renderMem(); return; }
+}
+function renderMem(){
+  const key = S.mem && S.mem.key; if(!key) return;
+  const body = document.getElementById('memBody'); if(!body) return;
+  const d = memD(key); if(!d){ body.innerHTML = '<div class="card">题库加载中…</div>'; return; }
+  const p = S.mem;
+  if(p.mode === 'quiz')   return memQuiz(body, key, d, p);
+  if(p.mode === 'done')   return memDone(body, key, d, p);
+  if(p.mode === 'match')  return memMatch(body, key, d, p);
+  if(p.mode === 'madone') return memMatchDone(body, key, d, p);
+  if(p.mode === 'wrong')  return memWrong(body, key, d, p);
+  if(p.mode === 'fav')    return memViewFav(body, key, d, p);
+  if(p.mode === 'note')   return memViewNote(body, key, d, p);
+  return memHome(body, key, d, p);
+}
+function memPool(key, cat){ const all = memAll(key); return cat === 'all' ? all.slice() : all.filter(function(x){ return x.c === cat; }); }
+function memHome(body, key, d, p){
+  const all = memAll(key); const stt = st.mem[key];
+  const wrongCount = Object.keys(stt.wrong||{}).filter(function(k){ return all[k]; }).length;
+  const favCount = Object.keys(stt.fav||{}).length;
+  const noteCount = Object.keys(stt.notes||{}).length;
+  const pool = memPool(key, p.cat);
+  const best = (stt.best && stt.best.match) ? stt.best.match : '--';
+  let h = '';
+  h += '<div style="padding:14px 16px 6px"><div style="font-size:18px;font-weight:800">📚 ' + escapeHtml(d.meta.title) + '</div>'
+     + '<div style="font-size:12.5px;color:var(--sub);line-height:1.6;margin-top:4px">' + escapeHtml(d.meta.tip) + '</div></div>';
+  h += '<div class="grid4" style="padding:0 16px">'
+     + '<div class="stat"><b>' + all.length + '</b><span>词条总数</span></div>'
+     + '<div class="stat"><b>' + pool.length + '</b><span>当前范围</span></div>'
+     + '<div class="stat"><b>' + wrongCount + '</b><span>错词待巩固</span></div>'
+     + '<div class="stat"><b>' + best + '</b><span>配对最佳分</span></div></div>';
+  h += '<div class="sec-title" style="margin:14px 16px 0"><span class="bar"></span>选择范围<small>按分类练</small></div>';
+  h += '<div class="ph-chips">';
+  h += '<span class="ph-chip' + (p.cat === 'all' ? ' on' : '') + '" onclick="memSetCat(\'all\')">全部 ' + all.length + '</span>';
+  d.cats.forEach(function(c){ if(c.id === 'all') return; const n = all.filter(function(x){ return x.c === c.id; }).length; h += '<span class="ph-chip' + (p.cat === c.id ? ' on' : '') + '" onclick="memSetCat(\'' + c.id + '\')">' + escapeHtml(c.name) + ' ' + n + '</span>'; });
+  h += '</div>';
+  h += '<div class="c20-grid" style="padding:0 16px">';
+  h += '<div class="c20-mode" onclick="memGo(\'quiz\')"><div class="mi">📝</div><div class="mn">记忆答题</div><div class="md">中英互译 · 4 选 1 · 每轮 15 题</div></div>';
+  if(d.meta.audio) h += '<div class="c20-mode" onclick="memGo(\'listen\')"><div class="mi">🎧</div><div class="mn">听音选义</div><div class="md">听读音 · 选释义</div></div>';
+  h += '<div class="c20-mode" onclick="memGo(\'match\')"><div class="mi">🎴</div><div class="mn">配对记忆</div><div class="md">翻牌配对小游戏 · 6 对 · 计时</div></div>';
+  if(wrongCount > 0) h += '<div class="c20-mode" onclick="memGo(\'wrong\')"><div class="mi">🔁</div><div class="mn">错词本</div><div class="md">' + wrongCount + ' 条待巩固</div></div>';
+  h += '<div class="c20-mode" onclick="memGo(\'fav\')"><div class="mi">⭐</div><div class="mn">我的收藏</div><div class="md">' + favCount + ' 题 · 点词条可复习</div></div>';
+  h += '<div class="c20-mode" onclick="memGo(\'note\')"><div class="mi">📝</div><div class="mn">我的笔记</div><div class="md">' + noteCount + ' 条易错点</div></div>';
+  h += '</div>';
+  h += '<button class="btn ghost mt10" style="width:100%" onclick="memBack()">← 返回自习室</button>';
+  body.innerHTML = h;
+}
+function memBuildQueue(key, cat, n){
+  const pool = memPool(key, cat); const idx = memCnt(key);
+  const usable = pool.filter(function(x){ return idx.en[x.en] === 1 || idx.cn[x.cn] === 1; });
+  const src = usable.length >= 4 ? usable : pool;
+  return shuffle(src).slice(0, Math.min(n, src.length)).map(function(x){ return x.i; });
+}
+function memMakeQ(key, i, kind){
+  const all = memAll(key); const it = all[i]; const idx = memCnt(key);
+  const enOk = idx.en[it.en] === 1, cnOk = idx.cn[it.cn] === 1;
+  let dir;
+  if(kind === 'listen') dir = 'e2c';
+  else if(enOk && cnOk) dir = Math.random() < 0.62 ? 'e2c' : 'c2e';
+  else if(enOk) dir = 'e2c';
+  else dir = 'c2e';
+  const sameCat = all.filter(function(x){ return x.c === it.c; });
+  function ok(x){ return dir === 'e2c' ? x.cn !== it.cn : x.en !== it.en; }
+  let cand = sameCat.filter(ok);
+  if(cand.length < 3) cand = cand.concat(all.filter(ok));
+  const seen = {}; const dist = [];
+  shuffle(cand).forEach(function(x){
+    const k = dir === 'e2c' ? x.cn : x.en;
+    if(k === it.cn || k === it.en || seen[k]) return;
+    seen[k] = 1; dist.push(x);
+  });
+  const opts = shuffle([it].concat(dist.slice(0, 3)));
+  return { i:i, kind:kind, dir:dir, cat:it.c, en:it.en, cn:it.cn, ph:it.ph,
+    prompt: dir === 'e2c' ? it.en : it.cn,
+    sub: dir === 'e2c' ? '选出正确的释义' : '选出对应的原文',
+    opts: opts.map(function(x){ return dir === 'e2c' ? x.cn : x.en; }),
+    answer: opts.indexOf(it) };
+}
+function memQuiz(body, key, d, p){
+  if(p.q === null || p.q === undefined){
+    if(p.idx >= p.queue.length){ p.mode = 'done'; return renderMem(); }
+    p.q = memMakeQ(key, p.queue[p.idx], p.kind); p.picked = null; p.done = false;
+  }
+  const q = p.q, total = p.queue.length, isEn = q.dir === 'e2c', kind = p.kind || 'quiz', audio = !!d.meta.audio;
+  let h = '';
+  h += '<div style="padding:14px 16px 6px"><span class="ph-chip">' + escapeHtml(memCatName(key, q.cat)) + '</span>'
+     + '<div style="font-size:12.5px;color:var(--sub);font-weight:600;margin-top:8px">第 ' + (p.idx+1) + ' / ' + total + ' 题 · ' + escapeHtml(q.sub) + '</div></div>';
+  h += '<div class="card" style="margin:0 16px;text-align:center;padding:18px 14px">';
+  if(kind === 'listen'){
+    h += '<button class="btn magenta" style="font-size:15px;padding:14px 22px" onclick="memSpeakQ()">🔊 点击播放读音</button>'
+       + '<div style="font-size:12.5px;color:var(--sub);margin-top:10px">听读音，选出正确的释义</div>';
+  } else {
+    h += '<div class="' + (isEn ? 'ph-en' : '') + '" style="font-size:' + (isEn ? '21px' : '19px') + ';font-weight:800;line-height:1.45">' + escapeHtml(q.prompt) + '</div>';
+    if(isEn && audio) h += '<button class="btn sm ghost" style="margin-top:10px" onclick="memSpeakQ()">🔊 朗读</button>';
+  }
+  if(q.ph){
+    if(d.meta.phType === 'phonetic') h += '<div style="font-size:12px;color:var(--sub);margin-top:8px">🔊 音标 /' + escapeHtml(q.ph) + '/</div>';
+    else h += '<div style="font-size:12.5px;color:var(--gold);margin-top:8px">💡 大招：' + escapeHtml(q.ph) + '</div>';
+  }
+  h += '</div>';
+  h += '<div style="padding:10px 16px 0">';
+  q.opts.forEach(function(txt, i){
+    const label = 'ABCD'[i];
+    let cls = 'btn ', style = 'width:100%;text-align:left;margin-bottom:8px;';
+    if(p.done){ if(i === q.answer) cls += 'teal'; else if(i === p.picked){ cls += 'ghost'; style += 'border:2px solid var(--red);'; } else cls += 'ghost'; }
+    else { cls += 'sec'; style += 'cursor:pointer;'; }
+    h += '<button class="' + cls + '" style="' + style + '" ' + (p.done ? '' : 'onclick="memPick(' + i + ')"') + '>' + label + '. ' + escapeHtml(txt) + '</button>';
+  });
+  h += '</div>';
+  if(p.done){
+    const ok = (p.picked === q.answer);
+    h += '<div class="card" style="margin:0 16px;border-left:4px solid ' + (ok ? 'var(--green)' : 'var(--red)') + '">'
+       + '<div style="font-weight:800;margin-bottom:6px">' + (ok ? '✅ 答对了！+2 XP' : '❌ 正确答案：' + 'ABCD'[q.answer] + '. ' + escapeHtml(q.opts[q.answer])) + '</div>'
+       + '<div style="font-size:13px;line-height:1.7"><span class="ph-en">' + escapeHtml(q.en) + '</span> —— ' + escapeHtml(q.cn) + '</div></div>';
+    const last = (p.idx >= total - 1);
+    h += '<button class="btn teal mt10" style="width:100%" onclick="memNext()">' + (last ? '查看结果 ▶' : '下一题 ▶') + '</button>';
+  }
+  h += '<div class="row2 mt10" style="padding:0 16px">';
+  const favOn = !!(st.mem[key].fav && st.mem[key].fav[q.i]);
+  h += '<button class="btn sm ' + (favOn ? 'gold' : 'ghost') + '" style="flex:1" onclick="memToggleFav(' + q.i + ')">' + (favOn ? '⭐ 已收藏' : '☆ 收藏') + '</button>';
+  h += '<button class="btn sm ghost" style="flex:1" onclick="memNoteOpen(' + q.i + ')">📝 笔记</button>';
+  h += '</div>';
+  h += '<div class="c20-pbar" style="margin:12px 16px 0"><i style="width:' + Math.round((p.idx + (p.done?1:0)) / total * 100) + '%"></i></div>';
+  h += '<button class="btn ghost mt10" style="width:100%" onclick="memBack()">← 返回主页</button>';
+  body.innerHTML = h;
+  if(kind === 'listen' && !p.done){ try{ speak(q.en, { lang:'en-US' }); }catch(e){} }
+}
+function memSpeakQ(){ const p = S.mem; if(p && p.q){ try{ speak(p.q.en, { lang:'en-US' }); }catch(e){} } }
+function memSpeakItem(id){ const it = memAll(S.mem.key)[id]; if(it && it.en){ try{ speak(it.en, { lang:'en-US' }); }catch(e){} } }
+function memPick(i){
+  const p = S.mem, q = p && p.q; if(!p || !q || p.done) return;
+  p.picked = i; p.done = true;
+  const key = p.key; const it = memAll(key)[q.i]; const k = String(q.i);
+  if(i === q.answer){ p.score++; addXp(2); try{ SFX.play('click'); }catch(e){} delete st.mem[key].wrong[k]; }
+  else { st.mem[key].wrong[k] = { en:it.en, cn:it.cn, c:it.c, n:((st.mem[key].wrong[k] && st.mem[key].wrong[k].n) || 0) + 1 }; }
+  save(); renderMem();
+}
+function memNext(){
+  const p = S.mem; if(!p) return;
+  p.idx++; p.q = null; p.picked = null; p.done = false;
+  if(p.idx >= p.queue.length) p.mode = 'done';
+  renderMem();
+}
+function memDone(body, key, d, p){
+  const total = p.queue.length, score = p.score;
+  let h = '';
+  h += '<div style="padding:16px"><div style="font-size:18px;font-weight:800">🎉 本轮结果</div></div>';
+  h += '<div class="card" style="text-align:center;padding:22px;margin:0 16px">'
+     + '<div style="font-size:36px;font-weight:800;color:#2dd4bf">' + score + ' / ' + total + '</div>'
+     + '<div style="color:var(--sub);margin-top:6px;font-size:13px">' + (score === total ? '全对！稳了 🎊' : '错 ' + (total - score) + ' 条，已记入错词本') + '</div></div>';
+  h += '<button class="btn teal mt10" style="width:100%" onclick="memGo(\'' + (p.kind || 'quiz') + '\')">🔄 再来一轮</button>';
+  h += '<button class="btn gold mt10" style="width:100%" onclick="memGo(\'match\')">🎴 玩配对记忆小游戏</button>';
+  h += '<button class="btn ghost mt10" style="width:100%" onclick="memBack()">← 返回主页</button>';
+  body.innerHTML = h;
+}
+/* ---------- 配对记忆小游戏 ---------- */
+function memBuildMatch(key, cat){
+  const idx = memCnt(key);
+  let pool = memPool(key, cat).filter(function(x){ return idx.cn[x.cn] === 1; });
+  if(pool.length < 6) pool = memPool(key, cat);
+  const seen = {}, pairs = [];
+  shuffle(pool).forEach(function(x){ if(pairs.length < 6 && !seen[x.cn]){ seen[x.cn] = 1; pairs.push(x); } });
+  const cards = [];
+  pairs.forEach(function(x, pi){ cards.push({ pid:pi, side:'en', text:x.en }); cards.push({ pid:pi, side:'cn', text:x.cn }); });
+  return { cards: shuffle(cards), open:[], matched:0, pairs:pairs.length, moves:0, t0:Date.now(), sec:0, lock:false };
+}
+function memMatch(body, key, d, p){
+  const m = p.match; if(!m || !m.pairs){ p.mode = 'home'; return renderMem(); }
+  const audio = !!d.meta.audio;
+  let h = '';
+  h += '<div style="padding:14px 16px 0"><div style="font-size:18px;font-weight:800">🎴 配对记忆</div>'
+     + '<div style="font-size:12.5px;color:var(--sub);font-weight:600;margin-top:4px">范围：' + escapeHtml(memCatName(key, p.cat)) + ' · 点开两张卡，把词条和它的释义配成一对</div></div>';
+  h += '<div class="ph-mstat" style="margin-top:10px">'
+     + '<div class="ph-mbox"><b id="memTimer">' + m.sec + '</b><span>秒</span></div>'
+     + '<div class="ph-mbox"><b id="memPairs">' + m.matched + '/' + m.pairs + '</b><span>已配对</span></div>'
+     + '<div class="ph-mbox"><b>' + m.moves + '</b><span>步数</span></div></div>';
+  h += '<div class="ph-grid">';
+  m.cards.forEach(function(c, ci){
+    const opened = m.open.indexOf(ci) >= 0;
+    let cls = 'ph-card ';
+    if(c.matched) cls += 'matched'; else if(opened) cls += 'fr'; else cls += 'back';
+    const face = (c.matched || opened);
+    const txt = face ? '<span class="' + (c.side === 'en' ? 'ph-en' : '') + '">' + escapeHtml(c.text) + '</span>' : '✦';
+    const spk = (face && c.side === 'en' && audio) ? '<span class="ph-spk" onclick="event.stopPropagation();try{speak(' + jstr(c.text) + ',{lang:\'en-US\'});}catch(e){}">🔊</span>' : '';
+    h += '<div class="' + cls + '" ' + (c.matched ? '' : 'onclick="memFlip(' + ci + ')"') + '>' + spk + txt + '</div>';
+  });
+  h += '</div>';
+  h += '<button class="btn ghost mt10" style="width:100%" onclick="memGo(\'match\')">🔄 换一组</button>';
+  h += '<button class="btn ghost mt10" style="width:100%" onclick="memBack()">← 返回主页</button>';
+  body.innerHTML = h;
+  memMatchTick();
+}
+function memMatchTick(){
+  memStopTimer();
+  const m = S.mem && S.mem.match; if(!m) return;
+  memStopTimer._t = setInterval(function(){
+    const mm = S.mem && S.mem.match; if(!mm){ memStopTimer(); return; }
+    mm.sec = Math.floor((Date.now() - mm.t0) / 1000);
+    const el = document.getElementById('memTimer'); if(el) el.textContent = mm.sec;
+  }, 500);
+}
+function memFlip(ci){
+  const p = S.mem, m = p && p.match; if(!m || m.lock) return;
+  if(m.open.indexOf(ci) >= 0) return;
+  const card = m.cards[ci]; if(!card || card.matched) return;
+  m.open.push(ci);
+  if(m.open.length === 2){
+    m.moves++;
+    const a = m.cards[m.open[0]], b = m.cards[m.open[1]];
+    if(a.pid === b.pid && a.side !== b.side){
+      a.matched = true; b.matched = true; m.matched++; m.open = [];
+      try{ SFX.play('coin'); }catch(e){} addXp(1); save(); renderMem();
+      if(m.matched >= m.pairs) setTimeout(memMatchFinish, 420);
+      return;
+    }
+    m.lock = true; renderMem();
+    setTimeout(function(){ if(S.mem && S.mem.match === m){ m.open = []; m.lock = false; renderMem(); } }, 640);
+    return;
+  }
+  renderMem();
+}
+function memMatchFinish(){
+  const p = S.mem, m = p && p.match; if(!m) return;
+  memStopTimer();
+  m.sec = Math.floor((Date.now() - m.t0) / 1000);
+  const base = m.pairs * 20;
+  const stepPen = Math.max(0, m.moves - m.pairs) * 6;
+  const timePen = Math.max(0, m.sec - 30) * 2;
+  const score = Math.max(10, base - stepPen - timePen);
+  const xp = Math.round(score / 10) + 3;
+  addXp(xp);
+  const key = p.key; st.mem[key].best = st.mem[key].best || {};
+  const better = score > (st.mem[key].best.match || 0);
+  if(better) st.mem[key].best.match = score;
+  save();
+  p.lastMatch = { sec:m.sec, moves:m.moves, score:score, xp:xp, better:better };
+  p.mode = 'madone'; renderMem();
+}
+function memMatchDone(body, key, d, p){
+  const r = p.lastMatch || {};
+  let h = '';
+  h += '<div style="padding:18px 16px 8px"><div style="font-size:18px;font-weight:800">🎴 配对完成！</div></div>';
+  h += '<div class="card" style="text-align:center;padding:22px;margin:0 16px">'
+     + '<div style="font-size:34px;font-weight:800;color:var(--gold)">' + (r.score || 0) + ' 分</div>'
+     + '<div style="color:var(--sub);margin-top:6px;font-size:13px">用时 ' + (r.sec || 0) + ' 秒 · ' + (r.moves || 0) + ' 步' + (r.better ? ' · 🏆 刷新最佳纪录！' : '') + '</div>'
+     + '<div style="margin-top:10px"><span class="ph-tag">+' + (r.xp || 0) + ' XP</span></div></div>';
+  h += '<button class="btn teal mt10" style="width:100%" onclick="memGo(\'match\')">🔄 再来一局</button>';
+  h += '<button class="btn magenta mt10" style="width:100%" onclick="memGo(\'quiz\')">📝 换成记忆答题</button>';
+  h += '<button class="btn ghost mt10" style="width:100%" onclick="memBack()">← 返回主页</button>';
+  body.innerHTML = h;
+}
+/* ---------- 错词本 / 收藏 / 笔记 ---------- */
+function memWrong(body, key, d, p){
+  const all = memAll(key); const wrong = st.mem[key].wrong || {};
+  const keys = Object.keys(wrong).filter(function(k){ return all[k]; });
+  let h = '';
+  h += '<div style="padding:14px 16px 6px"><div style="font-size:18px;font-weight:800">🔁 错词本</div>'
+     + '<div style="font-size:12.5px;color:var(--sub);margin-top:4px">答对即从错词本移除 · 共 ' + keys.length + ' 条</div></div>';
+  if(!keys.length){
+    h += '<div class="card mt10" style="margin:0 16px">还没有错词，继续保持 💪</div>';
+  } else {
+    h += '<div style="padding:0 16px">';
+    keys.forEach(function(k){ const it = all[k];
+      h += '<div class="card mt10" style="padding:11px 13px"><div class="ph-en" style="font-weight:800">' + escapeHtml(it.en) + '</div>'
+         + '<div style="font-size:13px;margin-top:3px">' + escapeHtml(it.cn) + '</div>'
+         + '<div style="font-size:11px;color:var(--sub);margin-top:3px">' + escapeHtml(memCatName(key, it.c)) + (wrong[k].n ? (' · 错 ' + wrong[k].n + ' 次') : '') + '</div></div>';
+    });
+    h += '</div>';
+    h += '<button class="btn teal mt10" style="width:100%" onclick="memGo(\'wrong\')">📝 重练错词</button>';
+    h += '<button class="btn ghost mt10" style="width:100%" onclick="memClearWrong()">清空错词本</button>';
+  }
+  h += '<button class="btn ghost mt10" style="width:100%" onclick="memBack()">← 返回主页</button>';
+  body.innerHTML = h;
+}
+function memClearWrong(){ const key = S.mem.key; st.mem[key].wrong = {}; save(); renderMem(); }
+function memViewFav(body, key, d, p){
+  const all = memAll(key); const fav = st.mem[key].fav || {};
+  const ids = Object.keys(fav).filter(function(k){ return all[k]; });
+  let h = '';
+  h += '<div style="padding:14px 16px 6px"><div style="font-size:18px;font-weight:800">⭐ 我的收藏</div>'
+     + '<div style="font-size:12.5px;color:var(--sub);margin-top:4px">共 ' + ids.length + ' 题</div></div>';
+  if(!ids.length){
+    h += '<div class="card mt10" style="margin:0 16px">还没有收藏，做题时点「☆ 收藏」加进来～</div>';
+  } else {
+    h += '<div style="padding:0 16px">';
+    ids.forEach(function(k){ const it = all[k];
+      h += '<div class="card mt10" style="padding:11px 13px"><div class="ph-en" style="font-weight:800">' + escapeHtml(it.en) + '</div>'
+         + '<div style="font-size:13px;margin-top:3px">' + escapeHtml(it.cn) + '</div>'
+         + '<div class="btns mt8"><button class="btn sm ghost" onclick="memSpeakItem(' + k + ')">🔊 听</button>'
+         + '<button class="btn sm ghost" onclick="memPracticeIds([' + k + '])">去练 ▶</button>'
+         + '<button class="btn sm ghost" onclick="memToggleFav(' + k + ')">取消收藏</button></div></div>';
+    });
+    h += '</div>';
+    h += '<button class="btn teal mt10" style="width:100%" onclick="memPracticeIds([' + ids.join(',') + '])">📝 全部重练</button>';
+    h += '<button class="btn ghost mt10" style="width:100%" onclick="memClearFav()">清空收藏</button>';
+  }
+  h += '<button class="btn ghost mt10" style="width:100%" onclick="memBack()">← 返回主页</button>';
+  body.innerHTML = h;
+}
+function memClearFav(){ const key = S.mem.key; st.mem[key].fav = {}; save(); renderMem(); }
+function memViewNote(body, key, d, p){
+  const all = memAll(key); const notes = st.mem[key].notes || {};
+  const ids = Object.keys(notes).filter(function(k){ return all[k]; });
+  let h = '';
+  h += '<div style="padding:14px 16px 6px"><div style="font-size:18px;font-weight:800">📝 我的笔记</div>'
+     + '<div style="font-size:12.5px;color:var(--sub);margin-top:4px">共 ' + ids.length + ' 条易错点</div></div>';
+  if(!ids.length){
+    h += '<div class="card mt10" style="margin:0 16px">还没有笔记，做题时点「📝 笔记」记录思路～</div>';
+  } else {
+    h += '<div style="padding:0 16px">';
+    ids.forEach(function(k){ const it = all[k];
+      h += '<div class="card mt10" style="padding:11px 13px"><div class="ph-en" style="font-size:13px;font-weight:800">' + escapeHtml(it.en) + '</div>'
+         + '<div style="font-size:13px;line-height:1.7;margin-top:4px;white-space:pre-wrap">' + escapeHtml(notes[k]) + '</div>'
+         + '<div class="btns mt8"><button class="btn sm ghost" onclick="memNoteOpen(' + k + ')">编辑</button>'
+         + '<button class="btn sm ghost" onclick="memPracticeIds([' + k + '])">去练 ▶</button>'
+         + '<button class="btn sm ghost" onclick="memNoteDel(' + k + ')">删除</button></div></div>';
+    });
+    h += '</div>';
+  }
+  h += '<button class="btn ghost mt10" style="width:100%" onclick="memBack()">← 返回主页</button>';
+  body.innerHTML = h;
+}
+function memFavCount(key){ return Object.keys(st.mem[key].fav||{}).length; }
+function memNoteCount(key){ return Object.keys(st.mem[key].notes||{}).length; }
+function memToggleFav(id){
+  const key = S.mem.key; const f = st.mem[key].fav || (st.mem[key].fav = {});
+  if(f[id]) delete f[id]; else f[id] = { t:Date.now() };
+  save();
+  const p = S.mem;
+  if(p && p.mode === 'fav') renderMem();
+  else if(p && p.mode === 'quiz' && p.q) renderMem();
+}
+function memNoteOpen(id){
+  const key = S.mem.key; const notes = st.mem[key].notes || (st.mem[key].notes = {});
+  const cur = notes[id] || '';
+  const it = memAll(key)[id];
+  const html = '<textarea id="memNoteTa" placeholder="写下这题的易错点 / 记忆口诀…" style="width:100%;height:150px;box-sizing:border-box;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--txt);font-size:14px;line-height:1.6">' + escapeHtml(cur) + '</textarea>'
+    + '<div class="row2 mt10"><button class="btn teal" style="flex:1" onclick="memNoteSave(' + id + ')">保存</button>'
+    + (cur ? '<button class="btn ghost" style="flex:1" onclick="memNoteDel(' + id + ')">删除</button>' : '') + '</div>';
+  openSheet('📝 笔记 · ' + escapeHtml(it ? it.en : id), html);
+}
+function memNoteSave(id){
+  const key = S.mem.key; const ta = document.getElementById('memNoteTa'); if(!ta) return;
+  const v = ta.value.trim();
+  st.mem[key].notes = st.mem[key].notes || {};
+  if(v) st.mem[key].notes[id] = v; else delete st.mem[key].notes[id];
+  save();
+  const sh = document.getElementById('ckSheet'); if(sh) sh.remove();
+  const p = S.mem;
+  if(p && p.mode === 'note') renderMem();
+  else if(p && p.mode === 'quiz' && p.q) renderMem();
+}
+function memNoteDel(id){
+  const key = S.mem.key; if(st.mem[key].notes) delete st.mem[key].notes[id]; save();
+  const sh = document.getElementById('ckSheet'); if(sh) sh.remove();
+  const p = S.mem;
+  if(p && p.mode === 'note') renderMem();
+}
+
 
 /* =================== 启动 =================== */
 restoreDrill();          // 恢复上次中断的刷题进度（如有）
