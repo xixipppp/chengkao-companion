@@ -198,6 +198,7 @@
   .ph-mbox b{display:block;font-size:16px;color:var(--gold)}
   .ph-mbox span{font-size:10px;color:var(--sub)}
   .ph-card .spk{position:absolute;top:4px;right:6px;font-size:12px;opacity:.7}
+  .ph-spk{display:inline-block;font-size:11px;opacity:.8;cursor:pointer;margin-left:4px;vertical-align:middle}
   .btn.danger{background:linear-gradient(135deg,#ff6b8a,#e0406b);color:#fff}
   /* 极轻量：纯文字，用于「跳过 / 稍后再说」这类不该吸引注意的操作 */
   .btn.link{background:none;border:none;box-shadow:none;color:var(--sub);font-weight:700;min-height:40px;padding:8px 10px;text-decoration:underline}
@@ -1010,8 +1011,8 @@
     <button class="btn teal mt10" onclick="startCards20()">🌈 三色考点20条·速记闯关<small style="font-weight:600;font-size:11px"> · 20考点 · 5小游戏 · 闯关记忆</small></button>
     <button class="btn magenta mt10" onclick="startZuoda()">✍️ 主观题抢分训练<small style="font-weight:600;font-size:11px"> · 简答/论述 · 模板+踩点+排序+完整作答评分 · 绝不空卷</small></button>
     <button class="btn gold mt10" onclick="startBorrow()">🔁 选择题借词 · 大题反推<small style="font-weight:600;font-size:11px"> · 给选择题 · 反推大题得分关键词 · 考场借词凑分</small></button>
-    <button class="btn teal mt10" onclick="startPhon()">🔤 英语语音辨析<small style="font-weight:600;font-size:11px"> · 第1大题 · 4词选读音不同 · 答错弹规律</small></button>
-    <button class="btn teal mt10" onclick="startPhrase()">🧩 英语必背词组速记<small style="font-weight:600;font-size:11px"> · 257词组·10大类 · 记忆答题+配对翻牌小游戏 · 错词本</small></button>
+    <button class="btn teal mt10" onclick="startPhon()">🔤 英语语音辨析<small style="font-weight:600;font-size:11px"> · 第1大题 · 4词选读音不同 · 答错弹规律 · 可收藏/笔记</small></button>
+    <button class="btn teal mt10" onclick="startPhrase()">🧩 英语必背词组速记<small style="font-weight:600;font-size:11px"> · 257词组·10大类 · 记忆答题+听音选义+短语填空+配对 · 错词本</small></button>
     <button class="btn gold mt10" onclick="go('s-sprint')">🔥 考前 24h 冲刺</button>
     <button class="btn ghost mt10" onclick="reviewWrong()">🔁 错题重做（只刷错题）</button>
   </section>
@@ -2209,7 +2210,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.10.14';  // 同步 GitHub Release 标签（v3.10.14 = 新增「🧩 英语必背词组速记」练习模块：源自 PDF《成考英语200个必背词组》257 条/10 大类，含记忆答题（中英互译 4 选 1）+ 配对记忆翻牌小游戏 + 错词本；数据源 data/phrase_pol.js，自习室入口 startPhrase）
+const APP_VER = 'v3.10.15';  // 同步 GitHub Release 标签（v3.10.15 = 词组模块新增「听音选义」「短语填空」两种小游戏 + 强化朗读；语音辨析模块新增笔记本与收藏。数据源 data/phrase_pol.js / data/phon_pol.js）
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
@@ -9256,7 +9257,10 @@ function phonD(){ return window.PHON; }
 function phonFresh(){ return { mode:'home', idx:0, picked:null, done:false, score:0, wrongThis:[] }; }
 function startPhon(){
   if(!phonD()){ toast('语音题库未加载'); return; }
-  st.phon = st.phon || { wrong:{} };
+  st.phon = st.phon || {};
+  st.phon.wrong = st.phon.wrong || {};
+  st.phon.fav = st.phon.fav || {};
+  st.phon.notes = st.phon.notes || {};
   S.phon = phonFresh();
   go('s-phon'); renderPhon();
 }
@@ -9273,6 +9277,8 @@ function renderPhon(){
   if(p.mode === 'quiz')  return phonQuiz(body, d, p);
   if(p.mode === 'done')  return phonDone(body, d, p);
   if(p.mode === 'wrong') return phonWrong(body, d, p);
+  if(p.mode === 'fav')   return phonViewFav(body, d, p);
+  if(p.mode === 'note')  return phonViewNote(body, d, p);
   return phonHome(body, d, p);
 }
 function phonGo(mode){
@@ -9287,6 +9293,8 @@ function phonHome(body, d, p){
   h += '<div class="c20-grid">';
   h += '<div class="c20-mode" onclick="phonGo(\'quiz\')"><div class="mi">🎧</div><div class="mn">开始练习</div><div class="md">'+d.questions.length+' 题 · 选出读音不同的项</div></div>';
   if(wrongCount>0) h += '<div class="c20-mode" onclick="phonGo(\'wrong\')"><div class="mi">🔁</div><div class="mn">错题本</div><div class="md">'+wrongCount+' 道待巩固</div></div>';
+  h += '<div class="c20-mode" onclick="phonGo(\'fav\')"><div class="mi">⭐</div><div class="mn">我的收藏</div><div class="md">'+phonFavCount()+' 题 · 点单词可听读音</div></div>';
+  h += '<div class="c20-mode" onclick="phonGo(\'note\')"><div class="mi">📝</div><div class="mn">我的笔记</div><div class="md">'+phonNoteCount()+' 条易错点</div></div>';
   h += '</div>';
   h += '<div class="card mt10"><div style="font-weight:700;margin-bottom:8px">📌 高频异读组合速查（背熟可认出大部分题）</div>';
   h += '<div style="font-size:12px;line-height:1.75">';
@@ -9313,7 +9321,8 @@ function phonQuiz(body, d, p){
       else cls += 'ghost';
     } else { cls += 'sec'; style += 'cursor:pointer;'; }
     const wordHtml = escapeHtml(it.w).replace(new RegExp('('+it.u.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','i'), '<u style="text-decoration:underline;font-weight:700;padding:0 1px">$1</u>');
-    h += '<button class="'+cls+'" style="'+style+'" '+(p.done?'':'onclick="phonPick('+i+')"')+'>'+label+'. '+wordHtml+'</button>';
+    h += '<button class="'+cls+'" style="'+style+'" '+(p.done?'':'onclick="phonPick('+i+')"')+'>'+label+'. '+wordHtml
+       + ' <span style="font-size:12px;opacity:.85;cursor:pointer" onclick="event.stopPropagation();try{speak('+jstr(it.w)+',{lang:\'en-US\'});}catch(e){}">🔊</span></button>';
   });
   h += '</div>';
   if(p.done){
@@ -9325,6 +9334,10 @@ function phonQuiz(body, d, p){
     const last = (p.idx >= d.questions.length-1);
     h += '<button class="btn teal mt10" style="width:100%" onclick="phonNext()">'+(last?'查看结果 ▶':'下一题 ▶')+'</button>';
   }
+  const favOn = !!(st.phon.fav && st.phon.fav[q.id]);
+  h += '<div style="padding:0 16px;display:flex;gap:8px;margin-top:12px">'
+     + '<button class="btn sm ' + (favOn ? 'gold' : 'ghost') + '" style="flex:1" onclick="phonToggleFav(' + jstr(q.id) + ')">' + (favOn ? '⭐ 已收藏' : '⭐ 收藏') + '</button>'
+     + '<button class="btn sm ghost" style="flex:1" onclick="phonNoteOpen(' + jstr(q.id) + ')">📝 笔记</button></div>';
   h += '<button class="btn ghost mt10" style="width:100%" onclick="phonBack()">← 返回</button>';
   body.innerHTML = h;
 }
@@ -9373,6 +9386,78 @@ function phonWrongGo(id){
 }
 function phonClearWrong(){ st.phon.wrong = {}; save(); renderPhon(); }
 
+/* ---------- 收藏 + 笔记本（v3.10.15） ---------- */
+function phonQuestion(id){ const d = phonD(); return d && d.questions.find(function(x){ return x.id === id; }); }
+function phonFavCount(){ return Object.keys(st.phon.fav || {}).length; }
+function phonNoteCount(){ return Object.keys(st.phon.notes || {}).length; }
+function phonToggleFav(id){
+  st.phon.fav = st.phon.fav || {};
+  if(st.phon.fav[id]){ delete st.phon.fav[id]; toast('已取消收藏'); }
+  else { st.phon.fav[id] = 1; try{ SFX.play('coin'); }catch(e){} toast('已收藏 ⭐ 可在「我的收藏」里查看'); }
+  save(); renderPhon();
+}
+function phonNoteOpen(id){
+  const q = phonQuestion(id); if(!q) return;
+  const words = q.items.map(function(x){ return x.w; }).join(' / ');
+  const cur = (st.phon.notes && st.phon.notes[id]) || '';
+  openSheet('📝 笔记 · ' + escapeHtml(words),
+    '<div style="font-size:12px;color:var(--sub);line-height:1.7;margin-bottom:8px">规律：' + escapeHtml(q.rule || '') + '</div>'
+    + '<textarea id="phonNoteTa" rows="4" placeholder="记下你的易错点、口诀…" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:8px;color:var(--txt);padding:8px">' + escapeHtml(cur) + '</textarea>'
+    + '<div class="btns" style="margin-top:8px"><button class="btn sm keep" onclick="phonNoteSave(' + jstr(id) + ',1)">保存</button>'
+    + '<button class="btn sm ghost" onclick="document.getElementById(\'ckSheet\').remove()">取消</button></div>');
+}
+function phonNoteSave(id){
+  const ta = document.getElementById('phonNoteTa'); if(!ta) return;
+  st.phon.notes = st.phon.notes || {};
+  const v = ta.value.trim();
+  if(v) st.phon.notes[id] = v; else delete st.phon.notes[id];
+  save();
+  const sh = document.getElementById('ckSheet'); if(sh) sh.remove();
+  renderPhon(); toast('笔记已保存');
+}
+function phonNoteDel(id){ if(st.phon.notes) delete st.phon.notes[id]; save(); renderPhon(); toast('已删除笔记'); }
+function phonFavGo(id){
+  const d = phonD(); const q = phonQuestion(id); if(!q) return;
+  const p = S.phon; p.mode = 'quiz'; p.idx = d.questions.indexOf(q); p.picked = null; p.done = false; renderPhon();
+}
+function phonViewFav(body, d, p){
+  const ids = Object.keys(st.phon.fav || {});
+  let h = '<div style="padding:14px 16px 6px"><div style="font-size:18px;font-weight:800">⭐ 我的收藏</div><div style="font-size:12.5px;color:var(--sub);margin-top:4px">共 ' + ids.length + ' 题 · 点击重练，或取消收藏</div></div>';
+  if(!ids.length){ h += '<div class="card mt10" style="margin:0 16px">还没有收藏，做题时点 ⭐ 即可加入。</div>'; }
+  else {
+    h += '<div style="padding:0 16px">';
+    ids.forEach(function(id){
+      const q = phonQuestion(id); if(!q) return;
+      h += '<div class="card mt10" style="padding:11px 13px"><div style="font-size:13px;font-weight:700">'
+         + escapeHtml(q.items.map(function(x){ return x.w; }).join(' / ')) + '</div>'
+         + '<div class="btns" style="margin-top:8px"><button class="btn sm ghost" onclick="phonFavGo(' + jstr(id) + ')">重练 ▶</button>'
+         + '<button class="btn sm ghost" onclick="phonToggleFav(' + jstr(id) + ')">取消收藏</button></div></div>';
+    });
+    h += '</div>';
+  }
+  h += '<button class="btn ghost mt10" style="width:100%" onclick="phonBack()">← 返回主页</button>';
+  body.innerHTML = h;
+}
+function phonViewNote(body, d, p){
+  const ids = Object.keys(st.phon.notes || {});
+  let h = '<div style="padding:14px 16px 6px"><div style="font-size:18px;font-weight:800">📝 我的笔记</div><div style="font-size:12.5px;color:var(--sub);margin-top:4px">共 ' + ids.length + ' 条</div></div>';
+  if(!ids.length){ h += '<div class="card mt10" style="margin:0 16px">还没有笔记，做题时点 📝 即可记录易错点与口诀。</div>'; }
+  else {
+    h += '<div style="padding:0 16px">';
+    ids.forEach(function(id){
+      const q = phonQuestion(id); if(!q) return;
+      h += '<div class="card mt10" style="padding:11px 13px"><div style="font-size:12px;color:var(--gold);font-weight:700">'
+         + escapeHtml(q.items.map(function(x){ return x.w; }).join(' / ')) + '</div>'
+         + '<div style="font-size:13px;line-height:1.6;margin-top:5px;white-space:pre-wrap">' + escapeHtml(st.phon.notes[id]) + '</div>'
+         + '<div class="btns" style="margin-top:8px"><button class="btn sm ghost" onclick="phonNoteOpen(' + jstr(id) + ')">编辑</button>'
+         + '<button class="btn sm ghost" onclick="phonNoteDel(' + jstr(id) + ')">删除</button></div></div>';
+    });
+    h += '</div>';
+  }
+  h += '<button class="btn ghost mt10" style="width:100%" onclick="phonBack()">← 返回主页</button>';
+  body.innerHTML = h;
+}
+
 /* =================== 词组速记（v3.10.14） =================== */
 /* 数据源 data/phrase_pol.js（window.PHRASE）。错词/最佳记录写入 st.phrase（localStorage）。纯前端、离线可用。
    模式：home 主页 / quiz 记忆答题（中英互译 4 选 1）/ match 配对记忆小游戏（翻牌，6 对）/ madone 小游戏结算 / wrong 错词本 */
@@ -9413,9 +9498,11 @@ function phraseSetCat(id){ const p = S.phrase; if(!p) return; p.cat = id; render
 function phraseGo(mode){
   const p = S.phrase; if(!p) return;
   phraseStopTimer();
-  if(mode === 'quiz'){ p.queue = phraseBuildQueue(p.cat, 15); p.idx = 0; p.q = null; p.picked = null; p.done = false; p.score = 0; p.match = null; }
+  if(mode === 'quiz'){ p.kind = 'quiz'; p.queue = phraseBuildQueue(p.cat, 15); p.idx = 0; p.q = null; p.picked = null; p.done = false; p.score = 0; p.match = null; }
+  if(mode === 'listen'){ p.kind = 'listen'; p.queue = phraseBuildQueue(p.cat, 12); p.idx = 0; p.q = null; p.picked = null; p.done = false; p.score = 0; p.match = null; }
+  if(mode === 'fill'){ var fp = phraseFillPool(p.cat); if(fp.length < 4) fp = phraseFillPool('all'); p.kind = 'fill'; p.queue = fp.map(function(x){ return x.i; }); p.idx = 0; p.q = null; p.picked = null; p.done = false; p.score = 0; p.match = null; }
   if(mode === 'match'){ p.match = phraseBuildMatch(p.cat); p.lastMatch = null; }
-  p.mode = mode; renderPhrase();
+  p.mode = (mode === 'listen' || mode === 'fill') ? 'quiz' : mode; renderPhrase();
 }
 function renderPhrase(){
   const body = document.getElementById('phraseBody'); if(!body) return;
@@ -9454,6 +9541,8 @@ function phraseHome(body, d, p){
   h += '</div>';
   h += '<div class="c20-grid" style="padding:0 16px">';
   h += '<div class="c20-mode" onclick="phraseGo(\'quiz\')"><div class="mi">📝</div><div class="mn">记忆答题</div><div class="md">中英互译 · 4 选 1 · 每轮 15 题</div></div>';
+  h += '<div class="c20-mode" onclick="phraseGo(\'listen\')"><div class="mi">🎧</div><div class="mn">听音选义</div><div class="md">听读音 · 选中文释义</div></div>';
+  h += '<div class="c20-mode" onclick="phraseGo(\'fill\')"><div class="mi">✍️</div><div class="mn">短语填空</div><div class="md">听完整音 · 补全缺失词</div></div>';
   h += '<div class="c20-mode" onclick="phraseGo(\'match\')"><div class="mi">🎴</div><div class="mn">配对记忆</div><div class="md">翻牌配对小游戏 · 6 对 · 计时</div></div>';
   if(wrongCount > 0) h += '<div class="c20-mode" onclick="phraseGo(\'wrong\')"><div class="mi">🔁</div><div class="mn">错词本</div><div class="md">' + wrongCount + ' 条待巩固</div></div>';
   h += '</div>';
@@ -9476,11 +9565,29 @@ function phraseBuildQueue(cat, n){
   const src = usable.length >= 4 ? usable : pool;
   return shuffle(src).slice(0, Math.min(n, src.length)).map(function(x){ return x.i; });
 }
-function phraseMakeQ(i){
+/* 短语填空候选：仅取「两个单词、且均为纯字母」的词组（如 give up / break down），第二词作为待填空的粒子 */
+function phraseFillPool(cat){
+  return phrasePool(cat).filter(function(x){
+    const p = x.en.split(' ');
+    return p.length === 2 && /^[A-Za-z]+$/.test(p[0]) && /^[A-Za-z]+$/.test(p[1]);
+  });
+}
+function phraseMakeQ(i, kind){
   const all = phraseAll(); const it = all[i]; const idx = phraseCnt();
+  /* —— 短语填空：听完整音，补全缺失的粒子 —— */
+  if(kind === 'fill'){
+    const parts = it.en.split(' '); const head = parts[0], particle = parts[1];
+    const pool2 = all.map(function(x){ const p = x.en.split(' '); return (p.length === 2 && /^[A-Za-z]+$/.test(p[1]) && p[1] !== particle) ? p[1] : null; }).filter(Boolean);
+    const seen = {}; const dist = [];
+    shuffle(pool2).forEach(function(w){ if(dist.length < 3 && !seen[w]){ seen[w] = 1; dist.push(w); } });
+    const opts = shuffle([particle].concat(dist.slice(0, 3)));
+    return { i:i, kind:'fill', cat:it.c, head:head, particle:particle, en:it.en, cn:it.cn,
+      prompt: head + ' ___', sub:'听完整读音，补全缺失的词', opts:opts, answer: opts.indexOf(particle) };
+  }
   const enOk = idx.en[it.en] === 1, cnOk = idx.cn[it.cn] === 1;
   let dir;
-  if(enOk && cnOk) dir = Math.random() < 0.62 ? 'e2c' : 'c2e';
+  if(kind === 'listen') dir = 'e2c';
+  else if(enOk && cnOk) dir = Math.random() < 0.62 ? 'e2c' : 'c2e';
   else if(enOk) dir = 'e2c';
   else dir = 'c2e';
   const sameCat = all.filter(function(x){ return x.c === it.c; });
@@ -9495,7 +9602,7 @@ function phraseMakeQ(i){
   });
   const opts = shuffle([it].concat(dist.slice(0, 3)));
   return {
-    i:i, dir:dir, cat:it.c, en:it.en, cn:it.cn,
+    i:i, kind:kind, dir:dir, cat:it.c, en:it.en, cn:it.cn,
     prompt: dir === 'e2c' ? it.en : it.cn,
     sub: dir === 'e2c' ? '选出正确的中文释义' : '选出对应的英文词组',
     opts: opts.map(function(x){ return dir === 'e2c' ? x.cn : x.en; }),
@@ -9505,15 +9612,23 @@ function phraseMakeQ(i){
 function phraseQuiz(body, d, p){
   if(p.q === null || p.q === undefined){
     if(p.idx >= p.queue.length){ p.mode = 'done'; return renderPhrase(); }
-    p.q = phraseMakeQ(p.queue[p.idx]); p.picked = null; p.done = false;
+    p.q = phraseMakeQ(p.queue[p.idx], p.kind); p.picked = null; p.done = false;
   }
-  const q = p.q, total = p.queue.length, isEn = q.dir === 'e2c';
+  const q = p.q, total = p.queue.length, isEn = q.dir === 'e2c', kind = p.kind || 'quiz';
   let h = '';
   h += '<div style="padding:14px 16px 6px"><span class="ph-chip">' + escapeHtml(phraseCatName(q.cat)) + '</span>'
      + '<div style="font-size:12.5px;color:var(--sub);font-weight:600;margin-top:8px">第 ' + (p.idx+1) + ' / ' + total + ' 题 · ' + escapeHtml(q.sub) + '</div></div>';
-  h += '<div class="card" style="margin:0 16px;text-align:center;padding:18px 14px">'
-     + '<div class="' + (isEn ? 'ph-en' : '') + '" style="font-size:' + (isEn ? '21px' : '19px') + ';font-weight:800;line-height:1.45">' + escapeHtml(q.prompt) + '</div>';
-  if(isEn) h += '<button class="btn sm ghost" style="margin-top:10px" onclick="phraseSpeakQ()">🔊 朗读</button>';
+  h += '<div class="card" style="margin:0 16px;text-align:center;padding:18px 14px">';
+  if(kind === 'listen'){
+    h += '<button class="btn magenta" style="font-size:15px;padding:14px 22px" onclick="phraseSpeakQ()">🔊 点击播放读音</button>'
+       + '<div style="font-size:12.5px;color:var(--sub);margin-top:10px">听读音，选出正确的中文释义</div>';
+  } else if(kind === 'fill'){
+    h += '<div class="ph-en" style="font-size:22px;font-weight:800;line-height:1.4">' + escapeHtml(q.head) + ' <span style="color:var(--magenta)">___</span></div>'
+       + '<button class="btn sm ghost" style="margin-top:10px" onclick="phraseSpeakQ()">🔊 听完整读音</button>';
+  } else {
+    h += '<div class="' + (isEn ? 'ph-en' : '') + '" style="font-size:' + (isEn ? '21px' : '19px') + ';font-weight:800;line-height:1.45">' + escapeHtml(q.prompt) + '</div>';
+    if(isEn) h += '<button class="btn sm ghost" style="margin-top:10px" onclick="phraseSpeakQ()">🔊 朗读</button>';
+  }
   h += '</div>';
   h += '<div style="padding:10px 16px 0">';
   q.opts.forEach(function(txt, i){
@@ -9535,6 +9650,7 @@ function phraseQuiz(body, d, p){
   h += '<div class="c20-pbar" style="margin:12px 16px 0"><i style="width:' + Math.round((p.idx + (p.done?1:0)) / total * 100) + '%"></i></div>';
   h += '<button class="btn ghost mt10" style="width:100%" onclick="phraseBack()">← 返回主页</button>';
   body.innerHTML = h;
+  if((kind === 'listen' || kind === 'fill') && !p.done){ try{ speak(p.q.en, { lang:'en-US' }); }catch(e){} }
 }
 function phraseSpeakQ(){ const p = S.phrase; if(p && p.q){ try{ speak(p.q.en, { lang:'en-US' }); }catch(e){} } }
 function phrasePick(i){
@@ -9558,7 +9674,7 @@ function phraseDone(body, d, p){
   h += '<div class="card" style="text-align:center;padding:22px;margin:0 16px">'
      + '<div style="font-size:36px;font-weight:800;color:#2dd4bf">' + score + ' / ' + total + '</div>'
      + '<div style="color:var(--sub);margin-top:6px;font-size:13px">' + (score === total ? '全对！词组稳了 🎊' : '错 ' + (total - score) + ' 条，已记入错词本') + '</div></div>';
-  h += '<button class="btn teal mt10" style="width:100%" onclick="phraseGo(\'quiz\')">🔄 再来一轮</button>';
+  h += '<button class="btn teal mt10" style="width:100%" onclick="phraseGo(\'' + (p.kind || 'quiz') + '\')">🔄 再来一轮</button>';
   h += '<button class="btn gold mt10" style="width:100%" onclick="phraseGo(\'match\')">🎴 玩配对记忆小游戏</button>';
   h += '<button class="btn ghost mt10" style="width:100%" onclick="phraseBack()">← 返回主页</button>';
   body.innerHTML = h;
@@ -9594,8 +9710,8 @@ function phraseMatch(body, d, p){
     if(c.matched) cls += 'matched'; else if(opened) cls += 'fr'; else cls += 'back';
     const face = (c.matched || opened);
     const txt = face ? '<span class="' + (c.side === 'en' ? 'ph-en' : '') + '">' + escapeHtml(c.text) + '</span>' : '✦';
-    h += '<div class="' + cls + '" ' + (c.matched ? '' : 'onclick="phraseFlip(' + ci + ')"') + '>'
-       + (face && c.side === 'en' ? '<span class="spk">EN</span>' : '') + txt + '</div>';
+    const spk = (face && c.side === 'en') ? '<span class="ph-spk" onclick="event.stopPropagation();try{speak(' + jstr(c.text) + ',{lang:\'en-US\'});}catch(e){}">🔊</span>' : '';
+    h += '<div class="' + cls + '" ' + (c.matched ? '' : 'onclick="phraseFlip(' + ci + ')"') + '>' + spk + txt + '</div>';
   });
   h += '</div>';
   h += '<button class="btn ghost mt10" style="width:100%" onclick="phraseGo(\'match\')">🔄 换一组</button>';
