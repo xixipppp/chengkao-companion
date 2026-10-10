@@ -1358,6 +1358,7 @@
 <script src="data/vocab_pol.js"></script>
 <script src="data/collo_pol.js"></script>
 <script src="data/news26_pol.js"></script> <!-- v3.10.14 · 词组速记：成考英语必背词组 257 条（10 大类）+ 记忆答题 + 配对记忆小游戏 + 错词本，离线可用 -->
+<script src="data/res_index.js"></script> <!-- v3.10.21 · 资料库→模块清单：42 份资料逐份做成练习模块（模块脚本按需动态加载，数据驱动，加新模块不改 HTML） -->
 <!-- v3.4.0 · 首屏减负：data/kaodian.js(501KB 考点速记资料库) 与 data/goldpoints.js(380KB 黄金考点)
      都不参与 ALLQ 构建，只有「考点速记」页与「速记图猜考点」小游戏用到 →
      改为由 ensureBank() 按需异步加载（首屏同步解析体积 2.03MB → 1.15MB，HTML 解析与首绘不再等待）。
@@ -2225,7 +2226,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.10.20';  // 同步 GitHub Release 标签（v3.10.20 = 记忆类模块答题页对齐主刷题模板：进度条/连击/题干气泡+朗读慢速停止/聊天气泡选项/排除法/解析卡/收藏·笔记·让TA讲讲；并修复 2026 政治时政「人工智能全球治理」错位前缀）
+const APP_VER = 'v3.10.21';  // 资料库→模块（数据驱动 CK_MODULES/RES_INDEX）：42 份资料逐份做成可练模块，复用记忆引擎（进度/连击/朗读/选项/排除法/解析/收藏/笔记/让TA讲讲）；本版首发《完型填空固定搭配637组》472 组
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
@@ -5753,7 +5754,9 @@ function renderNote(kw){
     head.style.cssText = 'display:flex;gap:8px;align-items:center;padding:12px 14px;cursor:pointer';
     const meta = d.kind === 'img' ? ('图片版 · ' + (d.imgs || []).length + ' 页')
                                   : ((d.pages || 1) + ' 页 · 可搜索');
+    const gi = (window.KAODIAN || []).indexOf(d), rk = resKeyOf(gi);   // v3.10.21：该资料是否已做成练习模块
     head.innerHTML = '<div style="flex:1;min-width:0;font-weight:900;font-size:13.5px">' + escapeHtml(d.title) + '</div>'
+      + (rk ? '<button class="btn ' + memColorOf(rk) + '" style="padding:4px 9px;font-size:11.5px;flex:0 0 auto" onclick="event.stopPropagation();resOpen(' + gi + ')">🎯 练一练</button>' : '')
       + '<span class="pill">' + meta + '</span><span style="color:var(--sub);flex:0 0 auto">▾</span>';
     const bodyEl = document.createElement('div');
     bodyEl.style.cssText = 'display:none;padding:0 14px 14px';
@@ -9982,7 +9985,34 @@ function phraseReviewWrong(){
          st.mem[key]={wrong,best,fav,notes}。纯前端、离线可用。 */
 const MEM_SRC = { vocab:function(){ return window.VOCAB; }, collo:function(){ return window.COLLO; }, news26:function(){ return window.NEWS26; } };
 const MEM_COLOR = { vocab:'teal', collo:'gold', news26:'magenta' };
-function memD(key){ return MEM_SRC[key] ? MEM_SRC[key]() : null; }
+function memD(key){ const f = MEM_SRC[key]; if(f) return f(); return (window.CK_MODULES && window.CK_MODULES[key]) || null; }
+function memColorOf(key){ return MEM_COLOR[key] || 'teal'; }
+
+/* =================== v3.10.21 · 资料库→模块（数据驱动注册表）===================
+   把「考点速记·资料库」42 份资料逐份变成可练模块：每份产出 data/res_<key>.js，
+   自注册进 window.CK_MODULES[key]（数据契约与 memEngine 一致：{meta:{title,tip,audio,phType,mate,dir},cats,list}）。
+   data/res_index.js 提供只读清单 { key:{file,i,subj,type,title} }；资料库卡片据此显「🎯 练一练」，
+   点击后按需动态加载该模块脚本 → 复用 memEngine 全套（进度/连击/朗读/气泡选项/排除法/解析/收藏/笔记/让TA讲讲）。
+   ⇒ 新增模块只需「写一个数据文件 + 在 res_index.js 追加一行」，无需改 index.html。 */
+function resIndex(){ return window.RES_INDEX || {}; }
+function resKeyOf(i){ const idx = resIndex(); for(const k in idx){ if(idx[k] && idx[k].i === i) return k; } return null; }
+const __resP = {};
+function resEnsure(key, cb){
+  if(window.CK_MODULES && window.CK_MODULES[key]){ if(cb) cb(); return; }
+  const info = resIndex()[key];
+  if(!info || !info.file){ toast('该资料暂无练习模块'); return; }
+  if(__resP[key]){ __resP[key].then(function(ok){ if(ok && cb) cb(); }); return; }
+  __resP[key] = new Promise(function(resolve){
+    const s = document.createElement('script'); s.src = info.file; s.async = true;
+    s.onload = function(){ if(window.CK_MODULES && window.CK_MODULES[key]) resolve(true); else { try{s.remove();}catch(e){} delete __resP[key]; resolve(false); } };
+    s.onerror = function(){ try{s.remove();}catch(e){} delete __resP[key]; resolve(false); };
+    document.head.appendChild(s);
+  });
+  __resP[key].then(function(ok){ if(ok){ if(cb) cb(); } else toast('模块加载失败，检查网络后重试'); });
+}
+function resOpen(i){ const key = resKeyOf(i); if(!key){ toast('该资料暂无练习模块'); return; } resEnsure(key, function(){ memOpen(key); }); }
+function memMateMod(key){ const d = memD(key); const id = (d && d.meta && d.meta.mate) || 'xue'; return ({xue:'all', luo:'m1', cheng:'m2', qing:'m3', ziyuan:'m4', ye:'m5'})[id] || 'all'; }
+function memDir(key){ const d = memD(key); return (d && d.meta && d.meta.dir) || ''; }
 function memAll(key){
   const d = memD(key); if(!d || !d.list) return [];
   if(!memAll._c) memAll._c = {};
@@ -10085,7 +10115,8 @@ function memHome(body, key, d, p){
 }
 function memBuildQueue(key, cat, n){
   const pool = memPool(key, cat); const idx = memCnt(key);
-  const usable = pool.filter(function(x){ return idx.en[x.en] === 1 || idx.cn[x.cn] === 1; });
+  const f2b = memDir(key) === 'e2c';   // 中文考点类资源：只考「题干→答案」单向，故要求题干唯一
+  const usable = pool.filter(function(x){ return f2b ? (idx.en[x.en] === 1) : (idx.en[x.en] === 1 || idx.cn[x.cn] === 1); });
   const src = usable.length >= 4 ? usable : pool;
   return shuffle(src).slice(0, Math.min(n, src.length)).map(function(x){ return x.i; });
 }
@@ -10094,6 +10125,7 @@ function memMakeQ(key, i, kind){
   const enOk = idx.en[it.en] === 1, cnOk = idx.cn[it.cn] === 1;
   let dir;
   if(kind === 'listen') dir = 'e2c';
+  else if(memDir(key) === 'e2c') dir = 'e2c';   // 资料库考点类：固定「题干→答案」
   else if(enOk && cnOk) dir = Math.random() < 0.62 ? 'e2c' : 'c2e';
   else if(enOk) dir = 'e2c';
   else dir = 'c2e';
@@ -10244,7 +10276,7 @@ function memUse5050(){
 const MEM2MOD = { vocab:'e4', collo:'e4', news26:'p4' };
 function memTutor(){
   const p = S.mem, q = p && p.q; if(!p || !q) return;
-  const m = MEM2MOD[p.key] || 'p4';
+  const m = MEM2MOD[p.key] || memMateMod(p.key);
   aiTutor({ m:m, id:'mem_' + p.key + '_' + q.i, q:q.prompt, o:q.opts, a:q.answer, t:'choice', sol:(q.en + ' —— ' + q.cn) });
 }
 function memSpeakQ(){ const p = S.mem; if(p && p.q){ try{ speak(p.q.en, { lang:'en-US' }); }catch(e){} } }
