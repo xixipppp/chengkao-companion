@@ -2226,7 +2226,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.10.21';  // 资料库→模块（数据驱动 CK_MODULES/RES_INDEX）：42 份资料逐份做成可练模块，复用记忆引擎（进度/连击/朗读/选项/排除法/解析/收藏/笔记/让TA讲讲）；本版首发《完型填空固定搭配637组》472 组
+const APP_VER = 'v3.10.22';  // 资料库→模块工厂（数据驱动 CK_MODULES/RES_INDEX）：本版批量产出 23 个练习模块（英语词表/政治考点问答/顺口溜/技巧/高数策略等），复用记忆引擎；每模块内置科目 AI 角色（英语紫苑/政治雪见/高数洛）。剩余 17 份（对话/折行表/OCR 数学/图片版）留二期
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
@@ -10142,7 +10142,7 @@ function memMakeQ(key, i, kind){
   const opts = shuffle([it].concat(dist.slice(0, 3)));
   return { i:i, kind:kind, dir:dir, cat:it.c, en:it.en, cn:it.cn, ph:it.ph,
     prompt: dir === 'e2c' ? it.en : it.cn,
-    sub: dir === 'e2c' ? '选出正确的释义' : '选出对应的原文',
+    sub: dir === 'e2c' ? (/[一-鿿]/.test(it.en) && !/[A-Za-z]/.test(it.en) ? '选出正确的内容' : '选出正确的释义') : '选出对应的原文',
     opts: opts.map(function(x){ return dir === 'e2c' ? x.cn : x.en; }),
     answer: opts.indexOf(it) };
 }
