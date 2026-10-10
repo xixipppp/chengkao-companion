@@ -1020,6 +1020,7 @@
     <button class="btn gold mt10" onclick="startBorrow()">🔁 选择题借词 · 大题反推<small style="font-weight:600;font-size:11px"> · 给选择题 · 反推大题得分关键词 · 考场借词凑分</small></button>
     <button class="btn teal mt10" onclick="startPhon()">🔤 语音辨析 · 专项突破<small style="font-weight:600;font-size:11px"> · 第1大题 · 17组规则先教后练 · 预诊断定位弱项 · 微专项+错词本+收藏/笔记</small></button>
     <button class="btn teal mt10" onclick="startPhrase()">🧩 英语必背词组速记<small style="font-weight:600;font-size:11px"> · 257词组·10大类 · 记忆答题+听音选义+短语填空+配对 · 错词本</small></button>
+    <button class="btn magenta mt10" onclick="startCloze()">🎯 完形 80% · 专项突破<small style="font-weight:600;font-size:11px"> · 三层打通(技巧+词汇+语境) · 6关闯关 · 红花绿叶v3实测 · 一天练会</small></button>
     <button class="btn teal mt10" onclick="memOpen('vocab')">📚 英语高频词汇<small style="font-weight:600;font-size:11px"> · 真题高频词 · 看词选义/听音选义/配对 · 错词本+收藏笔记</small></button>
     <button class="btn gold mt10" onclick="memOpen('collo')">🔗 固定搭配+语法大招<small style="font-weight:600;font-size:11px"> · 搭配填空/选择 · 语法口诀速记 · 错词本+收藏笔记</small></button>
     <button class="btn magenta mt10" onclick="memOpen('news26')">📰 2026政治时政<small style="font-weight:600;font-size:11px"> · 会议/热词/数据自测 · 口诀 · 错词本+收藏笔记</small></button>
@@ -1220,6 +1221,12 @@
     <div id="phraseBody"></div>
   </section>
 
+  <!-- ============ 完形 80% 专项突破（v3.10.23） ============ -->
+  <section class="screen" id="s-cloze">
+    <div class="back" onclick="clozeBack()">← 返回自习室</div>
+    <div id="clozeBody"></div>
+  </section>
+
   <!-- ============ ME ============ -->
   <section class="screen" id="s-me">
     <div class="back" onclick="go('s-home')">← 返回</div>
@@ -1359,6 +1366,7 @@
 <script src="data/collo_pol.js"></script>
 <script src="data/news26_pol.js"></script> <!-- v3.10.14 · 词组速记：成考英语必背词组 257 条（10 大类）+ 记忆答题 + 配对记忆小游戏 + 错词本，离线可用 -->
 <script src="data/res_index.js"></script> <!-- v3.10.21 · 资料库→模块清单：42 份资料逐份做成练习模块（模块脚本按需动态加载，数据驱动，加新模块不改 HTML） -->
+<script src="data/cloze80_pol.js"></script> <!-- v3.10.23 · 完形 80% 专项突破：三色词表(v3实测)+决策树+组合规则+6关闯关（技巧/词汇/语境三层），离线可用 -->
 <!-- v3.4.0 · 首屏减负：data/kaodian.js(501KB 考点速记资料库) 与 data/goldpoints.js(380KB 黄金考点)
      都不参与 ALLQ 构建，只有「考点速记」页与「速记图猜考点」小游戏用到 →
      改为由 ensureBank() 按需异步加载（首屏同步解析体积 2.03MB → 1.15MB，HTML 解析与首绘不再等待）。
@@ -2226,7 +2234,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.10.22';  // 资料库→模块工厂（数据驱动 CK_MODULES/RES_INDEX）：本版批量产出 23 个练习模块（英语词表/政治考点问答/顺口溜/技巧/高数策略等），复用记忆引擎；每模块内置科目 AI 角色（英语紫苑/政治雪见/高数洛）。剩余 17 份（对话/折行表/OCR 数学/图片版）留二期
+const APP_VER = 'v3.10.23';  // 完形 80% 专项突破：三色词表(v3 实测校正)+决策树+组合规则+6关闯关（技巧/词汇/语境三层）；词组页红花绿叶同步校正
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
@@ -3079,6 +3087,7 @@ function go(t){
   else if(t === 's-games') renderGames();
   else if(t === 's-sprint') renderSprint();
   else if(t === 's-phrase') renderPhrase();
+  else if(t === 's-cloze') renderCloze();
   else if(t === 's-mem') renderMem();
   else if(t === 's-butler') renderButler();
   else if(t === 's-readanime') renderReadAnime();
@@ -9711,14 +9720,15 @@ function phraseHome(body, d, p){
   h += '<div class="c20-mode" onclick="phraseGo(\'match\')"><div class="mi">🎴</div><div class="mn">配对记忆</div><div class="md">翻牌配对小游戏 · 6 对 · 计时</div></div>';
   if(wrongCount > 0) h += '<div class="c20-mode" onclick="phraseGo(\'wrong\')"><div class="mi">🔁</div><div class="mn">错词本</div><div class="md">' + wrongCount + ' 条待巩固</div></div>';
   h += '</div>';
-  h += '<div class="card mt10" style="margin:0 16px"><div style="font-weight:800;margin-bottom:7px">🌺 完形红花词（出现就选）</div><div>';
+  h += '<div class="card mt10" style="margin:0 16px"><div style="font-weight:800;margin-bottom:7px">🌺 完形红花词（出现时优先选 · v3 实测版）</div><div>';
   d.flower.forEach(function(w){ h += '<span class="ph-tag">' + escapeHtml(w) + '</span>'; });
-  h += '</div><div style="font-weight:800;margin:12px 0 7px">🍃 绿叶词（决不选）</div><div>';
+  h += '</div><div style="font-weight:800;margin:12px 0 7px">🍃 绿叶词（出现时优先排除 · v3 实测版）</div><div>';
   d.leaf.forEach(function(w){ h += '<span class="ph-tag leaf">' + escapeHtml(w) + '</span>'; });
   h += '</div></div>';
   h += '<div class="card mt10" style="margin:0 16px"><div style="font-weight:800;margin-bottom:7px">💡 完形填空做题技巧（PDF 小使条）</div><div style="font-size:12.5px;line-height:1.75;color:var(--sub)">';
   d.tips.forEach(function(t){ h += '<div style="margin-bottom:7px">' + escapeHtml(t) + '</div>'; });
   h += '</div></div>';
+  h += '<button class="btn magenta mt10" style="width:100%" onclick="startCloze()">🎯 进「完形 80% · 专项突破」按 6 关练 →</button>';
   h += '<button class="btn ghost mt10" style="width:100%" onclick="phraseBack()">← 返回自习室</button>';
   body.innerHTML = h;
 }
@@ -10126,6 +10136,7 @@ function memMakeQ(key, i, kind){
   let dir;
   if(kind === 'listen') dir = 'e2c';
   else if(memDir(key) === 'e2c') dir = 'e2c';   // 资料库考点类：固定「题干→答案」
+  else if(memDir(key) === 'c2e') dir = 'c2e';   // 汉译英等：固定「中文题干→英文答案」
   else if(enOk && cnOk) dir = Math.random() < 0.62 ? 'e2c' : 'c2e';
   else if(enOk) dir = 'e2c';
   else dir = 'c2e';
@@ -10142,7 +10153,7 @@ function memMakeQ(key, i, kind){
   const opts = shuffle([it].concat(dist.slice(0, 3)));
   return { i:i, kind:kind, dir:dir, cat:it.c, en:it.en, cn:it.cn, ph:it.ph,
     prompt: dir === 'e2c' ? it.en : it.cn,
-    sub: dir === 'e2c' ? (/[一-鿿]/.test(it.en) && !/[A-Za-z]/.test(it.en) ? '选出正确的内容' : '选出正确的释义') : '选出对应的原文',
+    sub: dir === 'e2c' ? (/[一-鿿]/.test(it.en) && !/[A-Za-z]/.test(it.en) ? '选出正确的内容' : '选出正确的释义') : (/[A-Za-z]/.test(it.cn) && !/[一-鿿]/.test(it.cn) ? '选出正确的英文翻译' : '选出对应的英文'),
     opts: opts.map(function(x){ return dir === 'e2c' ? x.cn : x.en; }),
     answer: opts.indexOf(it) };
 }
