@@ -244,7 +244,6 @@ function mathsecQuiz(body, d, p){
     h += '<div class="sol show ' + (ok ? 'good' : 'bad') + '"><div class="h">'
        + (ok ? '✅ 答对了' : '❌ 正确答案：' + 'ABCD'[q.a] + '. ' + escapeHtml(q.o[q.a]))
        + '</div><div style="font-size:13px;line-height:1.7">' + escapeHtml(q.sol || '') + '</div>'
-       + (q.hint ? '<div style="margin-top:6px;color:var(--gold);font-size:12.5px">💡 ' + escapeHtml(q.hint) + '</div>' : '')
        + '<div style="margin-top:6px;font-size:12px;color:var(--sub)">模块：' + escapeHtml(q.mod)
        + '　考点：' + escapeHtml(q.cat) + (q.real ? '　·　真题' : '　·　模拟')
        + (mc ? '　·　本模块套路覆盖 ' + mc.cover + '%' : '') + '</div>'
@@ -253,9 +252,11 @@ function mathsecQuiz(body, d, p){
   h += '<div class="btns mt10">'
      + '<button class="btn sm ghost" onclick="mathsecMark()">🔖 标记入错题本</button>'
      + '<button class="btn sm ghost" onclick="mathsecBack()">← 返回主页</button></div>';
+  h += '<div id="qkAnchMsec"></div>';
   if(p.done) h += '<button class="btn keep mt10" style="width:100%" onclick="mathsecNext()">' + (isLast ? '查看本关结果 ▶' : '下一题 ▶') + '</button>';
   h += '</div>';
   body.innerHTML = h;
+  if(p.done) qkitMount(document.getElementById('qkAnchMsec'), q, (p.picked === q.a), 'mathsec');
 }
 function mathsecToggleHint(){ const p = S.mathsec; if(!p || p.done) return; p.showHint = !p.showHint; renderMathSec(); }
 function mathsecSpeak(){
