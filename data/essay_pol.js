@@ -762,9 +762,11 @@ function essayQuiz(body, d, p){
      + (!p.done ? '<button class="btn sm ghost" onclick="essayHint()">💡 提示</button>' : '')
      + '<button class="btn sm ghost" onclick="essayMark()">🔖 标记入错题本</button>'
      + '<button class="btn sm ghost" onclick="essayBack()">← 返回主页</button></div>';
+  h += '<div id="qkAnchEssay"></div>';
   if(p.done) h += '<button class="btn keep mt10" style="width:100%" onclick="essayNext()">' + (isLast ? '查看本关结果 ▶' : '下一题 ▶') + '</button>';
   h += '</div>';
   body.innerHTML = h;
+  if(p.done) qkitMount(document.getElementById('qkAnchEssay'), q, (p.picked === q.a), 'essay');
 }
 function essayHint(){ const p = S.essay; if(!p || p.done) return; p.hintOn = !p.hintOn; renderEssay(); }
 function essayPick(i){
