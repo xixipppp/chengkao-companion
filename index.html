@@ -242,6 +242,21 @@
   .mate .mt{font-size:10.5px;color:var(--sub);margin-top:1px}
   .mate .mds{font-size:11.5px;color:var(--sub);margin-top:6px;line-height:1.45;
     display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  /* v3.10.25 独立陪练聊天面板 */
+  .matebar{display:flex;gap:8px;overflow-x:auto;padding:8px 14px 2px;-webkit-overflow-scrolling:touch}
+  .matebar .mb{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:3px;width:50px;opacity:.55;cursor:pointer;transition:.15s}
+  .matebar .mb.on{opacity:1}
+  .matebar .mb img{width:40px;height:40px;border-radius:13px;object-fit:cover;border:2px solid transparent}
+  .matebar .mb.on img{border-color:var(--magenta);box-shadow:0 0 12px rgba(255,138,209,.35)}
+  .matebar .mb span{font-size:10px;color:var(--sub)}
+  .chatctl{display:flex;flex-wrap:wrap;gap:6px;padding:8px 14px 2px}
+  .chip{font-size:11.5px;padding:6px 11px;border-radius:14px;border:1px solid var(--line);background:var(--panel);color:var(--fg);cursor:pointer;transition:.15s}
+  .chip.on{background:var(--magenta);color:#fff;border-color:var(--magenta)}
+  .chip.q{background:var(--panel2);color:var(--sub)}
+  .bub.her{position:relative}
+  .bub .speak{position:absolute;right:8px;bottom:6px;width:26px;height:26px;border-radius:50%;border:1px solid var(--line);
+    background:var(--panel);color:var(--cyan);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .bub .speak:active{transform:scale(.9)}
   .affrow{display:flex;align-items:center;gap:7px;margin-top:7px}
   .affbar{flex:1;height:7px;border-radius:999px;background:#0a0614;border:1px solid var(--line);overflow:hidden}
   .affbar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#ff7a9c,#ff8ad1);transition:width .5s}
@@ -846,6 +861,16 @@
     <div class="card" style="margin-top:12px" id="dqWrap"></div>
     <div id="homeDueWrap"></div>
     <div id="bigCtaWrap"></div>
+    <div class="card" style="margin-top:12px;border-color:rgba(94,224,240,.42);cursor:pointer" onclick="openCoach()">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="font-size:30px">💬</div>
+        <div style="flex:1">
+          <div style="font-weight:800;font-size:14px">陪练聊天室 · 自由问答</div>
+          <div style="font-size:12px;color:var(--sub);margin-top:2px">随时找 TA 自由聊 · 开启「陪练」让 TA 出题意你 · 支持语音朗读</div>
+        </div>
+        <div style="font-size:12px;color:var(--gold)">进入 ›</div>
+      </div>
+    </div>
 
     <!-- 1.10 首屏第 3 层：其余全部收进「更多」折叠，首屏只留一条指令 -->
     <button class="morebtn" id="moreBtn" onclick="toggleHomeMore()">展开更多 ▾</button>
@@ -969,9 +994,11 @@
 
   <!-- ============ CHAT ============ -->
   <section class="screen" id="s-chat">
-    <div class="back" id="chatBack" onclick="chatBack()">← 返回消息</div>
+    <div class="back" id="chatBack" onclick="chatBack()">← 返回</div>
+    <div class="matebar" id="chatMateBar"></div>
     <div class="chatwrap">
       <div class="msglist" id="msgListBox"></div>
+      <div class="chatctl" id="chatCtl"></div>
       <div class="chatopts" id="chatOpts"></div>
       <div class="chatinput">
         <input id="chatFree" placeholder="自由提问：问任意科目题、聊聊天都行…" onkeydown="if(event.key==='Enter'&&!event.isComposing)sendFree()">
@@ -1021,6 +1048,10 @@
     <button class="btn teal mt10" onclick="startPhon()">🔤 语音辨析 · 专项突破<small style="font-weight:600;font-size:11px"> · 第1大题 · 17组规则先教后练 · 预诊断定位弱项 · 微专项+错词本+收藏/笔记</small></button>
     <button class="btn teal mt10" onclick="startPhrase()">🧩 英语必背词组速记<small style="font-weight:600;font-size:11px"> · 257词组·10大类 · 记忆答题+听音选义+短语填空+配对 · 错词本</small></button>
     <button class="btn magenta mt10" onclick="startCloze()">🎯 完形 80% · 专项突破<small style="font-weight:600;font-size:11px"> · 三层打通(技巧+词汇+语境) · 6关闯关 · 红花绿叶v3实测 · 一天练会</small></button>
+    <button class="btn teal mt10" onclick="startMathSec()">🧮 数学秒题 · 专项突破<small style="font-weight:600;font-size:11px"> · 通用四把刀 + 五模块套路 · 7关闯关 · 覆盖率实测 · 蒙题证伪清单</small></button>
+    <button class="btn magenta mt10" onclick="startEssay()">✍️ 作文 25 分 · 模板速成<small style="font-weight:600;font-size:11px"> · 万能骨架+抄题三步法 · 槽位词库 · 7关闯关 · 2019-2025真题范文库</small></button>
+    <button class="btn magenta mt10" onclick="startStepScore()">✍️ 大题步骤分 · 专项突破<small style="font-weight:600;font-size:11px"> · 解答题按步给分 · 五步作答骨架 · 7关闯关 · 80道真题「步骤排序」训练</small></button>
+    <button class="btn gold mt10" onclick="startQuickRef()">📕 刷卷作战总册 · 随身速查<small style="font-weight:600;font-size:11px"> · 高数+英语+政治三科速查 · 秒题卡/作文模板/政治模板/薄弱点定位 · 边做纸质卷边翻</small></button>
     <button class="btn teal mt10" onclick="memOpen('vocab')">📚 英语高频词汇<small style="font-weight:600;font-size:11px"> · 真题高频词 · 看词选义/听音选义/配对 · 错词本+收藏笔记</small></button>
     <button class="btn gold mt10" onclick="memOpen('collo')">🔗 固定搭配+语法大招<small style="font-weight:600;font-size:11px"> · 搭配填空/选择 · 语法口诀速记 · 错词本+收藏笔记</small></button>
     <button class="btn magenta mt10" onclick="memOpen('news26')">📰 2026政治时政<small style="font-weight:600;font-size:11px"> · 会议/热词/数据自测 · 口诀 · 错词本+收藏笔记</small></button>
@@ -1227,6 +1258,30 @@
     <div id="clozeBody"></div>
   </section>
 
+  <!-- ============ 数学秒题 · 专项突破（v3.10.24） ============ -->
+  <section class="screen" id="s-mathsec">
+    <div class="back" onclick="mathsecBack()">← 返回自习室</div>
+    <div id="mathsecBody"></div>
+  </section>
+
+  <!-- ============ 作文 25 分 · 模板速成 ============ -->
+  <section class="screen" id="s-essay">
+    <div class="back" onclick="essayBack()">← 返回自习室</div>
+    <div id="essayBody"></div>
+  </section>
+
+  <!-- ============ 大题步骤分 · 专项突破（v3.10.25） ============ -->
+  <section class="screen" id="s-stepscore">
+    <div class="back" onclick="stepscoreBack()">← 返回自习室</div>
+    <div id="stepscoreBody"></div>
+  </section>
+
+  <!-- ============ 刷卷作战总册 · 随身速查（v3.10.27） ============ -->
+  <section class="screen" id="s-quickref">
+    <div class="back" onclick="quickrefBack()">← 返回自习室</div>
+    <div id="quickrefBody"></div>
+  </section>
+
   <!-- ============ ME ============ -->
   <section class="screen" id="s-me">
     <div class="back" onclick="go('s-home')">← 返回</div>
@@ -1367,6 +1422,10 @@
 <script src="data/news26_pol.js"></script> <!-- v3.10.14 · 词组速记：成考英语必背词组 257 条（10 大类）+ 记忆答题 + 配对记忆小游戏 + 错词本，离线可用 -->
 <script src="data/res_index.js"></script> <!-- v3.10.21 · 资料库→模块清单：42 份资料逐份做成练习模块（模块脚本按需动态加载，数据驱动，加新模块不改 HTML） -->
 <script src="data/cloze80_pol.js"></script> <!-- v3.10.23 · 完形 80% 专项突破：三色词表(v3实测)+决策树+组合规则+6关闯关（技巧/词汇/语境三层），离线可用 -->
+<script src="data/mathsec_pol.js"></script> <!-- v3.10.24 · 数学秒题·专项突破：通用四把刀+五模块套路+决策链+被证伪清单 + 7关闯关（题库实测覆盖率），离线可用 -->
+<script src="data/stepscore_pol.js"></script> <!-- v3.10.26 · 大题步骤分·专项突破：解答题按步给分（公式30%是土办法漏掉的大头）+ 五步作答骨架 + 7关·80道真题的「作答步骤排序」训练，离线可用 -->
+<script src="data/quickref_pol.js"></script> <!-- v3.10.27 · 刷卷作战总册·随身速查：高数+英语+政治三科合并速查（秒题卡/五步骨架/作文模板/政治模板/薄弱点定位器/证伪清单），离线可用 -->
+<script src="data/essay_pol.js"></script> <!-- 作文 25 分·模板速成：万能骨架+抄题三步法+槽位词库+100句型/100谚语（35页OCR）+2019-2025真题范文库+官方评分五档，离线可用 -->
 <!-- v3.4.0 · 首屏减负：data/kaodian.js(501KB 考点速记资料库) 与 data/goldpoints.js(380KB 黄金考点)
      都不参与 ALLQ 构建，只有「考点速记」页与「速记图猜考点」小游戏用到 →
      改为由 ensureBank() 按需异步加载（首屏同步解析体积 2.03MB → 1.15MB，HTML 解析与首绘不再等待）。
@@ -2234,7 +2293,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.10.23';  // 完形 80% 专项突破：三色词表(v3 实测校正)+决策树+组合规则+6关闯关（技巧/词汇/语境三层）；词组页红花绿叶同步校正
+const APP_VER = 'v3.10.27';  // 刷卷作战总册·随身速查：高数+英语+政治三科合并速查模块（秒题卡/五步骨架/作文模板/政治模板/薄弱点定位器/证伪清单）；上版 v3.10.26 大题步骤分
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
@@ -3088,6 +3147,10 @@ function go(t){
   else if(t === 's-sprint') renderSprint();
   else if(t === 's-phrase') renderPhrase();
   else if(t === 's-cloze') renderCloze();
+  else if(t === 's-mathsec') renderMathSec();
+  else if(t === 's-essay') renderEssay();
+  else if(t === 's-stepscore') renderStepScore();
+  else if(t === 's-quickref') renderQuickRef();
   else if(t === 's-mem') renderMem();
   else if(t === 's-butler') renderButler();
   else if(t === 's-readanime') renderReadAnime();
@@ -3788,12 +3851,17 @@ async function sfChat(messages){
   const t = await aiCall(messages);
   return t || '（她笑了笑，没说话）';
 }
-function bubbleHer(text){
+function bubbleHer(text, withSpeak){
   const m = getMate(S.chat.id);
   const box = document.getElementById('msgListBox');
   const her = document.createElement('div'); her.className = 'bub her';
   her.innerHTML = `<img src="${m.img}" onerror="this.style.display='none'"><div class="t"></div>`;
   const t = her.querySelector('.t'); t.innerHTML = escapeHtml(text).replace(/\n/g,'<br>');
+  if(withSpeak){
+    const sb = document.createElement('button'); sb.className = 'speak'; sb.textContent = '🔊'; sb.title = '朗读';
+    sb.onclick = () => speak(text);
+    her.appendChild(sb);
+  }
   box.appendChild(her); box.scrollTop = box.scrollHeight;
   return t;
 }
@@ -3819,6 +3887,18 @@ async function sendFree(seedText){
   const ai = ensureAi();
   ai.hist.push({ role:'user', content: v });
   bubbleMe(v);
+  if(S.chat && S.chat.quiz){
+    const qz = S.chat.quiz; S.chat.quiz = null;
+    const typing = bubbleHer('…', true);
+    try{
+      const fb = await coachFeedback(v, qz);
+            typing.innerHTML = escapeHtml(fb).replace(/\n/g,'<br>');
+      addAff(S.chat.id, 1);
+      if(S.ai) S.ai.hist.push({ role:'assistant', content: fb });
+    }catch(e){ typing.innerHTML = '⚠️ ' + escapeHtml(e.message); }
+    saveChatHist(); renderChatCtl();
+    return;
+  }
   const typing = bubbleHer('…');
   try{
     const r = await aiTask('chat', ai.hist, { ctx:{ mate:getMate(S.chat.id), user:v } });
@@ -3852,6 +3932,118 @@ function aiTutor(q){
     typing.innerHTML = (r.src === 'degrade' ? OFF_TAG : '') + escapeHtml(ans).replace(/\n/g,'<br>');
     addAff(id, 2);
   }).catch(e => { typing.innerHTML = '⚠️ 出错了：' + escapeHtml(e.message); });
+}
+
+/* =================== v3.10.25 独立陪练聊天面板 =================== */
+function openCoach(){ openChatFree((st && st.lastCoach) || 'xue'); }
+function openChatFree(id){
+  if(!getMate(id)) id = 'xue';
+  S.chat = { id, idx:99, coach:false, quiz:null };
+  S.chatFrom = { screen:'s-home' };
+  loadChatHist(id);
+  go('s-chat');
+  renderChatFree();
+}
+function loadChatHist(id){
+  const saved = (st.chatHist && st.chatHist[id]) || [];
+  S.ai = { id, hist:[{ role:'system', content: aiPrompt(getMate(id)) }].concat(saved.slice(-HIST_KEEP*2)) };
+}
+function saveChatHist(){
+  if(!S.ai) return;
+  if(!st.chatHist) st.chatHist = {};
+  const h = S.ai.hist.filter(x => x.role !== 'system').slice(-HIST_KEEP*2)
+    .map(x => ({ role:x.role, content: clipText(x.content, 200) }));
+  st.chatHist[S.chat.id] = h; save();
+}
+function renderChatFree(){
+  const m = getMate(S.chat.id);
+  renderMateBar();
+  const box = document.getElementById('msgListBox'); if(!box) return; box.innerHTML = '';
+  const hist = S.ai.hist.filter(x => x.role !== 'system');
+  if(hist.length === 0){ bubbleHer(pick(m.lines.greet), true); }
+  else { for(const x of hist){ if(x.role === 'user') bubbleMe(x.content); else bubbleHer(x.content, true); } }
+  renderChatCtl();
+}
+function renderMateBar(){
+  const bar = document.getElementById('chatMateBar'); if(!bar) return; bar.innerHTML = '';
+  MATES.forEach(m => {
+    const b = document.createElement('div'); b.className = 'mb ' + (m.id === S.chat.id ? 'on' : '');
+    b.innerHTML = `<img src="${m.img}" onerror="this.style.display='none'"><span>${escapeHtml(m.name)}</span>`;
+    b.onclick = () => { if(st) st.lastCoach = m.id; save(); openChatFree(m.id); };
+    bar.appendChild(b);
+  });
+}
+function renderChatCtl(){
+  const ctl = document.getElementById('chatCtl'); if(!ctl) return; ctl.innerHTML = '';
+  const tg = document.createElement('button'); tg.className = 'chip ' + (S.chat.coach ? 'on' : '');
+  tg.textContent = S.chat.coach ? '🎯 陪练中' : '🎯 开启陪练';
+  tg.onclick = () => { S.chat.coach = !S.chat.coach; if(S.chat.coach && !S.chat.quiz) coachAsk('auto'); else renderChatFree(); };
+  ctl.appendChild(tg);
+  if(S.chat.coach && !S.chat.quiz){
+    ['政治','英语','高数'].forEach(sj => {
+      const b = document.createElement('button'); b.className = 'chip'; b.textContent = '考我·' + sj;
+      b.onclick = () => coachAsk(sj); ctl.appendChild(b);
+    });
+  }
+  const quick = ['帮我讲讲极限','出道题考我','我有点紧张，陪我说说话','这个公式怎么记'];
+  quick.forEach(q => { const b = document.createElement('button'); b.className = 'chip q'; b.textContent = q; b.onclick = () => sendFree(q); ctl.appendChild(b); });
+}
+const COACH_BANK = {
+  '英语':[['abandon','v. 抛弃，放弃'],['advantage','n. 优点，好处'],['consequence','n. 结果，后果'],['consist of','由…组成'],['in spite of','尽管，不管'],['take effect','生效，起作用'],['make sense','有意义，讲得通'],['in terms of','就…而言，在…方面']],
+  '政治':[['新民主主义革命','1919—1949，无产阶级领导的人民民主革命'],['量变与质变','量变是质变的必要准备，质变是量变的必然结果'],['实践是检验真理的唯一标准','真理的标准只能是社会实践'],['三个代表','代表先进生产力、先进文化、最广大人民根本利益'],['矛盾的特殊性','具体问题具体分析是马克思主义的活的灵魂']],
+  '高数':[['洛必达法则','0/0 或 ∞/∞ 型极限，上下分别求导再取极限'],['两个重要极限','lim(sin x/x)=1；lim(1+1/x)^x=e'],['等价无穷小','x→0 时 sin x~x，ln(1+x)~x，e^x-1~x'],['连续的条件','有定义、极限存在、极限等于函数值'],['导数定义',"f'(x)=lim(Δx→0)[f(x+Δx)-f(x)]/Δx"]]
+};
+function coachSubjectKeys(sj){
+  const pref = { '政治':['pol'], '英语':['eng'], '高数':['mat'] }[sj] || [];
+  return Object.keys(window.RES_INDEX || {}).filter(k => {
+    const m = (window.RES_INDEX[k]) || {};
+    if(m.subj === sj) return true;
+    return pref.some(p => k.indexOf(p) === 0);
+  });
+}
+async function coachAsk(sj){
+  if(sj === 'auto'){ const arr = ['政治','英语','高数']; sj = arr[Math.floor(Math.random()*3)]; }
+  const keys = coachSubjectKeys(sj);
+  const key = keys.length ? keys[Math.floor(Math.random()*keys.length)] : null;
+  let mod = key ? (window.CK_MODULES && window.CK_MODULES[key]) : null;
+  if(key && !mod){ await new Promise(r => resEnsure(key, () => r(true))); mod = window.CK_MODULES && window.CK_MODULES[key]; }
+  const list = (mod && mod.list) || [];
+  const dir = (mod && mod.meta && mod.meta.dir) || 'e2c';
+  let item = null;
+  for(let t=0; t<12 && !item; t++){
+    if(!list.length) break;
+    const cand = list[Math.floor(Math.random()*list.length)];
+    const en = String(cand[1]||'').trim(), cn = String(cand[2]||'').trim();
+    if(en && cn){ item = cand; break; }
+  }
+  if(!item){
+    const bank = COACH_BANK[sj] || [];
+    if(!bank.length){ bubbleHer('（这科资料还在整理，先聊点别的？）', true); return; }
+    const b = bank[Math.floor(Math.random()*bank.length)]; item = { en: b[0], cn: b[1] };
+  }
+  const q = (dir === 'c2e')
+    ? ('用英语说出：「' + String(item.cn||'').slice(0,40) + '」')
+    : ('用中文解释一下：「' + String(item.en||'').slice(0,40) + '」');
+  S.chat.quiz = { answer: dir==='c2e' ? item.en : item.cn, key: key || ('bank:'+sj) };
+  const m = getMate(S.chat.id);
+  const qt = m.name + '：来，考你一道（' + sj + '）— ' + q + '  （把答案发给我，我帮你判分～）';
+  bubbleHer(qt, true);
+  if(S.ai) S.ai.hist.push({ role:'assistant', content: qt });
+  const ctl = document.getElementById('chatCtl'); if(ctl) ctl.innerHTML = '';
+}
+async function coachFeedback(userAns, qz){
+  const ans = String(qz.answer || '');
+  const chk = aiCheck();
+  if(chk.ok){
+    const m = getMate(S.chat.id);
+    const sys = aiPrompt(m) + '\n你正在陪学员做抽背练习。学员刚回答了你出的题，标准答案是：「' + ans + '」。学员回答：「' + userAns + '」。请用你的人设口吻：先一句点评（对了/差一点/不对），再给出标准答案，最后一句记忆小技巧。≤160字。';
+    try{ const r = await aiCall([{ role:'system', content: sys }]); if(r && r.trim()) return r.trim(); }catch(e){}
+  }
+  const ua = String(userAns);
+  const segs = ans.split(/[，。、；;，\s]+/).filter(w => w && w.length >= 2);
+  const hit = segs.filter(w => ua.indexOf(w) >= 0).length;
+  const verdict = hit >= 2 ? '（对味了！）' : (hit >= 1 ? '（沾边了，再准一点～）' : '（还差得远，看答案）');
+  return verdict + ' 标准答案：' + ans + '。把这句中关键词多读两遍，下次就顺了。';
 }
 
 /* =================== 电话 =================== */
