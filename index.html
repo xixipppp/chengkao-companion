@@ -1052,6 +1052,7 @@
     <button class="btn magenta mt10" onclick="startEssay()">✍️ 作文 25 分 · 模板速成<small style="font-weight:600;font-size:11px"> · 万能骨架+抄题三步法 · 槽位词库 · 7关闯关 · 2019-2025真题范文库</small></button>
     <button class="btn magenta mt10" onclick="startStepScore()">✍️ 大题步骤分 · 专项突破<small style="font-weight:600;font-size:11px"> · 解答题按步给分 · 五步作答骨架 · 7关闯关 · 80道真题「步骤排序」训练</small></button>
     <button class="btn gold mt10" onclick="startQuickRef()">📕 刷卷作战总册 · 随身速查<small style="font-weight:600;font-size:11px"> · 高数+英语+政治三科速查 · 秒题卡/作文模板/政治模板/薄弱点定位 · 边做纸质卷边翻</small></button>
+    <button class="btn teal mt10" onclick="startKaoShi()">📝 高数(二)模拟考卷 · 按方法精练<small style="font-weight:600;font-size:11px"> · 28题诊断卷(150分) · 每题绑定刀法/步骤模板 · 盲做→按需提示→考后薄弱点诊断跳专练</small></button>
     <button class="btn teal mt10" onclick="memOpen('vocab')">📚 英语高频词汇<small style="font-weight:600;font-size:11px"> · 真题高频词 · 看词选义/听音选义/配对 · 错词本+收藏笔记</small></button>
     <button class="btn gold mt10" onclick="memOpen('collo')">🔗 固定搭配+语法大招<small style="font-weight:600;font-size:11px"> · 搭配填空/选择 · 语法口诀速记 · 错词本+收藏笔记</small></button>
     <button class="btn magenta mt10" onclick="memOpen('news26')">📰 2026政治时政<small style="font-weight:600;font-size:11px"> · 会议/热词/数据自测 · 口诀 · 错词本+收藏笔记</small></button>
@@ -1282,6 +1283,12 @@
     <div id="quickrefBody"></div>
   </section>
 
+  <!-- ============ 高数(二)模拟考卷 · 按方法精练（v3.10.28） ============ -->
+  <section class="screen" id="s-kaoshi">
+    <div class="back" onclick="kaoShiBack()">← 返回自习室</div>
+    <div id="kaoshiBody"></div>
+  </section>
+
   <!-- ============ ME ============ -->
   <section class="screen" id="s-me">
     <div class="back" onclick="go('s-home')">← 返回</div>
@@ -1421,10 +1428,12 @@
 <script src="data/collo_pol.js"></script>
 <script src="data/news26_pol.js"></script> <!-- v3.10.14 · 词组速记：成考英语必背词组 257 条（10 大类）+ 记忆答题 + 配对记忆小游戏 + 错词本，离线可用 -->
 <script src="data/res_index.js"></script> <!-- v3.10.21 · 资料库→模块清单：42 份资料逐份做成练习模块（模块脚本按需动态加载，数据驱动，加新模块不改 HTML） -->
+<script src="data/_qkit.js"></script> <!-- v3.10.x · 通用答后增强面板工具包（角色关键词提示/AI讲师/收藏/笔记/诊断/变式/动画），4 个新专项模块共用，加载时把新模块注册进全局 MOD2MATE，离线可用 -->
 <script src="data/cloze80_pol.js"></script> <!-- v3.10.23 · 完形 80% 专项突破：三色词表(v3实测)+决策树+组合规则+6关闯关（技巧/词汇/语境三层），离线可用 -->
 <script src="data/mathsec_pol.js"></script> <!-- v3.10.24 · 数学秒题·专项突破：通用四把刀+五模块套路+决策链+被证伪清单 + 7关闯关（题库实测覆盖率），离线可用 -->
 <script src="data/stepscore_pol.js"></script> <!-- v3.10.26 · 大题步骤分·专项突破：解答题按步给分（公式30%是土办法漏掉的大头）+ 五步作答骨架 + 7关·80道真题的「作答步骤排序」训练，离线可用 -->
 <script src="data/quickref_pol.js"></script> <!-- v3.10.27 · 刷卷作战总册·随身速查：高数+英语+政治三科合并速查（秒题卡/五步骨架/作文模板/政治模板/薄弱点定位器/证伪清单），离线可用 -->
+<script src="data/kaoshi_pol.js"></script> <!-- v3.10.28 · 高数(二)模拟考卷·按方法精练：28题诊断卷(150分)，每题绑定秒题刀法/步骤模板，盲做→按需提示→考后薄弱点诊断映射 mathsec/stepscore，离线可用 -->
 <script src="data/essay_pol.js"></script> <!-- 作文 25 分·模板速成：万能骨架+抄题三步法+槽位词库+100句型/100谚语（35页OCR）+2019-2025真题范文库+官方评分五档，离线可用 -->
 <!-- v3.4.0 · 首屏减负：data/kaodian.js(501KB 考点速记资料库) 与 data/goldpoints.js(380KB 黄金考点)
      都不参与 ALLQ 构建，只有「考点速记」页与「速记图猜考点」小游戏用到 →
@@ -2293,7 +2302,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.10.27';  // 刷卷作战总册·随身速查：高数+英语+政治三科合并速查模块（秒题卡/五步骨架/作文模板/政治模板/薄弱点定位器/证伪清单）；上版 v3.10.26 大题步骤分
+const APP_VER = 'v3.10.28';  // 高数(二)模拟考卷·按方法精练：28题诊断卷(150分)，每题绑定秒题刀法/步骤模板，盲做→按需提示→考后薄弱点诊断映射 mathsec/stepscore；上版 v3.10.27 刷卷作战总册
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
@@ -3151,6 +3160,7 @@ function go(t){
   else if(t === 's-essay') renderEssay();
   else if(t === 's-stepscore') renderStepScore();
   else if(t === 's-quickref') renderQuickRef();
+  else if(t === 's-kaoshi') renderKaoShi();
   else if(t === 's-mem') renderMem();
   else if(t === 's-butler') renderButler();
   else if(t === 's-readanime') renderReadAnime();
