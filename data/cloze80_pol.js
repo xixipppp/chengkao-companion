@@ -214,16 +214,17 @@ function clozeQuiz(body, d, p){
     h += '<div class="sol show ' + (ok ? 'good' : 'bad') + '"><div class="h">'
        + (ok ? '✅ 答对了' : '❌ 正确答案：' + 'ABCD'[q.a] + '. ' + escapeHtml(q.o[q.a]))
        + '</div><div style="font-size:13px;line-height:1.7">' + escapeHtml(q.sol || '') + '</div>'
-       + (q.hint ? '<div style="margin-top:6px;color:var(--gold);font-size:12.5px">💡 ' + escapeHtml(q.hint) + '</div>' : '')
        + '<div style="margin-top:6px;font-size:12px;color:var(--sub)">考点：' + escapeHtml(q.cat) + '</div>'
        + '</div>';
   }
   h += '<div class="btns mt10">'
      + '<button class="btn sm ghost" onclick="clozeMark()">🔖 标记入错题本</button>'
      + '<button class="btn sm ghost" onclick="clozeBack()">← 返回主页</button></div>';
+  h += '<div id="qkAnchCloze"></div>';
   if(p.done) h += '<button class="btn keep mt10" style="width:100%" onclick="clozeNext()">' + (isLast ? '查看本关结果 ▶' : '下一题 ▶') + '</button>';
   h += '</div>';
   body.innerHTML = h;
+  if(p.done) qkitMount(document.getElementById('qkAnchCloze'), q, (p.picked === q.a), 'cloze80');
 }
 function cladzeHl(t){
   return escapeHtml(String(t)).replace(/_{2,}/g, '<b style="color:var(--magenta)">______</b>');
