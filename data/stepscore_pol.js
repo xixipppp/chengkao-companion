@@ -258,10 +258,12 @@ function stepscoreQuiz(body, d, p){
      + (p.done ? '' : '<button class="btn sm ghost" onclick="stepscoreReset()">↺ 重排</button>')
      + '<button class="btn sm ghost" onclick="stepscoreMark()">🔖 ' + (stepscoreST().wrong[q.id] ? '移出错题本' : '标记入错题本') + '</button>'
      + '<button class="btn sm ghost" onclick="stepscoreBack()">← 返回主页</button></div>';
+  h += '<div id="qkAnchStep"></div>';
   if(p.done) h += '<button class="btn keep mt10" style="width:100%" onclick="stepscoreNext()">' + (isLast ? '查看本关结果 ▶' : '下一题 ▶') + '</button>';
   else if(allPlaced) h += '<button class="btn keep mt10" style="width:100%" onclick="stepscoreSubmit()">提交作答 ▶</button>';
   h += '</div>';
   body.innerHTML = h;
+  if(p.done){ var okAll = p.placed.every(function(si, k){ return si === k; }); qkitMount(document.getElementById('qkAnchStep'), q, okAll, 'stepscore', { noActions:true, noChoiceTag:true }); }
 }
 function stepscorePlace(si){
   const p = S.stepscore; if(!p || p.done) return;
