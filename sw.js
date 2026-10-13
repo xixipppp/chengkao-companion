@@ -30,7 +30,7 @@
 
      - precache 单项失败从静默改 console.warn，便于排查缺块。 */
 
-const CACHE_PREFIX = 'ck-v3.10.29';
+const CACHE_PREFIX = 'ck-v3.10.30';
 
 const PRECACHE = CACHE_PREFIX + '-pre';
 
