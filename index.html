@@ -1053,7 +1053,7 @@
     <button class="btn magenta mt10" onclick="startStepScore()">✍️ 大题步骤分 · 专项突破<small style="font-weight:600;font-size:11px"> · 解答题按步给分 · 五步作答骨架 · 7关闯关 · 80道真题「步骤排序」训练</small></button>
     <button class="btn gold mt10" onclick="startQuickRef()">📕 刷卷作战总册 · 随身速查<small style="font-weight:600;font-size:11px"> · 高数+英语+政治三科速查 · 秒题卡/作文模板/政治模板/薄弱点定位 · 边做纸质卷边翻</small></button>
     <button class="btn teal mt10" onclick="startKaoShi()">📝 高数(二)模拟考卷 · 按方法精练<small style="font-weight:600;font-size:11px"> · 28题诊断卷(150分) · 每题绑定刀法/步骤模板 · 盲做→按需提示→考后薄弱点诊断跳专练</small></button>
-    <button class="btn magenta mt10" onclick="startPaper24()">📄 2024真题秒刷 · 秒题口诀<small style="font-weight:600;font-size:11px"> · 18题真题(150分) · 点选即时判分 + 一键弹口诀 + 连击 + 口诀薄弱锚定卡 + 错题复练</small></button>
+    <button class="btn magenta mt10" onclick="startPaper24()">📄 历年真题秒刷 · 秒题口诀<small style="font-weight:600;font-size:11px"> · 2025/2024/2023 三卷可切 · 点选即时判分 + 一键弹口诀 + 连击 + 口诀薄弱锚定卡 + 错题复练</small></button>
     <button class="btn teal mt10" onclick="memOpen('vocab')">📚 英语高频词汇<small style="font-weight:600;font-size:11px"> · 真题高频词 · 看词选义/听音选义/配对 · 错词本+收藏笔记</small></button>
     <button class="btn gold mt10" onclick="memOpen('collo')">🔗 固定搭配+语法大招<small style="font-weight:600;font-size:11px"> · 搭配填空/选择 · 语法口诀速记 · 错词本+收藏笔记</small></button>
     <button class="btn magenta mt10" onclick="memOpen('news26')">📰 2026政治时政<small style="font-weight:600;font-size:11px"> · 会议/热词/数据自测 · 口诀 · 错词本+收藏笔记</small></button>
@@ -2310,7 +2310,7 @@ function aiCacheSet(k, v){
 let st = load();
 try{ migrateAff(); }catch(e){}      // 1.11 好感阈值下调后的旧存档迁移（等级只升不降）
 const S = {detail:null, chat:null, drill:null, boss:null, mock:null};
-const APP_VER = 'v3.10.29';  // 2024真题秒刷(18题/150分)：点选即时判分+一键弹秒题口诀+连击+口诀薄弱锚定卡+错题复练；上版 v3.10.28 高数(二)模拟考卷·按方法精练
+const APP_VER = 'v3.10.30';  // 历年真题秒刷(2025/2024/2023 三卷可切)：点选即时判分+一键弹秒题口诀+连击+口诀薄弱锚定卡+错题复练，口诀库扩容至39条；上版 v3.10.29 2024真题秒刷
 
 /* =================== 工具 =================== */
 /* 0.12 估分模型：区间 + 样本条件 + 免责三件套（红线 R4：不承诺具体分数与过线结果）
